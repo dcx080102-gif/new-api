@@ -19,10 +19,15 @@ For commercial licensing, please contact support@quantumnous.com
 import { useState, useMemo } from 'react'
 import { Link, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { X, AlertTriangle, Zap, Shield, Activity, Coins } from 'lucide-react'
+import { X, AlertTriangle, Zap, Shield, Activity, Coins, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { IconGithub, IconGmail } from '@/assets/brand-icons'
+import { cn } from '@/lib/utils'
 import { useStatus } from '@/hooks/use-status'
+import { Button } from '@/components/ui/button'
 import { AuthLayout } from '../auth-layout'
 import { UserAuthForm } from './components/user-auth-form'
+import { useOAuthLogin } from '../hooks/use-oauth-login'
 
 const features = [
   {
@@ -130,12 +135,21 @@ export function SignIn() {
   const { t } = useTranslation()
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
   const { status } = useStatus()
+  const {
+    isLoading: oauthLoading,
+    handleGitHubLogin,
+    handleOIDCLogin,
+  } = useOAuthLogin(status)
 
   const showExpired = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
     return params.get('expired') === 'true'
   }, [])
   const [expiredBannerDismissed, setExpiredBannerDismissed] = useState(false)
+
+  // TODO: 改为 showSocialLogin 按需显示（需要 OAuth 配置）
+  // const showSocialLogin = status?.github_oauth || status?.oidc_enabled
+  const showSocialLogin = true // 预览模式：始终显示
 
   return (
     <AuthLayout brandPanel={<BrandPanel />}>
@@ -158,7 +172,7 @@ export function SignIn() {
 
         {/* Sign-in Heading */}
         <div className='space-y-2'>
-          <h2 className='text-center text-2xl font-semibold tracking-tight sm:text-left'>
+          <h2 className='text-left text-2xl font-semibold tracking-tight'>
             {t('Sign in')}
           </h2>
           {!status?.self_use_mode_enabled &&
@@ -176,6 +190,58 @@ export function SignIn() {
         </div>
 
         <UserAuthForm redirectTo={redirect} />
+
+        {/* Social Login — GitHub & Gmail, left-aligned */}
+        {showSocialLogin && (
+          <div className='space-y-3'>
+            <div className='relative'>
+              <div className='absolute inset-0 flex items-center'>
+                <span className='w-full border-t border-slate-200 dark:border-slate-800' />
+              </div>
+              <div className='relative flex justify-start'>
+                <span className='bg-slate-50 pr-3 text-xs text-slate-400 dark:bg-slate-950 dark:text-slate-500'>
+                  {t('Or continue with')}
+                </span>
+              </div>
+            </div>
+            <div className='flex gap-3'>
+              {/* GitHub */}
+              <Button
+                variant='outline'
+                type='button'
+                disabled={oauthLoading}
+                onClick={handleGitHubLogin}
+                className={cn(
+                  'h-11 flex-1 justify-center gap-2 rounded-lg border-slate-200/80 bg-white/60 text-sm font-medium text-slate-700 backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                )}
+              >
+                {oauthLoading ? (
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                ) : (
+                  <IconGithub className='h-4 w-4' />
+                )}
+                GitHub
+              </Button>
+              {/* Gmail */}
+              <Button
+                variant='outline'
+                type='button'
+                disabled={oauthLoading}
+                onClick={handleOIDCLogin}
+                className={cn(
+                  'h-11 flex-1 justify-center gap-2 rounded-lg border-slate-200/80 bg-white/60 text-sm font-medium text-slate-700 backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                )}
+              >
+                {oauthLoading ? (
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                ) : (
+                  <IconGmail className='h-4 w-4' />
+                )}
+                Gmail
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </AuthLayout>
   )
