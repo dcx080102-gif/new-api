@@ -107,13 +107,9 @@ export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
             <div className='flex items-center justify-center md:justify-end'>
               <div className='w-full max-w-md'>{brandPanel}</div>
             </div>
-            {/* Right: Form Card */}
+            {/* Right: Form Area (no card — matches left side) */}
             <div className='flex items-center justify-center md:justify-start'>
-              <div className='w-full max-w-[440px]'>
-                <div className='rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm transition-shadow duration-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'>
-                  {children}
-                </div>
-              </div>
+              <div className='w-full max-w-[400px]'>{children}</div>
             </div>
           </div>
         </main>
