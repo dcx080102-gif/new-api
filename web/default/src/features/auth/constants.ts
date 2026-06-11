@@ -17,44 +17,61 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { z } from 'zod'
+import { t } from 'i18next'
 
 // ============================================================================
-// Form Schemas
+// Form Schemas (functions for dynamic i18n)
 // ============================================================================
 
-export const loginFormSchema = z.object({
-  username: z.string().min(1, '请输入用户名或电子邮件'),
-  password: z
-    .string()
-    .min(1, '请输入密码')
-    .min(8, '密码至少需要8个字符'),
-})
-
-export const registerFormSchema = z
-  .object({
-    username: z.string().min(1, '请输入用户名'),
-    email: z.string().optional(),
+export function createLoginFormSchema() {
+  return z.object({
+    username: z.string().min(1, t('Please enter your username or email')),
     password: z
       .string()
-      .min(1, '请输入密码')
-      .min(8, '密码至少需要8个字符')
-      .max(20, '密码最多20个字符'),
-    confirmPassword: z.string().min(1, '请确认密码'),
+      .min(1, t('Please enter your password'))
+      .min(8, t('Password must be at least 8 characters')),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "两次密码不一致",
-    path: ['confirmPassword'],
+}
+
+export function createRegisterFormSchema() {
+  return z
+    .object({
+      username: z.string().min(1, t('Please enter your username')),
+      email: z.string().optional(),
+      password: z
+        .string()
+        .min(1, t('Please enter your password'))
+        .min(8, t('Password must be at least 8 characters'))
+        .max(20, t('Password must be at most 20 characters')),
+      confirmPassword: z.string().min(1, t('Please confirm your password')),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('Passwords do not match'),
+      path: ['confirmPassword'],
+    })
+}
+
+export function createForgotPasswordFormSchema() {
+  return z.object({
+    email: z.string().email({
+      message: t('Please enter a valid email address'),
+    }),
   })
+}
 
-export const forgotPasswordFormSchema = z.object({
-  email: z.string().email({
-    message: '请输入有效的电子邮件地址',
-  }),
-})
+export function createOtpFormSchema() {
+  return z.object({
+    otp: z.string().min(1, t('Please enter the verification code')),
+  })
+}
 
-export const otpFormSchema = z.object({
-  otp: z.string().min(1, '请输入验证码'),
-})
+// Legacy aliases removed — use createXxxFormSchema() directly in components
+// so validation messages follow the current language.
+
+export type LoginFormValues = z.infer<ReturnType<typeof createLoginFormSchema>>
+export type RegisterFormValues = z.infer<ReturnType<typeof createRegisterFormSchema>>
+export type ForgotPasswordFormValues = z.infer<ReturnType<typeof createForgotPasswordFormSchema>>
+export type OtpFormValues = z.infer<ReturnType<typeof createOtpFormSchema>>
 
 // ============================================================================
 // Validation Constants

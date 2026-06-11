@@ -37,7 +37,7 @@ interface NotificationStore {
 
 function loadFromStorage(): Notification[] {
   try {
-    const stored = localStorage.getItem('dvl_notifications')
+    const stored = localStorage.getItem('dvl_notifications_v2')
     if (stored) {
       const parsed = JSON.parse(stored)
       if (Array.isArray(parsed) && parsed.length > 0) return parsed
@@ -56,24 +56,24 @@ function getDefaultNotifications(): Notification[] {
   return [
     {
       id: '1',
-      title: '模型价格更新',
-      message: 'GPT-4o 价格已调整为 ¥0.015/1K tokens，Claude 3.5 Sonnet 降至 ¥0.012/1K tokens',
+      title: 'Model Price Update',
+      message: 'GPT-4o price adjusted to ¥0.015/1K tokens, Claude 3.5 Sonnet reduced to ¥0.012/1K tokens',
       type: 'price',
       timestamp: now - 3600000,
       read: false,
     },
     {
       id: '2',
-      title: '系统更新公告',
-      message: '平台已完成 v2.0 升级，新增批量操作功能和优化了响应速度',
+      title: 'System Update Announcement',
+      message: 'Platform upgraded to v2.0, added batch operations and optimized response speed',
       type: 'update',
       timestamp: now - 86400000,
       read: false,
     },
     {
       id: '3',
-      title: '新模型上线',
-      message: 'DeepSeek-V3 和 Gemini 2.0 Flash 已接入，欢迎试用',
+      title: 'New Models Available',
+      message: 'DeepSeek-V3 and Gemini 2.0 Flash are now available, welcome to try',
       type: 'announcement',
       timestamp: now - 172800000,
       read: true,
@@ -83,7 +83,7 @@ function getDefaultNotifications(): Notification[] {
 
 function saveToStorage(notifications: Notification[]) {
   try {
-    localStorage.setItem('dvl_notifications', JSON.stringify(notifications))
+    localStorage.setItem('dvl_notifications_v2', JSON.stringify(notifications))
   } catch {
     // localStorage may be unavailable
   }

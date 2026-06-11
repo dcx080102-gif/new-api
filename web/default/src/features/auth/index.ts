@@ -57,10 +57,10 @@ export type {
 // ============================================================================
 
 export {
-  loginFormSchema,
-  registerFormSchema,
-  forgotPasswordFormSchema,
-  otpFormSchema,
+  createLoginFormSchema,
+  createRegisterFormSchema,
+  createForgotPasswordFormSchema,
+  createOtpFormSchema,
   PASSWORD_MIN_LENGTH,
   PASSWORD_MAX_LENGTH,
   OTP_LENGTH,
@@ -69,6 +69,12 @@ export {
   OTP_REGEX,
   EMAIL_VERIFICATION_COUNTDOWN,
   PASSWORD_RESET_COUNTDOWN,
+} from './constants'
+export type {
+  LoginFormValues,
+  RegisterFormValues,
+  ForgotPasswordFormValues,
+  OtpFormValues,
 } from './constants'
 
 // ============================================================================
