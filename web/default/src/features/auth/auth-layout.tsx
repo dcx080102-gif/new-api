@@ -45,8 +45,8 @@ export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
         backgroundSize: '100% 100%, 24px 24px',
       }}
     >
-      {/* Top Navbar — frosted glass */}
-      <header className='sticky top-0 z-50 flex h-14 shrink-0 items-center border-b border-slate-200/60 bg-white/80 backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-950/80'>
+      {/* Top Navbar — gradient frosted glass */}
+      <header className='sticky top-0 z-50 flex h-14 shrink-0 items-center border-b border-slate-200/40 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/40 backdrop-blur-md dark:border-slate-800/40 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/90'>
         <div className='flex w-full items-center justify-between px-4 md:px-6'>
           {/* Left: Logo + Brand */}
           <Link
