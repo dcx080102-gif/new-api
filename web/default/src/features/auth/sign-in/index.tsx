@@ -29,30 +29,32 @@ import { AuthLayout } from '../auth-layout'
 import { UserAuthForm } from './components/user-auth-form'
 import { useOAuthLogin } from '../hooks/use-oauth-login'
 
-const features = [
-  {
-    icon: Activity,
-    title: '99.9% 在线率',
-    desc: '多节点容灾，服务永不掉线',
-  },
-  {
-    icon: Zap,
-    title: '极速响应',
-    desc: '平均延迟低于 80ms，丝滑体验',
-  },
-  {
-    icon: Shield,
-    title: '企业级安全',
-    desc: '数据加密隔离，SOC 2 合规',
-  },
-  {
-    icon: Coins,
-    title: '透明计费',
-    desc: '用多少付多少，无隐藏费用',
-  },
-]
-
 function BrandPanel() {
+  const { t } = useTranslation()
+
+  const features = [
+    {
+      icon: Activity,
+      title: t('99.9% 在线率'),
+      desc: t('多节点容灾，服务永不掉线'),
+    },
+    {
+      icon: Zap,
+      title: t('极速响应'),
+      desc: t('平均延迟低于 80ms，丝滑体验'),
+    },
+    {
+      icon: Shield,
+      title: t('企业级安全'),
+      desc: t('数据加密隔离，SOC 2 合规'),
+    },
+    {
+      icon: Coins,
+      title: t('透明计费'),
+      desc: t('用多少付多少，无隐藏费用'),
+    },
+  ]
+
   return (
     <div className='space-y-8 text-center md:text-left'>
       {/* Badge */}
@@ -61,18 +63,18 @@ function BrandPanel() {
           <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75' />
           <span className='relative inline-flex h-2 w-2 rounded-full bg-green-500' />
         </span>
-        服务运行中
+        {t('服务运行中')}
       </div>
 
       {/* Headline */}
       <div className='space-y-3'>
         <h1 className='text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl'>
-          一个 API
+          {t('一个 API')}
           <br />
-          开启 AI 无限可能
+          {t('开启 AI 无限可能')}
         </h1>
         <p className='text-base text-slate-500 dark:text-slate-400'>
-          汇聚 40+ AI 大模型，统一接入、统一计费、统一管理
+          {t('汇聚 40+ AI 大模型，统一接入、统一计费、统一管理')}
         </p>
       </div>
 
@@ -105,7 +107,7 @@ function BrandPanel() {
             128K+
           </p>
           <p className='text-xs text-slate-500 dark:text-slate-400'>
-            开发者信赖
+            {t('开发者信赖')}
           </p>
         </div>
         <div className='h-10 w-px bg-slate-200 dark:bg-slate-800' />
@@ -114,7 +116,7 @@ function BrandPanel() {
             40+
           </p>
           <p className='text-xs text-slate-500 dark:text-slate-400'>
-            AI 模型接入
+            {t('AI 模型接入')}
           </p>
         </div>
         <div className='h-10 w-px bg-slate-200 dark:bg-slate-800' />
@@ -123,7 +125,7 @@ function BrandPanel() {
             10M+
           </p>
           <p className='text-xs text-slate-500 dark:text-slate-400'>
-            日处理请求
+            {t('日处理请求')}
           </p>
         </div>
       </div>
