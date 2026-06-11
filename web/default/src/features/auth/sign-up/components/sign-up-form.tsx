@@ -98,6 +98,14 @@ export function SignUpForm({
   })
 
   const emailValue = form.watch('email')
+  // Re-validate form when language changes
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger()
+    }
+  }, [i18n.language])
+
+
   const emailVerificationRequired = !!status?.email_verification
   const hasUserAgreement = Boolean(status?.user_agreement_enabled)
   const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
@@ -386,7 +394,7 @@ export function SignUpForm({
           onOpenChange={handleWeChatDialogChange}
           title={t('WeChat sign in')}
           description={t(
-            'Scan the QR code to follow the official account and reply with “验证码” to receive your verification code.'
+            'Scan the QR code to follow the official account and reply with “验证码�?to receive your verification code.'
           )}
           contentClassName='max-w-sm'
           headerClassName='text-left'

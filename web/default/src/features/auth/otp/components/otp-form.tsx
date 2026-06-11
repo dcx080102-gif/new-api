@@ -16,8 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
-import type { z } from 'zod'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
@@ -63,6 +62,7 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
   const [useBackupCode, setUseBackupCode] = useState(false)
 
   const { auth } = useAuthStore()
+  const { redirectToLogin } = useAuthRedirect()
 
   // Re-create schema when language changes
   const otpSchema = useMemo(() => createOtpFormSchema(), [i18n.language])
@@ -73,6 +73,13 @@ export function OtpForm({ className, ...props }: OtpFormProps) {
   })
 
   const otp = form.watch('otp')
+
+  // Re-validate form when language changes
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger()
+    }
+  }, [i18n.language])
 
   async function onSubmit(data: OtpFormValues) {
     // Validate based on mode

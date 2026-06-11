@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -69,6 +69,14 @@ export function ForgotPasswordForm({
     defaultValues: { email: '' },
   })
   const turnstileReady = !isTurnstileEnabled || Boolean(turnstileToken)
+  // Re-validate form when language changes
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger()
+    }
+  }, [i18n.language])
+
+
 
   async function onSubmit(data: ForgotPasswordFormValues) {
     if (!validateTurnstile()) return

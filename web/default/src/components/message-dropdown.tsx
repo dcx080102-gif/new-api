@@ -74,7 +74,7 @@ function typeColor(type: Notification['type']) {
   }
 }
 
-function formatTime(ts: number, t: (key: string) => string): string {
+function formatTime(ts: number, t: (key: string, options?: Record<string, unknown>) => string): string {
   const diff = Date.now() - ts
   const mins = Math.floor(diff / 60000)
   if (mins < 1) return t('Just now')
@@ -85,7 +85,7 @@ function formatTime(ts: number, t: (key: string) => string): string {
   return t('{{count}} days ago', { count: days })
 }
 
-function formatDate(ts: number, t: (key: string) => string): string {
+function formatDate(ts: number, t: (key: string, options?: Record<string, unknown>) => string): string {
   const locale = t('_locale') === 'zh' ? 'zh-CN' : 'en-US'
   return new Date(ts).toLocaleString(locale, {
     year: 'numeric',
