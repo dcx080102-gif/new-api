@@ -82,6 +82,7 @@
     "@tanstack/react-router-devtools": "^1.167.0",
     "@tanstack/router-plugin": "^1.168.11",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/hast": "^3.0.4",
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
@@ -95,7 +96,7 @@
     "prettier": "catalog:",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "shadcn": "^4.8.0",
-    "typescript": "~6.0.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.4"
   },
   "overrides": {

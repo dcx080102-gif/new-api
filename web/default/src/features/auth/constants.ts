@@ -23,37 +23,37 @@ import { z } from 'zod'
 // ============================================================================
 
 export const loginFormSchema = z.object({
-  username: z.string().min(1, 'Please enter your username or email'),
+  username: z.string().min(1, '请输入用户名或电子邮件'),
   password: z
     .string()
-    .min(1, 'Please enter your password')
-    .min(8, 'Password must be at least 8 characters long'),
+    .min(1, '请输入密码')
+    .min(8, '密码至少需要8个字符'),
 })
 
 export const registerFormSchema = z
   .object({
-    username: z.string().min(1, 'Please enter your username'),
+    username: z.string().min(1, '请输入用户名'),
     email: z.string().optional(),
     password: z
       .string()
-      .min(1, 'Please enter your password')
-      .min(8, 'Password must be at least 8 characters long')
-      .max(20, 'Password must be at most 20 characters long'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
+      .min(1, '请输入密码')
+      .min(8, '密码至少需要8个字符')
+      .max(20, '密码最多20个字符'),
+    confirmPassword: z.string().min(1, '请确认密码'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
+    message: "两次密码不一致",
     path: ['confirmPassword'],
   })
 
 export const forgotPasswordFormSchema = z.object({
   email: z.string().email({
-    message: 'Please enter a valid email address',
+    message: '请输入有效的电子邮件地址',
   }),
 })
 
 export const otpFormSchema = z.object({
-  otp: z.string().min(1, 'Please enter a code.'),
+  otp: z.string().min(1, '请输入验证码'),
 })
 
 // ============================================================================

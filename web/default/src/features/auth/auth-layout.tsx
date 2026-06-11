@@ -20,6 +20,9 @@ import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Mail } from 'lucide-react'
+import { ThemeSwitch } from '@/components/theme-switch'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 type AuthLayoutProps = {
   children: React.ReactNode
@@ -28,35 +31,91 @@ type AuthLayoutProps = {
 export function AuthLayout({ children }: AuthLayoutProps) {
   const { t } = useTranslation()
   const { systemName, logo, loading } = useSystemConfig()
+  const year = new Date().getFullYear()
 
   return (
-    <div className='relative grid h-svh max-w-none'>
-      <Link
-        to='/'
-        className='absolute top-4 left-4 z-10 flex items-center gap-2 transition-opacity hover:opacity-80 sm:top-8 sm:left-8'
-      >
-        <div className='relative h-8 w-8'>
-          {loading ? (
-            <Skeleton className='absolute inset-0 rounded-full' />
-          ) : (
-            <img
-              src={logo}
-              alt={t('Logo')}
-              className='h-8 w-8 rounded-full object-cover'
-            />
-          )}
+    <div className='flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950'>
+      {/* Top Navbar — frosted glass */}
+      <header className='sticky top-0 z-50 flex h-14 shrink-0 items-center border-b border-slate-200/60 bg-white/80 backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-950/80'>
+        <div className='flex w-full items-center justify-between px-4 md:px-6'>
+          {/* Left: Logo + Brand */}
+          <Link
+            to='/'
+            className='flex items-center gap-2.5 transition-opacity hover:opacity-80'
+          >
+            <div className='relative h-7 w-7 shrink-0'>
+              {loading ? (
+                <Skeleton className='absolute inset-0 rounded-full' />
+              ) : (
+                <img
+                  src={logo}
+                  alt={t('Logo')}
+                  className='h-7 w-7 rounded-full object-cover'
+                />
+              )}
+            </div>
+            {loading ? (
+              <Skeleton className='h-5 w-24' />
+            ) : (
+              <span className='truncate text-base font-bold text-slate-900 dark:text-white'>
+                {systemName}
+              </span>
+            )}
+          </Link>
+
+          {/* Right: Nav + Theme */}
+          <div className='flex items-center gap-4'>
+            <nav className='flex items-center gap-5 text-sm font-medium text-slate-600 dark:text-slate-400'>
+              <Link
+                to='/'
+                className='transition-colors hover:text-slate-900 dark:hover:text-white'
+              >
+                {t('Home')}
+              </Link>
+              <a
+                href='#'
+                className='transition-colors hover:text-slate-900 dark:hover:text-white'
+              >
+                {t('Docs')}
+              </a>
+            </nav>
+            <div className='ml-2 flex items-center gap-1 border-l border-slate-200 pl-4 dark:border-slate-700'>
+              <button
+                className='inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-200 hover:scale-110 hover:text-primary'
+                aria-label={t('Messages')}
+              >
+                <Mail className='size-[1.2rem]' />
+              </button>
+              <LanguageSwitcher />
+              <ThemeSwitch />
+            </div>
+          </div>
         </div>
-        {loading ? (
-          <Skeleton className='h-6 w-24' />
-        ) : (
-          <h1 className='text-xl font-medium'>{systemName}</h1>
-        )}
-      </Link>
-      <div className='container flex items-center pt-16 sm:pt-0'>
-        <div className='mx-auto flex w-full flex-col justify-center space-y-2 px-4 py-8 sm:w-[480px] sm:p-8'>
-          {children}
+      </header>
+
+      {/* Main Content Area — with card wrapper */}
+      <main className='flex flex-1 items-center justify-center px-4 py-10 md:py-16'>
+        <div className='w-full max-w-[440px]'>
+          {/* Card container */}
+          <div className='rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+            {children}
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className='py-6 text-center text-xs text-slate-400 dark:text-slate-500'>
+        &copy; {year} {systemName}.{' '}
+        {t('Powered by')}{' '}
+        <a
+          href='https://github.com/QuantumNous/new-api'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='underline underline-offset-4 transition-colors hover:text-slate-600 dark:hover:text-slate-400'
+        >
+          {systemName}
+        </a>
+      </footer>
     </div>
   )
 }

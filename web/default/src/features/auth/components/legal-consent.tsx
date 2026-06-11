@@ -71,23 +71,22 @@ export function LegalConsent({
               href='/user-agreement'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-primary hover:underline'
+              className='text-primary hover:text-primary/80 relative inline-block font-medium transition-all duration-200 hover:scale-105 after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full'
             >
               {t('User Agreement')}
             </a>
           )}
-          {hasUserAgreement && hasPrivacyPolicy && ' and the '}
+          {hasUserAgreement && hasPrivacyPolicy && ` ${t('and')} ${t('the')} `}
           {hasPrivacyPolicy && (
             <a
               href='/privacy-policy'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-primary hover:underline'
+              className='text-primary hover:text-primary/80 relative inline-block font-medium transition-all duration-200 hover:scale-105 after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full'
             >
               {t('Privacy Policy')}
             </a>
           )}
-          .
         </span>
       </Label>
     </div>

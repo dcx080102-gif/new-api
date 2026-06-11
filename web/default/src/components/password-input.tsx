@@ -18,8 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import * as React from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-import { Button } from './ui/button'
 import { Input } from './ui/input'
 
 type PasswordInputProps = Omit<
@@ -35,6 +35,7 @@ export function PasswordInput({
   ref,
   ...props
 }: PasswordInputProps) {
+  const { t } = useTranslation()
   const [showPassword, setShowPassword] = React.useState(false)
 
   return (
@@ -43,23 +44,34 @@ export function PasswordInput({
         type={showPassword ? 'text' : 'password'}
         ref={ref}
         disabled={disabled}
+        className='pr-10'
         {...props}
       />
-      <Button
+      <button
         type='button'
-        size='icon'
-        variant='ghost'
         disabled={disabled}
-        className='text-muted-foreground absolute end-1 top-1/2 h-6 w-6 -translate-y-1/2 rounded-md'
+        className='absolute end-1.5 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50'
         onClick={() => setShowPassword((prev) => !prev)}
-        aria-label='Toggle password visibility'
+        aria-label={t('Toggle password visibility')}
+        tabIndex={-1}
       >
-        {showPassword ? (
-          <Eye size={18} aria-hidden='true' />
-        ) : (
-          <EyeOff size={18} aria-hidden='true' />
-        )}
-      </Button>
+        <EyeOff
+          size={17}
+          aria-hidden='true'
+          className={cn(
+            'col-start-1 row-start-1 transition-all duration-200',
+            showPassword ? 'scale-0 opacity-0' : 'scale-100 opacity-100'
+          )}
+        />
+        <Eye
+          size={17}
+          aria-hidden='true'
+          className={cn(
+            'col-start-1 row-start-1 transition-all duration-200',
+            showPassword ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+          )}
+        />
+      </button>
     </div>
   )
 }

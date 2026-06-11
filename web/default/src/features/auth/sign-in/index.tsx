@@ -16,11 +16,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useState, useMemo } from 'react'
 import { Link, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { X, AlertTriangle } from 'lucide-react'
 import { useStatus } from '@/hooks/use-status'
 import { AuthLayout } from '../auth-layout'
-import { TermsFooter } from '../components/terms-footer'
 import { UserAuthForm } from './components/user-auth-form'
 
 export function SignIn() {
@@ -28,9 +29,32 @@ export function SignIn() {
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
   const { status } = useStatus()
 
+  const showExpired = useMemo(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('expired') === 'true'
+  }, [])
+  const [expiredBannerDismissed, setExpiredBannerDismissed] = useState(false)
+
   return (
     <AuthLayout>
       <div className='w-full space-y-8'>
+        {/* Session Expired Banner */}
+        {showExpired && !expiredBannerDismissed && (
+          <div className='flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
+            <AlertTriangle className='h-4 w-4 shrink-0' />
+            <span className='flex-1'>{t('Login expired, please sign in again')}</span>
+            <button
+              type='button'
+              onClick={() => setExpiredBannerDismissed(true)}
+              className='shrink-0 rounded p-0.5 transition-colors hover:bg-amber-200 dark:hover:bg-amber-800'
+              aria-label={t('Dismiss')}
+            >
+              <X className='h-4 w-4' />
+            </button>
+          </div>
+        )}
+
+        {/* Sign-in Heading */}
         <div className='space-y-2'>
           <h2 className='text-center text-2xl font-semibold tracking-tight sm:text-left'>
             {t('Sign in')}
@@ -45,18 +69,11 @@ export function SignIn() {
                 >
                   {t('Sign up')}
                 </Link>
-                .
               </p>
             )}
         </div>
 
         <UserAuthForm redirectTo={redirect} />
-
-        <TermsFooter
-          variant='sign-in'
-          status={status}
-          className='text-center'
-        />
       </div>
     </AuthLayout>
   )
