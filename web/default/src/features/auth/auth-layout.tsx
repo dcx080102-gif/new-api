@@ -34,7 +34,16 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   const year = new Date().getFullYear()
 
   return (
-    <div className='flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950'>
+    <div
+      className='flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950'
+      style={{
+        backgroundImage: `
+          radial-gradient(circle at 50% 0%, hsl(210 60% 90% / 0.5), transparent 55%),
+          radial-gradient(hsl(210 80% 85% / 0.2) 0.5px, transparent 0.5px)
+        `,
+        backgroundSize: '100% 100%, 24px 24px',
+      }}
+    >
       {/* Top Navbar — frosted glass */}
       <header className='sticky top-0 z-50 flex h-14 shrink-0 items-center border-b border-slate-200/60 bg-white/80 backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-950/80'>
         <div className='flex w-full items-center justify-between px-4 md:px-6'>
@@ -68,13 +77,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             <nav className='flex items-center gap-5 text-sm font-medium text-slate-600 dark:text-slate-400'>
               <Link
                 to='/'
-                className='transition-colors hover:text-slate-900 dark:hover:text-white'
+                className='inline-block transition-all duration-200 hover:scale-105 hover:text-slate-900 dark:hover:text-white'
               >
                 {t('Home')}
               </Link>
               <a
                 href='#'
-                className='transition-colors hover:text-slate-900 dark:hover:text-white'
+                className='inline-block transition-all duration-200 hover:scale-105 hover:text-slate-900 dark:hover:text-white'
               >
                 {t('Docs')}
               </a>
@@ -92,7 +101,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       <main className='flex flex-1 items-center justify-center px-4 py-10 md:py-16'>
         <div className='w-full max-w-[440px]'>
           {/* Card container */}
-          <div className='rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+          <div className='rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm transition-shadow duration-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'>
             {children}
           </div>
         </div>

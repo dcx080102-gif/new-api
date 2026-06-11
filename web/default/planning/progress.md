@@ -5,7 +5,27 @@
 
 ---
 
-## 会话：2026-06-09 — 登录页打磨（第1轮）
+## 会话：2026-06-11 — 登录页视觉打磨（基于 08c2479f 简洁版）
+
+### 视觉打磨
+- **状态：** ✅ complete
+- **基准版本：** `08c2479f`（简洁版 + 消息系统）
+- 执行的操作：
+  - 背景加微妙网格纹理 + 顶部渐变光晕，暗色模式自适应
+  - 登录卡片加悬浮阴影过渡 (`hover:shadow-md` + `transition-shadow duration-500`)
+  - 链接动效统一：「注册」「忘记密码」「首页」「文档」加 `hover:scale-105 transition-all`
+  - 登录按钮加微交互：`hover:scale-[1.02] hover:shadow-lg`
+  - 输入框聚焦更流畅：`transition-all duration-200` + `focus-visible:shadow-sm`
+- 修改的文件：
+  - `web/default/src/features/auth/auth-layout.tsx` — 背景纹理+卡片悬浮+导航动效
+  - `web/default/src/features/auth/sign-in/index.tsx` — 注册链接动效
+  - `web/default/src/features/auth/sign-in/components/user-auth-form.tsx` — 忘记密码动效+按钮动效
+  - `web/default/src/components/ui/input.tsx` — 输入框聚焦光效
+- 验证：✅ 零 JS 错误，HMR 热更新正常
+
+---
+
+## 会话：2026-06-11 — 登录页打磨（第1轮）
 
 ### 登录页布局改进 — Claude Code
 - **状态：** ✅ complete

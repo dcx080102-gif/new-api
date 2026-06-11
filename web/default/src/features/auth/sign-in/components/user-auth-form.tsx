@@ -501,7 +501,7 @@ export function UserAuthForm({
                     <FormMessage role='alert' />
                     <Link
                       to='/forgot-password'
-                      className='text-muted-foreground absolute end-0 -top-0.5 z-10 text-sm font-medium hover:opacity-75'
+                      className='text-muted-foreground absolute end-0 -top-0.5 z-10 text-sm font-medium underline underline-offset-4 transition-all duration-200 hover:text-foreground hover:scale-105'
                     >
                       {t('Forgot password?')}
                     </Link>
@@ -541,7 +541,7 @@ export function UserAuthForm({
               {/* Submit Button */}
               <Button
                 type='submit'
-                className='mt-2 w-full justify-center gap-2'
+                className='mt-2 w-full justify-center gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
                 disabled={
                   isLoading ||
                   (requiresLegalConsent && !agreedToLegal) ||
