@@ -26,9 +26,10 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 
 type AuthLayoutProps = {
   children: React.ReactNode
+  brandPanel?: React.ReactNode
 }
 
-export function AuthLayout({ children }: AuthLayoutProps) {
+export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
   const { t } = useTranslation()
   const { systemName, logo, loading } = useSystemConfig()
   const year = new Date().getFullYear()
@@ -97,15 +98,35 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </div>
       </header>
 
-      {/* Main Content Area — with card wrapper */}
-      <main className='flex flex-1 items-center justify-center px-4 py-10 md:py-16'>
-        <div className='w-full max-w-[440px]'>
-          {/* Card container */}
-          <div className='rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm transition-shadow duration-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'>
-            {children}
+      {/* Main Content Area */}
+      {brandPanel ? (
+        /* Two-column layout with brand panel */
+        <main className='flex flex-1 items-center justify-center px-4 py-10 md:px-8 md:py-0'>
+          <div className='grid w-full max-w-5xl gap-8 md:grid-cols-2 md:gap-12 lg:gap-16'>
+            {/* Left: Brand Panel */}
+            <div className='flex items-center justify-center md:justify-end'>
+              <div className='w-full max-w-md'>{brandPanel}</div>
+            </div>
+            {/* Right: Form Card */}
+            <div className='flex items-center justify-center md:justify-start'>
+              <div className='w-full max-w-[440px]'>
+                <div className='rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm transition-shadow duration-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'>
+                  {children}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      ) : (
+        /* Centered card layout (default) */
+        <main className='flex flex-1 items-center justify-center px-4 py-10 md:py-16'>
+          <div className='w-full max-w-[440px]'>
+            <div className='rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm transition-shadow duration-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'>
+              {children}
+            </div>
+          </div>
+        </main>
+      )}
 
       {/* Footer */}
       <footer className='py-6 text-center text-xs text-slate-400 dark:text-slate-500'>
