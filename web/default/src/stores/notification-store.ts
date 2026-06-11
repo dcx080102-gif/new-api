@@ -17,72 +17,112 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
-interface NotificationState {
-  // Last read Notice content signature (full trimmed message)
-  lastReadNotice: string
-  // Array of read announcement keys (id or content hash)
-  readAnnouncementKeys: string[]
-  // Timestamp of last "Close Today" action
-  closedUntilDate: string | null
-
-  // Actions
-  markNoticeRead: (noticeContent: string) => void
-  markAnnouncementsRead: (keys: string[]) => void
-  setClosedUntilDate: (date: string | null) => void
-  isAnnouncementRead: (key: string) => boolean
-  isNoticeClosed: () => boolean
+export interface Notification {
+  id: string
+  title: string
+  message: string
+  type: 'price' | 'update' | 'announcement'
+  timestamp: number
+  read: boolean
 }
 
-/**
- * Notification store for tracking read status of Notice and Announcements
- * Persists to localStorage to maintain state across sessions
- */
-export const useNotificationStore = create<NotificationState>()(
-  persist(
-    (set, get) => ({
-      lastReadNotice: '',
-      readAnnouncementKeys: [],
-      closedUntilDate: null,
+interface NotificationStore {
+  notifications: Notification[]
+  addNotification: (n: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
+  markAsRead: (id: string) => void
+  markAllAsRead: () => void
+  unreadCount: () => number
+}
 
-      markNoticeRead: (noticeContent: string) => {
-        // Persist the full trimmed content so edits beyond 100 chars register
-        const normalizedContent = noticeContent.trim()
-        set({ lastReadNotice: normalizedContent })
-      },
-
-      markAnnouncementsRead: (keys: string[]) => {
-        set((state) => ({
-          readAnnouncementKeys: [
-            ...new Set([...state.readAnnouncementKeys, ...keys]),
-          ],
-        }))
-      },
-
-      setClosedUntilDate: (date: string | null) => {
-        set({ closedUntilDate: date })
-      },
-
-      isAnnouncementRead: (key: string) => {
-        return get().readAnnouncementKeys.includes(key)
-      },
-
-      isNoticeClosed: () => {
-        const { closedUntilDate } = get()
-        if (!closedUntilDate) return false
-
-        const today = new Date().toDateString()
-        return closedUntilDate === today
-      },
-    }),
-    {
-      name: 'notification-storage',
-      partialize: (state) => ({
-        lastReadNotice: state.lastReadNotice,
-        readAnnouncementKeys: state.readAnnouncementKeys,
-        closedUntilDate: state.closedUntilDate,
-      }),
+function loadFromStorage(): Notification[] {
+  try {
+    const stored = localStorage.getItem('dvl_notifications')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed
     }
-  )
-)
+    const defaults = getDefaultNotifications()
+    saveToStorage(defaults)
+    return defaults
+  } catch {
+    const defaults = getDefaultNotifications()
+    return defaults
+  }
+}
+
+function getDefaultNotifications(): Notification[] {
+  const now = Date.now()
+  return [
+    {
+      id: '1',
+      title: '模型价格更新',
+      message: 'GPT-4o 价格已调整为 ¥0.015/1K tokens，Claude 3.5 Sonnet 降至 ¥0.012/1K tokens',
+      type: 'price',
+      timestamp: now - 3600000,
+      read: false,
+    },
+    {
+      id: '2',
+      title: '系统更新公告',
+      message: '平台已完成 v2.0 升级，新增批量操作功能和优化了响应速度',
+      type: 'update',
+      timestamp: now - 86400000,
+      read: false,
+    },
+    {
+      id: '3',
+      title: '新模型上线',
+      message: 'DeepSeek-V3 和 Gemini 2.0 Flash 已接入，欢迎试用',
+      type: 'announcement',
+      timestamp: now - 172800000,
+      read: true,
+    },
+  ]
+}
+
+function saveToStorage(notifications: Notification[]) {
+  try {
+    localStorage.setItem('dvl_notifications', JSON.stringify(notifications))
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+export const useNotificationStore = create<NotificationStore>((set, get) => ({
+  notifications: loadFromStorage(),
+
+  addNotification: (n) => {
+    const notification: Notification = {
+      ...n,
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      read: false,
+    }
+    set((state) => {
+      const updated = [notification, ...state.notifications].slice(0, 50)
+      saveToStorage(updated)
+      return { notifications: updated }
+    })
+  },
+
+  markAsRead: (id) => {
+    set((state) => {
+      const updated = state.notifications.map((n) =>
+        n.id === id ? { ...n, read: true } : n
+      )
+      saveToStorage(updated)
+      return { notifications: updated }
+    })
+  },
+
+  markAllAsRead: () => {
+    set((state) => {
+      const updated = state.notifications.map((n) => ({ ...n, read: true }))
+      saveToStorage(updated)
+      return { notifications: updated }
+    })
+  },
+
+  unreadCount: () => get().notifications.filter((n) => !n.read).length,
+}))

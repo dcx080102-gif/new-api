@@ -20,7 +20,7 @@ import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Mail } from 'lucide-react'
+import { MessageDropdown } from '@/components/message-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { LanguageSwitcher } from '@/components/language-switcher'
 
@@ -34,7 +34,17 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   const year = new Date().getFullYear()
 
   return (
-    <div className='flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950'>
+    <div className='relative flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950'>
+      {/* Subtle dot-grid background pattern */}
+      <div
+        className='pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.05]'
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, #3b82f6 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+
       {/* Top Navbar — frosted glass */}
       <header className='sticky top-0 z-50 flex h-14 shrink-0 items-center border-b border-slate-200/60 bg-white/80 backdrop-blur-md dark:border-slate-800/60 dark:bg-slate-950/80'>
         <div className='flex w-full items-center justify-between px-4 md:px-6'>
@@ -80,12 +90,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
               </a>
             </nav>
             <div className='ml-2 flex items-center gap-1 border-l border-slate-200 pl-4 dark:border-slate-700'>
-              <button
-                className='inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-200 hover:scale-110 hover:text-primary'
-                aria-label={t('Messages')}
-              >
-                <Mail className='size-[1.2rem]' />
-              </button>
+              <MessageDropdown />
               <LanguageSwitcher />
               <ThemeSwitch />
             </div>
@@ -93,18 +98,15 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </div>
       </header>
 
-      {/* Main Content Area — with card wrapper */}
-      <main className='flex flex-1 items-center justify-center px-4 py-10 md:py-16'>
+      {/* Main Content Area */}
+      <main className='relative flex flex-1 items-center justify-center px-4 py-10 md:py-16'>
         <div className='w-full max-w-[440px]'>
-          {/* Card container */}
-          <div className='rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
-            {children}
-          </div>
+          {children}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className='py-6 text-center text-xs text-slate-400 dark:text-slate-500'>
+      <footer className='relative py-6 text-center text-xs text-slate-400 dark:text-slate-500'>
         &copy; {year} {systemName}.{' '}
         {t('Powered by')}{' '}
         <a
