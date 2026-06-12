@@ -16,8 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
-import type { z } from 'zod'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
@@ -43,11 +42,8 @@ import {
   InputOTPSeparator,
 } from '@/components/ui/input-otp'
 import { login2fa } from '@/features/auth/api'
-import {
-  otpFormSchema,
-  OTP_LENGTH,
-  BACKUP_CODE_LENGTH,
-} from '@/features/auth/constants'
+import { createOtpFormSchema, OTP_LENGTH, BACKUP_CODE_LENGTH } from '@/features/auth/constants'
+import type { OtpFormValues } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { saveUserId } from '@/features/auth/lib/storage'
 import {
@@ -61,21 +57,31 @@ import type { User } from '@/features/users/types'
 type OtpFormProps = React.HTMLAttributes<HTMLFormElement>
 
 export function OtpForm({ className, ...props }: OtpFormProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [useBackupCode, setUseBackupCode] = useState(false)
 
   const { auth } = useAuthStore()
   const { redirectToLogin } = useAuthRedirect()
 
-  const form = useForm<z.infer<typeof otpFormSchema>>({
-    resolver: zodResolver(otpFormSchema),
+  // Re-create schema when language changes
+  const otpSchema = useMemo(() => createOtpFormSchema(), [i18n.language])
+
+  const form = useForm<OtpFormValues>({
+    resolver: zodResolver(otpSchema),
     defaultValues: { otp: '' },
   })
 
   const otp = form.watch('otp')
 
-  async function onSubmit(data: z.infer<typeof otpFormSchema>) {
+  // Re-validate form when language changes
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger()
+    }
+  }, [i18n.language])
+
+  async function onSubmit(data: OtpFormValues) {
     // Validate based on mode
     if (useBackupCode) {
       if (!isValidBackupCode(data.otp)) {

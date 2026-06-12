@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -37,17 +37,15 @@ import {
 import { Input } from '@/components/ui/input'
 import { Turnstile } from '@/components/turnstile'
 import { sendPasswordResetEmail } from '@/features/auth/api'
-import {
-  forgotPasswordFormSchema,
-  PASSWORD_RESET_COUNTDOWN,
-} from '@/features/auth/constants'
+import { createForgotPasswordFormSchema, PASSWORD_RESET_COUNTDOWN } from '@/features/auth/constants'
+import type { ForgotPasswordFormValues } from '@/features/auth/constants'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
 
 export function ForgotPasswordForm({
   className,
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
 
   const {
@@ -63,13 +61,24 @@ export function ForgotPasswordForm({
     start: startCountdown,
   } = useCountdown({ initialSeconds: PASSWORD_RESET_COUNTDOWN })
 
-  const form = useForm<z.infer<typeof forgotPasswordFormSchema>>({
-    resolver: zodResolver(forgotPasswordFormSchema),
+  // Re-create schema when language changes
+  const forgotSchema = useMemo(() => createForgotPasswordFormSchema(), [i18n.language])
+
+  const form = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotSchema),
     defaultValues: { email: '' },
   })
   const turnstileReady = !isTurnstileEnabled || Boolean(turnstileToken)
+  // Re-validate form when language changes
+  useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.trigger()
+    }
+  }, [i18n.language])
 
-  async function onSubmit(data: z.infer<typeof forgotPasswordFormSchema>) {
+
+
+  async function onSubmit(data: ForgotPasswordFormValues) {
     if (!validateTurnstile()) return
 
     setIsLoading(true)

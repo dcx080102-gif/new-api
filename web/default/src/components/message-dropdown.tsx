@@ -74,19 +74,20 @@ function typeColor(type: Notification['type']) {
   }
 }
 
-function formatTime(ts: number): string {
+function formatTime(ts: number, t: (key: string, options?: Record<string, unknown>) => string): string {
   const diff = Date.now() - ts
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return '刚刚'
-  if (mins < 60) return `${mins} 分钟前`
+  if (mins < 1) return t('Just now')
+  if (mins < 60) return t('{{count}} minutes ago', { count: mins })
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours} 小时前`
+  if (hours < 24) return t('{{count}} hours ago', { count: hours })
   const days = Math.floor(hours / 24)
-  return `${days} 天前`
+  return t('{{count}} days ago', { count: days })
 }
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleString('zh-CN', {
+function formatDate(ts: number, t: (key: string, options?: Record<string, unknown>) => string): string {
+  const locale = t('_locale') === 'zh' ? 'zh-CN' : 'en-US'
+  return new Date(ts).toLocaleString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -170,24 +171,24 @@ export function MessageDropdown() {
               </div>
 
               <h3 className='mb-2 text-base font-semibold'>
-                {selectedNotification.title}
+                {t(selectedNotification.title)}
               </h3>
 
               <div className='mb-4 text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap'>
-                {selectedNotification.message}
+                {t(selectedNotification.message)}
               </div>
 
               {/* Example detailed content based on type */}
               {selectedNotification.type === 'price' && (
                 <div className='space-y-2 rounded-lg border bg-muted/30 p-3 text-xs'>
-                  <p className='font-medium text-foreground'>价格变更明细：</p>
+                  <p className='font-medium text-foreground'>{t('Price Change Details:')}</p>
                   <table className='w-full text-left'>
                     <thead>
                       <tr className='border-b text-muted-foreground'>
-                        <th className='py-1 font-medium'>模型</th>
-                        <th className='py-1 font-medium'>原价</th>
-                        <th className='py-1 font-medium'>现价</th>
-                        <th className='py-1 font-medium text-emerald-500'>降幅</th>
+                        <th className='py-1 font-medium'>{t('Model')}</th>
+                        <th className='py-1 font-medium'>{t('Original Price')}</th>
+                        <th className='py-1 font-medium'>{t('Current Price')}</th>
+                        <th className='py-1 font-medium text-emerald-500'>{t('Reduction')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -216,32 +217,32 @@ export function MessageDropdown() {
 
               {selectedNotification.type === 'update' && (
                 <div className='space-y-2 rounded-lg border bg-muted/30 p-3 text-xs'>
-                  <p className='font-medium text-foreground'>更新内容：</p>
+                  <p className='font-medium text-foreground'>{t('Update Content:')}</p>
                   <ul className='list-inside list-disc space-y-1 text-muted-foreground'>
-                    <li>新增批量操作功能：支持批量创建/删除 API Key</li>
-                    <li>优化 API 响应速度，平均延迟降低 40%</li>
-                    <li>修复了若干已知问题，提升系统稳定性</li>
-                    <li>升级底层依赖至最新版本</li>
+                    <li>{t('Added batch operations: support batch create/delete API Keys')}</li>
+                    <li>{t('Optimized API response speed, average latency reduced by 40%')}</li>
+                    <li>{t('Fixed several known issues, improved system stability')}</li>
+                    <li>{t('Upgraded dependencies to latest versions')}</li>
                   </ul>
                 </div>
               )}
 
               {selectedNotification.type === 'announcement' && (
                 <div className='space-y-2 rounded-lg border bg-muted/30 p-3 text-xs'>
-                  <p className='font-medium text-foreground'>新增模型：</p>
+                  <p className='font-medium text-foreground'>{t('New Models:')}</p>
                   <ul className='list-inside list-disc space-y-1 text-muted-foreground'>
-                    <li>DeepSeek-V3 — 支持 128K 上下文，¥0.003/1K tokens</li>
-                    <li>Gemini 2.0 Flash — 超低延迟，¥0.005/1K tokens</li>
+                    <li>DeepSeek-V3 — {t('Supports 128K context, ¥0.003/1K tokens')}</li>
+                    <li>Gemini 2.0 Flash — {t('Ultra-low latency, ¥0.005/1K tokens')}</li>
                   </ul>
                   <div className='mt-2 flex items-center gap-1 text-primary'>
                     <ExternalLink className='h-3 w-3' />
-                    <span>前往模型广场查看详情 →</span>
+                    <span>{t('View details in Model Hub →')}</span>
                   </div>
                 </div>
               )}
 
               <p className='mt-4 text-[10px] text-muted-foreground/60'>
-                {formatDate(selectedNotification.timestamp)}
+                {formatDate(selectedNotification.timestamp, t)}
               </p>
             </div>
           </div>
@@ -293,17 +294,17 @@ export function MessageDropdown() {
                             !n.read ? 'font-semibold' : 'font-medium'
                           )}
                         >
-                          {n.title}
+                          {t(n.title)}
                         </span>
                         {!n.read && (
                           <Circle className='h-1.5 w-1.5 shrink-0 fill-blue-500 text-blue-500' />
                         )}
                       </div>
                       <p className='mt-0.5 line-clamp-2 text-xs text-muted-foreground'>
-                        {n.message}
+                        {t(n.message)}
                       </p>
                       <span className='mt-1 block text-[10px] text-muted-foreground/60'>
-                        {formatTime(n.timestamp)}
+                        {formatTime(n.timestamp, t)}
                       </span>
                     </div>
                   </button>
