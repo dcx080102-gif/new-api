@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { MessageDropdown } from '@/components/message-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { SoftAurora } from '@/components/effects/SoftAurora'
 
 type AuthLayoutProps = {
   children: React.ReactNode
@@ -36,15 +37,9 @@ export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
 
   return (
     <div
-      className='flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950'
-      style={{
-        backgroundImage: `
-          radial-gradient(circle at 50% 0%, hsl(210 60% 90% / 0.5), transparent 55%),
-          radial-gradient(hsl(210 80% 85% / 0.2) 0.5px, transparent 0.5px)
-        `,
-        backgroundSize: '100% 100%, 24px 24px',
-      }}
+      className='relative flex min-h-svh flex-col bg-slate-50 dark:bg-slate-950'
     >
+      <SoftAurora />
       {/* Top Navbar — gradient frosted glass */}
       <header className='sticky top-0 z-50 flex h-14 shrink-0 items-center border-b border-slate-200/40 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/40 backdrop-blur-md dark:border-slate-800/40 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/90'>
         <div className='flex w-full items-center justify-between px-4 md:px-6'>

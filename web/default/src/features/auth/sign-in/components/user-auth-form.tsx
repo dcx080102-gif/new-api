@@ -75,14 +75,14 @@ function getPasswordStrength(password: string): {
 
   // Level 3: 包含全部4种（大写+小写+数字+符号）
   if (types >= 4) {
-    return { level: 3, color: 'bg-green-500', labelKey: '安全' }
+    return { level: 3, color: 'bg-green-500', labelKey: 'Strong' }
   }
   // Level 2: 英文 + 至少一种其他类型（数字/符号/大写）, 即2-3种
   if (types >= 2) {
-    return { level: 2, color: 'bg-yellow-500', labelKey: '中等' }
+    return { level: 2, color: 'bg-yellow-500', labelKey: 'Medium' }
   }
   // Level 1: 只有英文字母
-  return { level: 1, color: 'bg-red-500', labelKey: '不安全' }
+  return { level: 1, color: 'bg-red-500', labelKey: 'Weak' }
 }
 
 export function UserAuthForm({
@@ -505,7 +505,7 @@ export function UserAuthForm({
                             passwordStrength.level === 3 && 'text-green-500'
                           )}
                         >
-                          {passwordStrength.labelKey}
+                          {t(passwordStrength.labelKey)}
                         </p>
                       </div>
                     )}

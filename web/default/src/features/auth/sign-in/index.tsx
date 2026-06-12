@@ -23,6 +23,9 @@ import { X, AlertTriangle, Zap, Shield, Activity, Coins, Loader2 } from 'lucide-
 import { toast } from 'sonner'
 import { IconGithub, IconGmail } from '@/assets/brand-icons'
 import { cn } from '@/lib/utils'
+import { FadeContent } from '@/components/effects/FadeContent'
+import { CountUp } from '@/components/effects/CountUp'
+import { ShapeBlur } from '@/components/effects/ShapeBlur'
 import { useStatus } from '@/hooks/use-status'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '../auth-layout'
@@ -56,7 +59,7 @@ function BrandPanel() {
   ]
 
   return (
-    <div className='space-y-8 text-center md:text-left'>
+    <FadeContent className='space-y-8 text-center md:text-left' stagger={0.08}>
       {/* Badge */}
       <div className='inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary'>
         <span className='relative flex h-2 w-2'>
@@ -81,22 +84,23 @@ function BrandPanel() {
       {/* Feature Grid */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         {features.map((f) => (
-          <div
-            key={f.title}
-            className='flex items-start gap-3 rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 transition-all duration-200 hover:border-slate-300 hover:bg-white dark:border-slate-800/60 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-900'
-          >
-            <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary'>
-              <f.icon className='h-4 w-4' />
+          <ShapeBlur key={f.title} blur={30} borderRadius='24px'>
+            <div
+              className='flex items-start gap-3 rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 transition-all duration-200 hover:border-slate-300 hover:bg-white dark:border-slate-800/60 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+            >
+              <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary'>
+                <f.icon className='h-4 w-4' />
+              </div>
+              <div className='min-w-0'>
+                <p className='text-sm font-semibold text-slate-900 dark:text-white'>
+                  {f.title}
+                </p>
+                <p className='text-xs text-slate-500 dark:text-slate-400'>
+                  {f.desc}
+                </p>
+              </div>
             </div>
-            <div className='min-w-0'>
-              <p className='text-sm font-semibold text-slate-900 dark:text-white'>
-                {f.title}
-              </p>
-              <p className='text-xs text-slate-500 dark:text-slate-400'>
-                {f.desc}
-              </p>
-            </div>
-          </div>
+          </ShapeBlur>
         ))}
       </div>
 
@@ -104,7 +108,7 @@ function BrandPanel() {
       <div className='flex items-center justify-center gap-6 border-t border-slate-200 pt-6 dark:border-slate-800 md:justify-start'>
         <div className='text-center md:text-left'>
           <p className='text-2xl font-bold text-slate-900 dark:text-white'>
-            128K+
+            <CountUp to={128000} suffix='+' />
           </p>
           <p className='text-xs text-slate-500 dark:text-slate-400'>
             {t('开发者信赖')}
@@ -113,7 +117,7 @@ function BrandPanel() {
         <div className='h-10 w-px bg-slate-200 dark:bg-slate-800' />
         <div className='text-center md:text-left'>
           <p className='text-2xl font-bold text-slate-900 dark:text-white'>
-            40+
+            <CountUp to={40} suffix='+' />
           </p>
           <p className='text-xs text-slate-500 dark:text-slate-400'>
             {t('AI 模型接入')}
@@ -122,14 +126,14 @@ function BrandPanel() {
         <div className='h-10 w-px bg-slate-200 dark:bg-slate-800' />
         <div className='text-center md:text-left'>
           <p className='text-2xl font-bold text-slate-900 dark:text-white'>
-            10M+
+            <CountUp to={10000000} suffix='+' />
           </p>
           <p className='text-xs text-slate-500 dark:text-slate-400'>
             {t('日处理请求')}
           </p>
         </div>
       </div>
-    </div>
+    </FadeContent>
   )
 }
 

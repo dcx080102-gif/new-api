@@ -6,15 +6,10 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 interface FadeContentProps {
   children: ReactNode
-  /** 元素之间的延迟（秒），默认 0.1 */
   stagger?: number
-  /** 初始延迟（秒），默认 0 */
   initialDelay?: number
-  /** 动画持续时间 */
   duration?: number
   className?: string
-  /** 是否从视口出现时才开始动画 */
-  viewportOnly?: boolean
 }
 
 export function FadeContent({
@@ -23,28 +18,42 @@ export function FadeContent({
   initialDelay = 0,
   duration = 0.5,
   className,
-  viewportOnly = true,
 }: FadeContentProps) {
+  const [visible, setVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(!viewportOnly)
 
   useEffect(() => {
-    if (!viewportOnly) return
+    // 先尝试 IntersectionObserver，失败则直接显示
     const node = ref.current
-    if (!node) return
+    if (!node) {
+      setVisible(true)
+      return
+    }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.1 }
-    )
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [viewportOnly])
+    try {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setVisible(true)
+            observer.disconnect()
+          }
+        },
+        { threshold: 0.05 }
+      )
+      observer.observe(node)
+      // 兜底：2 秒后如果还没触发，直接显示
+      const fallback = setTimeout(() => {
+        setVisible(true)
+        observer.disconnect()
+      }, 2000)
+      return () => {
+        observer.disconnect()
+        clearTimeout(fallback)
+      }
+    } catch {
+      setVisible(true)
+    }
+  }, [])
 
   return (
     <div ref={ref} className={className}>
@@ -54,7 +63,9 @@ export function FadeContent({
               key={i}
               style={{
                 opacity: visible ? 1 : 0,
-                transform: visible ? 'translateY(0)' : 'translateY(12px)',
+                transform: visible
+                  ? 'translateY(0)'
+                  : 'translateY(16px)',
                 transition: `opacity ${duration}s ease-out ${initialDelay + i * stagger}s, transform ${duration}s ease-out ${initialDelay + i * stagger}s`,
               }}
             >
@@ -65,7 +76,7 @@ export function FadeContent({
           <div
             style={{
               opacity: visible ? 1 : 0,
-              transform: visible ? 'translateY(0)' : 'translateY(12px)',
+              transform: visible ? 'translateY(0)' : 'translateY(16px)',
               transition: `opacity ${duration}s ease-out ${initialDelay}s, transform ${duration}s ease-out ${initialDelay}s`,
             }}
           >
