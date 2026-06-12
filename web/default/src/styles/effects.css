@@ -1,0 +1,94 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+*/
+
+/* ==========================================================================
+   React Bits 风格动画 — 全局关键帧
+   ========================================================================== */
+
+/* SoftAurora 光晕流动 */
+@keyframes aurora-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(10%, -15%) rotate(5deg) scale(1.1);
+  }
+  50% {
+    transform: translate(-5%, 10%) rotate(-3deg) scale(0.95);
+  }
+  75% {
+    transform: translate(-15%, -5%) rotate(8deg) scale(1.05);
+  }
+}
+
+@keyframes aurora-2 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(-8%, 12%) rotate(-5deg) scale(1.08);
+  }
+  66% {
+    transform: translate(12%, -8%) rotate(4deg) scale(0.92);
+  }
+}
+
+@keyframes aurora-3 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(0.9);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(5%, -5%) rotate(-6deg) scale(1.15);
+    opacity: 0.5;
+  }
+}
+
+/* FadeContent 渐变入场 */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+/* CountUp 无额外样式，纯 JS 驱动 */
+
+/* BorderGlow 输入框光晕 */
+@keyframes border-glow {
+  0%,
+  100% {
+    border-color: theme('colors.violet.400');
+    box-shadow: 0 0 0 1px theme('colors.violet.400/0'), 0 0 20px theme('colors.violet.400/0');
+  }
+  50% {
+    border-color: theme('colors.violet.500');
+    box-shadow: 0 0 0 1px theme('colors.violet.400/30'), 0 0 20px theme('colors.violet.500/15');
+  }
+}
+
+.animate-border-glow:focus {
+  animation: border-glow 2s ease-in-out infinite;
+}
