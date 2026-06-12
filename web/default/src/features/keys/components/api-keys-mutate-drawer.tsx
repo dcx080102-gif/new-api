@@ -65,7 +65,7 @@ import { MultiSelect } from '@/components/multi-select'
 import { createApiKey, updateApiKey, getApiKey } from '../api'
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants'
 import {
-  apiKeyFormSchema,
+  getApiKeyFormSchema,
   type ApiKeyFormValues,
   getApiKeyFormDefaultValues,
   transformFormDataToPayload,
@@ -154,7 +154,7 @@ export function ApiKeysMutateDrawer({
   const backendHasAuto = groups.some((g) => g.value === 'auto')
 
   const form = useForm<ApiKeyFormValues>({
-    resolver: zodResolver(apiKeyFormSchema),
+    resolver: zodResolver(getApiKeyFormSchema(t)),
     defaultValues: getApiKeyFormDefaultValues(defaultUseAutoGroup),
   })
 

@@ -1109,9 +1109,24 @@ export const PromptInputSpeechButton = ({
   onTranscriptionChange,
   ...props
 }: PromptInputSpeechButtonProps) => {
+  const { i18n } = useTranslation()
   const [isListening, setIsListening] = useState(false)
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+
+  // Map i18n language to SpeechRecognition locale
+  const speechLang = useMemo(() => {
+    const lang = i18n.language || 'zh'
+    const map: Record<string, string> = {
+      zh: 'zh-CN',
+      en: 'en-US',
+      ja: 'ja-JP',
+      ru: 'ru-RU',
+      fr: 'fr-FR',
+      vi: 'vi-VN',
+    }
+    return map[lang] || map[lang.split('-')[0]] || 'zh-CN'
+  }, [i18n.language])
 
   useEffect(() => {
     if (
@@ -1124,7 +1139,7 @@ export const PromptInputSpeechButton = ({
 
       speechRecognition.continuous = true
       speechRecognition.interimResults = true
-      speechRecognition.lang = 'en-US'
+      speechRecognition.lang = speechLang
 
       speechRecognition.onstart = () => {
         setIsListening(true)
@@ -1173,7 +1188,7 @@ export const PromptInputSpeechButton = ({
         recognitionRef.current.stop()
       }
     }
-  }, [textareaRef, onTranscriptionChange])
+  }, [textareaRef, onTranscriptionChange, speechLang])
 
   const toggleListening = useCallback(() => {
     if (!recognition) {

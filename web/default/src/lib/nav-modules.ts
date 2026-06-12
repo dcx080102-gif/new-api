@@ -78,3 +78,39 @@ export function isSidebarModuleEnabled(section: string, module: string): boolean
     return true
   }
 }
+
+/**
+ * Parse HeaderNavModules from a raw status object (e.g. from useStatus or /api/status response).
+ * Returns the parsed module config map, or null if not available.
+ */
+export function parseHeaderNavModulesFromStatus(
+  status: Record<string, unknown> | null
+): Record<string, unknown> | null {
+  if (!status) return null
+  const rawNav = status.HeaderNavModules
+  if (!rawNav || String(rawNav).trim() === '') return null
+  try {
+    return JSON.parse(String(rawNav)) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Fetch fresh /api/status and check module access (async version for route guards).
+ */
+export async function getFreshModuleAccess(
+  module: 'rankings' | 'pricing'
+): Promise<ModuleAccess> {
+  try {
+    const response = await fetch('/api/status')
+    if (!response.ok) return DEFAULTS[module]
+    const status = (await response.json()) as Record<string, unknown>
+    const rawNav = status.HeaderNavModules
+    if (!rawNav || String(rawNav).trim() === '') return DEFAULTS[module]
+    const parsed = JSON.parse(String(rawNav)) as Record<string, unknown>
+    return parseAccess(parsed[module], DEFAULTS[module])
+  } catch {
+    return DEFAULTS[module]
+  }
+}
