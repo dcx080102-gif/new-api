@@ -16,6 +16,25 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+
+// Patch DOM removeChild to silently ignore NotFoundError caused by
+// browser extensions (translators, ad-blockers) that modify the DOM
+// outside React's control. Without this, React reconciliation crashes
+// with "Failed to execute 'removeChild' on 'Node'" and the app dies.
+(function () {
+  var orig = Node.prototype.removeChild
+  Node.prototype.removeChild = function (child) {
+    try {
+      return orig.call(this, child)
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'NotFoundError') {
+        return child
+      }
+      throw e
+    }
+  }
+})()
+
 import '@/styles/effects.css'
 import ReactDOM from 'react-dom/client'
 import { AxiosError } from 'axios'
