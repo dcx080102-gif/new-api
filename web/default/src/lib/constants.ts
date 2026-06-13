@@ -21,7 +21,7 @@ For commercial licensing, please contact support@quantumnous.com
  */
 
 // System Configuration Defaults
-export const DEFAULT_SYSTEM_NAME = 'DVLS'
+export const DEFAULT_SYSTEM_NAME = 'otter Link'
 export const DEFAULT_LOGO = '/logo.png'
 
 // LocalStorage Keys
