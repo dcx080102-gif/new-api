@@ -14,9 +14,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-For commercial licensing, please contact support@quantumnous.com
-*/
-import React, { Component, useEffect } from 'react'
+import { useEffect } from 'react'
 import { type QueryClient } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
@@ -34,73 +32,6 @@ import { GeneralError } from '@/features/errors/general-error'
 import { NotFoundError } from '@/features/errors/not-found-error'
 import { getSetupStatus } from '@/features/setup/api'
 
-/**
- * Error boundary that recovers from DOM manipulation errors caused by
- * browser extensions (translators, ad blockers, etc.) that modify the
- * DOM outside React's control.
- *
- * Strategy: when a DOM error is caught, force-remount children with
- * a fresh key so React creates brand-new DOM nodes. Cap at 3 attempts.
- */
-class SafeErrorBoundary extends Component<
-  { children: React.ReactNode; fallback: React.ReactNode },
-  { hasError: boolean; recoveryKey: number }
-> {
-  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false, recoveryKey: 0 }
-  }
-
-  static getDerivedStateFromError(
-    error: unknown,
-  ): Partial<{ hasError: boolean; recoveryKey: number }> | null {
-    const isDomError =
-      (error instanceof DOMException && error.name === 'NotFoundError') ||
-      (error instanceof Error && error.message?.includes('removeChild'))
-
-    if (isDomError) {
-      // Return hasError:false so React keeps the boundary alive,
-      // then componentDidCatch will set recoveryKey to force remount.
-      return { hasError: false }
-    }
-    return { hasError: true }
-  }
-
-  componentDidCatch(error: unknown) {
-    const isDomError =
-      (error instanceof DOMException && error.name === 'NotFoundError') ||
-      (error instanceof Error && error.message?.includes('removeChild'))
-
-    if (isDomError) {
-      // Increment recoveryKey to force-remount with fresh DOM
-      this.setState((prev) => {
-        const next = prev.recoveryKey + 1
-        if (next > 3) {
-          return { hasError: true, recoveryKey: next }
-        }
-        return { hasError: false, recoveryKey: next }
-      })
-      return
-    }
-    console.error('[SafeErrorBoundary]', error)
-    this.setState({ hasError: true })
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback
-    }
-    if (this.state.recoveryKey > 0) {
-      return React.createElement(
-        'div',
-        { key: this.state.recoveryKey },
-        this.props.children
-      )
-    }
-    return React.createElement(React.Fragment, null, this.props.children)
-  }
-}
-
 function RootComponent() {
   // Load system configuration (logo, system name, etc.) from backend
   useSystemConfig({ autoLoad: true })
@@ -113,19 +44,17 @@ function RootComponent() {
   }, [])
 
   return (
-    <SafeErrorBoundary fallback={<GeneralError />}>
-      <ThemeCustomizationProvider>
-        <NavigationProgress />
-        <Outlet />
-        <Toaster closeButton duration={5000} position='top-center' richColors />
-        {import.meta.env.MODE === 'development' && (
-          <>
-            <ReactQueryDevtools buttonPosition='bottom-left' />
-            <TanStackRouterDevtools position='bottom-right' />
-          </>
-        )}
-      </ThemeCustomizationProvider>
-    </SafeErrorBoundary>
+    <ThemeCustomizationProvider>
+      <NavigationProgress />
+      <Outlet />
+      <Toaster closeButton duration={5000} position='top-center' richColors />
+      {import.meta.env.MODE === 'development' && (
+        <>
+          <ReactQueryDevtools buttonPosition='bottom-left' />
+          <TanStackRouterDevtools position='bottom-right' />
+        </>
+      )}
+    </ThemeCustomizationProvider>
   )
 }
 

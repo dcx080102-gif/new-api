@@ -17,22 +17,25 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-// Patch DOM removeChild to silently ignore NotFoundError caused by
+// Patch DOM mutation methods to silently ignore NotFoundError caused by
 // browser extensions (translators, ad-blockers) that modify the DOM
 // outside React's control. Without this, React reconciliation crashes
-// with "Failed to execute 'removeChild' on 'Node'" and the app dies.
+// and the app dies with 500.
 (function () {
-  var orig = Node.prototype.removeChild
-  Node.prototype.removeChild = function (child) {
-    try {
-      return orig.call(this, child)
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'NotFoundError') {
-        return child
+  var methods = ['removeChild', 'insertBefore', 'appendChild', 'replaceChild']
+  methods.forEach(function (method) {
+    var orig = Node.prototype[method]
+    Node.prototype[method] = function () {
+      try {
+        return orig.apply(this, arguments)
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'NotFoundError') {
+          return arguments[0]
+        }
+        throw e
       }
-      throw e
     }
-  }
+  })
 })()
 
 import '@/styles/effects.css'
