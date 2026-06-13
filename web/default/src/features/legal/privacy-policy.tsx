@@ -16,9 +16,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+// TODO: This page contains hardcoded Chinese text that needs i18n migration (AGENTS.md 3.1).
+// All section content should use t() wrappers with proper translation keys.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from '@tanstack/react-router'
 import {
   Shield,
   HardDrive,

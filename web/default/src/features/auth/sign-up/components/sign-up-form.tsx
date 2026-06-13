@@ -373,7 +373,6 @@ export function SignUpForm({
         )}
 
         <LegalConsent
-          status={status}
           checked={agreedToLegal}
           onCheckedChange={setAgreedToLegal}
           className='mt-1'

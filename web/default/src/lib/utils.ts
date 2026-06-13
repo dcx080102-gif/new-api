@@ -28,14 +28,12 @@ export function sleep(ms: number = 1000) {
 }
 
 /**
- * 清理 CSS 变量名，替换特殊字符
- * 用于将模型名称（如 gpt-3.5-turbo）转换为有效的 CSS 变量名（gpt-3-5-turbo）
- * @param name - 原始名称
- * @returns 清理后的 CSS 变量名
+ * Clean CSS variable names, replacing special characters.
+ * Used to convert model names (e.g. gpt-3.5-turbo) into valid CSS variable names (gpt-3-5-turbo).
+ * @param name - Original name
+ * @returns Cleaned CSS variable name
  */
 export function sanitizeCssVariableName(name: string): string {
-  // 将点号、空格、斜杠替换为连字符
-  // 移除其他不允许在 CSS 变量名中的特殊字符
   return name.replace(/[.\s/]/g, '-').replace(/[^\w-]/g, '')
 }
 
@@ -44,12 +42,6 @@ export function sanitizeCssVariableName(name: string): string {
  * @param currentPage - Current page number (1-based)
  * @param totalPages - Total number of pages
  * @returns Array of page numbers and ellipsis strings
- *
- * Examples:
- * - Small dataset (≤4 pages): [1, 2, 3, 4]
- * - Near beginning: [1, 2, '...', 10]
- * - In middle: [1, '...', 5, '...', 10]
- * - Near end: [1, '...', 9, 10]
  */
 export function getPageNumbers(currentPage: number, totalPages: number) {
   const maxVisiblePages = 4
@@ -88,8 +80,6 @@ export function truncateText(text: string, maxLength: number): string {
 
 /**
  * Try to parse and pretty-print JSON, fallback to original text if invalid
- * @param text - Text that might be JSON
- * @returns Pretty-printed JSON or original text
  */
 export function tryPrettyJson(text: string): string {
   const raw = (text ?? '').toString().trim()
@@ -99,4 +89,19 @@ export function tryPrettyJson(text: string): string {
   } catch {
     return raw
   }
+}
+
+/**
+ * Lightweight HTML sanitizer for admin-configured content (footer, notices, etc.).
+ * Strips script tags, event handlers, and javascript: URLs.
+ * For production use with fully untrusted content, consider DOMPurify.
+ */
+export function sanitizeHtml(html: string): string {
+  if (!html) return ''
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script\s*>/gi, '')
+    .replace(/\bon\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\bon\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/\bon\w+\s*=\s*[^\s>]+/gi, '')
+    .replace(/javascript\s*:/gi, '')
 }

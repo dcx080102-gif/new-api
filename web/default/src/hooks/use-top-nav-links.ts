@@ -54,9 +54,6 @@ export function useTopNavLinks(): TopNavLink[] {
     )
   }, [status])
 
-  // Documentation link (may be external)
-  const _docsLink: string | undefined = status?.docs_link as string | undefined
-
   const isAuthed = !!auth?.user
 
   const links: TopNavLink[] = []
@@ -74,14 +71,14 @@ export function useTopNavLinks(): TopNavLink[] {
   // Pricing
   const pricing = modules?.pricing as Record<string, unknown> | undefined
   if (pricing && pricing.enabled) {
-    const requiresAuth = pricing.requireAuth && !isAuthed
+    const requiresAuth = Boolean(pricing.requireAuth) && !isAuthed
     links.push({ title: t('Model Square'), href: '/pricing', requiresAuth })
   }
 
   // Rankings
   const rankings = modules?.rankings as Record<string, unknown> | undefined
   if (rankings && rankings.enabled) {
-    const requiresAuth = rankings.requireAuth && !isAuthed
+    const requiresAuth = Boolean(rankings.requireAuth) && !isAuthed
     links.push({ title: t('Rankings'), href: '/rankings', requiresAuth })
   }
 

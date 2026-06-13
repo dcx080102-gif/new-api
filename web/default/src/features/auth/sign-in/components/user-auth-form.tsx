@@ -580,7 +580,6 @@ export function UserAuthForm({
           )}
 
           <LegalConsent
-            status={status}
             checked={agreedToLegal}
             onCheckedChange={setAgreedToLegal}
             className='mt-1'

@@ -16,6 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+// TODO: This page contains hardcoded Chinese text mixed with i18n keys that needs full migration (AGENTS.md 3.1).
+// Section descriptions should use t() with proper translation keys.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -70,7 +72,7 @@ export function Docs() {
   const observerRef = useRef<IntersectionObserver | null>(null)
 
   /* ── 章节定义 ── */
-  const sections = useMemo(() => [
+  const sections = [
     {
       id: 'quickstart',
       num: t('I'),
@@ -306,7 +308,7 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
         </>
       ),
     },
-  ], [t])
+  ];
 
   useEffect(() => {
     const sectionEls = sections.map((s) => document.getElementById(s.id)).filter(Boolean)
