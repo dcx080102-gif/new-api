@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Component, useEffect } from 'react'
+import React, { Component, useEffect } from 'react'
 import { type QueryClient } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
@@ -37,12 +37,10 @@ import { getSetupStatus } from '@/features/setup/api'
 /**
  * Error boundary that recovers from DOM manipulation errors caused by
  * browser extensions (translators, ad blockers, etc.) that modify the
- * DOM outside React's control, triggering
- * "Failed to execute 'removeChild' on 'Node'" errors.
+ * DOM outside React's control.
  *
  * Strategy: when a DOM error is caught, force-remount children with
- * a fresh key so React creates brand-new DOM nodes. Cap recovery
- * attempts at 3 to prevent infinite loops.
+ * a fresh key so React creates brand-new DOM nodes. Cap at 3 attempts.
  */
 class SafeErrorBoundary extends Component<
   { children: React.ReactNode; fallback: React.ReactNode },
@@ -60,11 +58,12 @@ class SafeErrorBoundary extends Component<
       (error instanceof DOMException && error.name === 'NotFoundError') ||
       (error instanceof Error && error.message?.includes('removeChild'))
 
-    if (!isDomError) {
-      return { hasError: true }
+    if (isDomError) {
+      // Return hasError:false so React keeps the boundary alive,
+      // then componentDidCatch will set recoveryKey to force remount.
+      return { hasError: false }
     }
-    // Don't return new state here — let componentDidCatch handle it
-    return null
+    return { hasError: true }
   }
 
   componentDidCatch(error: unknown) {
@@ -73,13 +72,12 @@ class SafeErrorBoundary extends Component<
       (error instanceof Error && error.message?.includes('removeChild'))
 
     if (isDomError) {
+      // Increment recoveryKey to force-remount with fresh DOM
       this.setState((prev) => {
         const next = prev.recoveryKey + 1
         if (next > 3) {
-          // Too many recovery attempts — give up and show fallback
           return { hasError: true, recoveryKey: next }
         }
-        // Force remount with a new key to escape the DOM corruption
         return { hasError: false, recoveryKey: next }
       })
       return
@@ -93,13 +91,13 @@ class SafeErrorBoundary extends Component<
       return this.props.fallback
     }
     if (this.state.recoveryKey > 0) {
-      return (
-        <div key={this.state.recoveryKey}>
-          {this.props.children}
-        </div>
+      return React.createElement(
+        'div',
+        { key: this.state.recoveryKey },
+        this.props.children
       )
     }
-    return <>{this.props.children}</>
+    return React.createElement(React.Fragment, null, this.props.children)
   }
 }
 
