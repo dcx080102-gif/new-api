@@ -44,6 +44,7 @@ export function createRegisterFormSchema() {
         .min(8, t('Password must be at least 8 characters'))
         .max(20, t('Password must be at most 20 characters')),
       confirmPassword: z.string().min(1, t('Please confirm your password')),
+      aff_code: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t('Passwords do not match'),

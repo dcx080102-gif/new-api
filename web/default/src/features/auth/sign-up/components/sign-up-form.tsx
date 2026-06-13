@@ -93,6 +93,7 @@ export function SignUpForm({
       email: '',
       password: '',
       confirmPassword: '',
+      aff_code: getAffiliateCode(),
     },
   })
 
@@ -170,7 +171,7 @@ export function SignUpForm({
         password: data.password,
         email: data.email || undefined,
         verification_code: verificationCode || undefined,
-        aff_code: getAffiliateCode(),
+        aff_code: data.aff_code || getAffiliateCode() || undefined,
         turnstile: turnstileToken,
       })
 
@@ -280,6 +281,24 @@ export function SignUpForm({
               <FormLabel>{t('Confirm password')}</FormLabel>
               <FormControl>
                 <PasswordInput placeholder={t('Confirm password')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Invite Code Field (optional) */}
+        <FormField
+          control={form.control}
+          name='aff_code'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('Invite code (optional)')}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={t('Enter invite code for bonus quota')}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
