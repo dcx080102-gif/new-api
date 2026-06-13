@@ -87,6 +87,8 @@ export default defineConfig(({ envMode }) => {
       buildCache: {
         cacheDigest: [process.env.VITE_REACT_APP_VERSION],
       },
+      // Disable when RSBUILD_BUILD_CACHE is explicitly set to 'false' (e.g. sandboxed envs)
+      ...(process.env.RSBUILD_BUILD_CACHE === 'false' ? { buildCache: false } : {}),
     },
     tools: {
       rspack: {
