@@ -46,7 +46,7 @@ function isDisabledRedemptionRow(redemption: Redemption) {
 }
 
 export function RedemptionsTable() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const columns = useRedemptionsColumns()
   const { refreshTrigger } = useRedemptions()
   const isMobile = useMediaQuery('(max-width: 640px)')
@@ -121,7 +121,7 @@ export function RedemptionsTable() {
 
   const redemptionStatusOptions = useMemo(
     () => getRedemptionStatusOptions(t),
-    [t]
+    [t, i18n]
   )
 
   return (

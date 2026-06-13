@@ -145,7 +145,7 @@ export function RatioSettingsCard({
   titleKey = 'Pricing Ratios',
   visibleTabs = ['models', 'groups', 'tool-prices', 'upstream-sync'],
 }: RatioSettingsCardProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const updateOption = useUpdateOption()
   const queryClient = useQueryClient()
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -196,8 +196,8 @@ export function RatioSettingsCard({
       groupDefaults.GroupSpecialUsableGroup
     ),
   })
-  const modelSchema = useMemo(() => createModelSchema(t), [t])
-  const groupSchema = useMemo(() => createGroupSchema(t), [t])
+  const modelSchema = useMemo(() => createModelSchema(t), [t, i18n])
+  const groupSchema = useMemo(() => createGroupSchema(t), [t, i18n])
 
   const modelForm = useForm<ModelFormValues>({
     resolver: zodResolver(modelSchema),

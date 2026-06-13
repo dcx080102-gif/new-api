@@ -48,7 +48,7 @@ import { ViewLogsDialog } from './dialogs/view-logs-dialog'
 const route = getRouteApi('/_authenticated/models/$section')
 
 export function DeploymentsTable() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery('(max-width: 640px)')
 
@@ -211,7 +211,7 @@ export function DeploymentsTable() {
       label: opt.label,
       value: opt.value,
     }))
-  }, [t])
+  }, [t, i18n])
 
   return (
     <>

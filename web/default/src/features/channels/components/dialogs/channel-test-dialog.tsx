@@ -202,7 +202,7 @@ export function ChannelTestDialog({
   open,
   onOpenChange,
 }: ChannelTestDialogProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { currentRow } = useChannels()
   const [endpointType, setEndpointType] = useState('auto')
   const [isStreamTest, setIsStreamTest] = useState(false)
@@ -225,7 +225,7 @@ export function ChannelTestDialog({
         value: option.value,
         label: t(option.label),
       })),
-    [t]
+    [t, i18n]
   )
 
   const resetState = useCallback(() => {

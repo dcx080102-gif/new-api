@@ -66,7 +66,7 @@ interface CommonLogsFilterBarProps<TData> {
 export function CommonLogsFilterBar<TData>(
   props: CommonLogsFilterBarProps<TData>
 ) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const searchParams = route.useSearch()
@@ -191,7 +191,7 @@ export function CommonLogsFilterBar<TData>(
         value: type.value,
         label: t(type.label),
       })),
-    [t]
+    [t, i18n]
   )
   const logTypeLabel =
     logTypeItems.find((type) => type.value === logType)?.label ?? t('All Types')

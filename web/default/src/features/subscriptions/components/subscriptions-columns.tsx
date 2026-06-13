@@ -29,7 +29,7 @@ import type { PlanRecord } from '../types'
 import { DataTableRowActions } from './data-table-row-actions'
 
 export function useSubscriptionsColumns(): ColumnDef<PlanRecord>[] {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   return useMemo(
     (): ColumnDef<PlanRecord>[] => [
@@ -213,6 +213,6 @@ export function useSubscriptionsColumns(): ColumnDef<PlanRecord>[] {
         size: 80,
       },
     ],
-    [t]
+    [t, i18n]
   )
 }

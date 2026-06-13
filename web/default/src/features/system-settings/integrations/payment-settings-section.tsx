@@ -203,7 +203,7 @@ export function PaymentSettingsSection({
   waffoPancakeProvisionedProductID,
   complianceDefaults,
 }: PaymentSettingsSectionProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const updateOption = useUpdateOption()
   const initialFormValues = React.useMemo<PaymentFormValues>(
@@ -276,7 +276,7 @@ export function PaymentSettingsSection({
         'You understand this compliance reminder is only for risk notice and does not constitute legal advice, a compliance review conclusion, or a guarantee of the legality of your use of this system; you should consult professional legal or compliance advisors based on your actual business scenario.'
       ),
     ],
-    [t]
+    [t, i18n]
   )
 
   const complianceRequiredText = t(
@@ -306,7 +306,7 @@ export function PaymentSettingsSection({
         text: t('operation and charging behavior'),
       },
     ],
-    [t]
+    [t, i18n]
   )
 
   const complianceConfirmed =
