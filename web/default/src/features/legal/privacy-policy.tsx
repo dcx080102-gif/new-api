@@ -16,8 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-// TODO: This page contains hardcoded Chinese text that needs i18n migration (AGENTS.md 3.1).
-// All section content should use t() wrappers with proper translation keys.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -39,229 +37,548 @@ import {
 import { PublicLayout } from '@/components/layout'
 import { cn } from '@/lib/utils'
 
-/* ── 各节内容 ── */
-const sections = [
-  {
-    id: 'section-1',
-    num: '一',
-    title: '信息收集',
-    icon: Database,
-    content: (
-      <>
-        <p>我们仅在为您提供服务所必需的范围内收集信息。具体包括：</p>
-
-        <h3>1.1 您主动提供的信息</h3>
-        <ul>
-          <li><strong>账户信息</strong>：注册时提供的用户名、电子邮件地址、密码（加密存储）。</li>
-          <li><strong>支付信息</strong>：充值时的交易记录。请注意，完整的支付卡号等敏感信息由第三方支付服务商（如 Stripe、易支付）直接处理，本平台不存储您的完整支付卡信息。</li>
-          <li><strong>联系信息</strong>：您通过客服、反馈渠道主动提交的联系方式和问题描述。</li>
-        </ul>
-
-        <h3>1.2 自动收集的信息</h3>
-        <ul>
-          <li><strong>日志信息</strong>：API 调用时间、模型名称、Token 用量、请求 IP 地址等，用于计费、监控和故障排查。</li>
-          <li><strong>设备信息</strong>：浏览器类型、操作系统版本、设备型号、屏幕分辨率等，用于优化用户体验。</li>
-          <li><strong>使用数据</strong>：页面访问记录、功能使用频率、会话时长等，用于改进服务质量。</li>
-        </ul>
-
-        <h3>1.3 不收集的信息</h3>
-        <ul>
-          <li>我们<strong>不会</strong>主动记录您的完整 API 对话内容（除非您明确开启日志记录功能）。</li>
-          <li>我们<strong>不会</strong>在未经您同意的情况下收集您的精确地理位置信息。</li>
-        </ul>
-      </>
-    ),
-  },
-  {
-    id: 'section-2',
-    num: '二',
-    title: '信息使用',
-    icon: Cpu,
-    content: (
-      <>
-        <p>我们收集的信息仅用于以下目的：</p>
-        <ul>
-          <li><strong>服务提供</strong>：处理 API 请求、管理账户、完成交易。</li>
-          <li><strong>计费结算</strong>：根据 API 调用量（Token 数）准确计算费用。</li>
-          <li><strong>安全保障</strong>：检测和防范欺诈、滥用、未授权访问等安全威胁。</li>
-          <li><strong>服务优化</strong>：分析使用趋势，改进产品功能和用户体验。</li>
-          <li><strong>客户支持</strong>：响应您的咨询、投诉和技术支持请求。</li>
-          <li><strong>合规要求</strong>：遵守适用的法律法规和监管要求。</li>
-          <li><strong>服务通告</strong>：向您发送与服务相关的重要通知（如价格调整、功能变更、安全警报等）。</li>
-        </ul>
-      </>
-    ),
-  },
-  {
-    id: 'section-3',
-    num: '三',
-    title: '信息存储与安全',
-    icon: HardDrive,
-    content: (
-      <>
-        <p><strong>3.1 存储位置</strong>：您的信息存储于位于美国和中国境内的服务器上。我们根据业务需要选择适当的存储区域，并确保符合当地数据保护法规。</p>
-
-        <p><strong>3.2 保留期限</strong>：我们仅在实现收集目的所必需的期限内保留您的个人信息，除非法律要求更长的保留期。账户注销后，我们将在合理时间内删除或匿名化处理您的数据。</p>
-
-        <p><strong>3.3 安全措施</strong>：我们采用行业标准的安全措施保护您的信息：</p>
-        <ul>
-          <li><strong>传输加密</strong>：所有数据传输均使用 TLS/SSL 加密协议。</li>
-          <li><strong>密码保护</strong>：用户密码使用 bcrypt 等强哈希算法加密存储，任何人均无法反向破解。</li>
-          <li><strong>访问控制</strong>：严格的内部权限管理，只有授权人员才能访问必要的用户数据。</li>
-          <li><strong>安全审计</strong>：定期进行安全扫描和渗透测试，及时修复潜在漏洞。</li>
-          <li><strong>数据备份</strong>：关键数据定期备份，防止因硬件故障或灾难事件导致的数据丢失。</li>
-        </ul>
-
-        <p><strong>3.4 安全提示</strong>：尽管我们采取了上述措施，但请注意没有任何一种互联网传输或电子存储方法是 100% 安全的。请妥善保管您的账户密码和 API Key，不要在公共网络或不安全的环境中访问本平台。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-4',
-    num: '四',
-    title: '信息共享与披露',
-    icon: Share2,
-    content: (
-      <>
-        <p>我们<strong>不会出售</strong>您的个人信息。在以下情况下，我们可能会共享或披露您的信息：</p>
-
-        <p><strong>4.1 上游 AI 服务商</strong>：当您调用 AI 模型时，您的 API 请求数据（提示词、参数等）将被转发至对应的上游服务商（如 OpenAI、Anthropic 等）。这是提供服务的必要步骤。请勿在 API 请求中包含个人敏感信息。</p>
-
-        <p><strong>4.2 第三方支付处理商</strong>：充值交易由 Stripe、易支付等第三方支付服务商处理，相关交易信息将直接传输至支付服务商。</p>
-
-        <p><strong>4.3 法律要求</strong>：如收到有效的法律文书（法院命令、传票等），或为保护我们及他人的权利、财产和安全，我们可能需要披露相关信息。</p>
-
-        <p><strong>4.4 业务转让</strong>：如发生合并、收购或资产出售，您的信息可能作为资产转让。我们将通过站内公告或邮件通知您。</p>
-
-        <p><strong>4.5 经您同意</strong>：在获得您明确同意的情况下，我们可能与其他方共享您的信息。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-5',
-    num: '五',
-    title: 'Cookie 与追踪技术',
-    icon: Cookie,
-    content: (
-      <>
-        <p>我们使用 Cookie 和类似技术来提升您的使用体验：</p>
-
-        <p><strong>5.1 必要 Cookie</strong>：用于维持登录状态、记住语言偏好和主题设置等基本功能。这些 Cookie 是提供服务所必需的，无法禁用。</p>
-
-        <p><strong>5.2 功能 Cookie</strong>：用于记住您的个性化设置（如侧栏折叠状态、表格列显示偏好等），提升使用便利性。</p>
-
-        <p><strong>5.3 分析 Cookie</strong>：我们可能使用自建或第三方分析工具来了解用户如何使用本平台，以便改进服务。这些数据以匿名聚合形式使用。</p>
-
-        <p><strong>5.4 您的选择</strong>：您可以通过浏览器设置管理或删除 Cookie。但请注意，禁用必要 Cookie 可能导致部分功能无法正常使用。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-6',
-    num: '六',
-    title: '用户权利',
-    icon: Hand,
-    content: (
-      <>
-        <p>根据适用的数据保护法律（包括但不限于 GDPR、CCPA 等），您享有以下权利：</p>
-        <ul>
-          <li><strong>访问权</strong>：您可以随时登录账户查看我们存储的您的个人信息。</li>
-          <li><strong>更正权</strong>：如发现信息不准确或不完整，您可以在账户设置中进行修改。</li>
-          <li><strong>删除权</strong>：您可以随时注销账户，我们将删除或匿名化处理您的数据（法律要求保留的除外）。</li>
-          <li><strong>数据可携带权</strong>：您可以申请导出我们持有的您的个人数据副本。</li>
-          <li><strong>限制处理权</strong>：在某些情况下，您可以要求限制我们对您数据的处理。</li>
-          <li><strong>反对权</strong>：您可以反对我们基于合法利益处理您的数据。</li>
-          <li><strong>撤回同意权</strong>：对于我们基于同意收集的信息，您可以随时撤回同意（不影响撤回前已进行处理的合法性）。</li>
-        </ul>
-        <p>如需行使上述权利，请通过 <a href='/user-agreement#section-12' className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'>联系方式</a> 与我们联系。我们将在 30 日内回复您的请求。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-7',
-    num: '七',
-    title: '未成年人保护',
-    icon: Baby,
-    content: (
-      <>
-        <p><strong>7.1</strong> 本平台服务面向能够依法缔结有效合同的成年人。我们<strong>不会故意收集</strong> 18 周岁以下未成年人的个人信息。</p>
-
-        <p><strong>7.2</strong> 如您是未成年人的父母或监护人，并发现未成年人向我们提供了个人信息，请立即联系我们。我们将在核实后尽快删除相关数据。</p>
-
-        <p><strong>7.3</strong> 如您是 13 至 18 周岁的未成年人，请在父母或监护人的陪同下阅读本政策，并在获得同意后使用本平台。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-8',
-    num: '八',
-    title: '第三方服务',
-    icon: Globe,
-    content: (
-      <>
-        <p>本平台可能包含指向第三方网站或服务的链接，或依赖于第三方提供的服务组件：</p>
-        <ul>
-          <li><strong>AI 模型服务商</strong>：OpenAI、Anthropic、Google 等。您在调用模型时发送的数据受各服务商的隐私政策约束。</li>
-          <li><strong>支付服务商</strong>：Stripe、易支付等。您的支付信息由这些服务商直接处理并受其隐私政策保护。</li>
-          <li><strong>CDN 与托管服务</strong>：Cloudflare、Vercel 等基础设施服务商。</li>
-        </ul>
-        <p>我们不对第三方网站或服务的隐私实践负责。建议您在使用前查阅相关第三方的隐私政策。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-9',
-    num: '九',
-    title: '跨境数据传输',
-    icon: Plane,
-    content: (
-      <>
-        <p><strong>9.1</strong> 您的信息可能在您所在国境外的服务器上存储和处理。这些国家/地区的数据保护法律可能与您所在地不同。</p>
-
-        <p><strong>9.2</strong> 在进行跨境数据传输时，我们将采取适当的保障措施（如标准合同条款），确保您的数据获得与您所在地同等水平的保护。</p>
-
-        <p><strong>9.3</strong> 使用本平台即表示您同意本条款所述的跨境数据传输。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-10',
-    num: '十',
-    title: '政策更新',
-    icon: Bell,
-    content: (
-      <>
-        <p><strong>10.1</strong> 我们可能不时更新本隐私政策。更新后的政策将在本页面发布，发布后即生效。</p>
-
-        <p><strong>10.2</strong> 对于重大变更（如收集信息的目的变化、共享范围扩大等），我们将通过站内公告、邮件等方式提前通知您。</p>
-
-        <p><strong>10.3</strong> 我们建议您定期查阅本政策，以了解我们如何保护您的信息。继续使用本平台即表示您同意更新后的政策。</p>
-      </>
-    ),
-  },
-  {
-    id: 'section-11',
-    num: '十一',
-    title: '联系方式',
-    icon: Mail,
-    content: (
-      <>
-        <p>如对本隐私政策或我们的数据处理实践有任何疑问、意见或请求，请通过以下方式联系我们：</p>
-        <ul>
-          <li>📧 电子邮件：<strong>support@quantumnous.com</strong></li>
-          <li>🌐 官方网站：通过平台在线客服或反馈渠道提交</li>
-          <li>⏱️ 响应时间：我们将在 <strong>15 个工作日内</strong> 回复您的隐私相关请求</li>
-        </ul>
-      </>
-    ),
-  },
-]
-
 export function PrivacyPolicy() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [activeSection, setActiveSection] = useState('section-1')
   const [showBackTop, setShowBackTop] = useState(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
+
+  const sections = useMemo(
+    () => [
+      {
+        id: 'section-1',
+        num: '1',
+        title: t('Information Collection'),
+        icon: Database,
+        content: (
+          <>
+            <p>
+              {t(
+                'We collect information only to the extent necessary to provide you with our services. Specifically:'
+              )}
+            </p>
+
+            <h3>{t('1.1 Information You Provide Voluntarily')}</h3>
+            <ul>
+              <li>
+                <strong>{t('Account Information')}:</strong>{' '}
+                {t(
+                  'Username, email address, and password (stored encrypted) provided during registration.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Payment Information')}:</strong>{' '}
+                {t(
+                  'Transaction records during top-ups. Please note that sensitive information such as full payment card numbers is processed directly by third-party payment service providers (such as Stripe, Yipay), and this platform does not store your complete payment card information.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Contact Information')}:</strong>{' '}
+                {t(
+                  'Contact details and problem descriptions voluntarily submitted by you through customer service or feedback channels.'
+                )}
+              </li>
+            </ul>
+
+            <h3>{t('1.2 Information Collected Automatically')}</h3>
+            <ul>
+              <li>
+                <strong>{t('Log Information')}:</strong>{' '}
+                {t(
+                  'API call time, model name, token usage, request IP address, etc., used for billing, monitoring, and troubleshooting.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Device Information')}:</strong>{' '}
+                {t(
+                  'Browser type, operating system version, device model, screen resolution, etc., used to optimize user experience.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Usage Data')}:</strong>{' '}
+                {t(
+                  'Page visit records, feature usage frequency, session duration, etc., used to improve service quality.'
+                )}
+              </li>
+            </ul>
+
+            <h3>{t('1.3 Information We Do Not Collect')}</h3>
+            <ul>
+              <li>
+                {t(
+                  'We do not actively record your complete API conversation content (unless you explicitly enable the logging feature).'
+                )}
+              </li>
+              <li>
+                {t(
+                  'We do not collect your precise geographic location information without your consent.'
+                )}
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        id: 'section-2',
+        num: '2',
+        title: t('Information Usage'),
+        icon: Cpu,
+        content: (
+          <>
+            <p>
+              {t(
+                'The information we collect is used only for the following purposes:'
+              )}
+            </p>
+            <ul>
+              <li>
+                <strong>{t('Service Provision')}:</strong>{' '}
+                {t('Processing API requests, managing accounts, and completing transactions.')}
+              </li>
+              <li>
+                <strong>{t('Billing & Settlement')}:</strong>{' '}
+                {t(
+                  'Accurately calculating fees based on API call volume (token count).'
+                )}
+              </li>
+              <li>
+                <strong>{t('Security Assurance')}:</strong>{' '}
+                {t(
+                  'Detecting and preventing security threats such as fraud, abuse, and unauthorized access.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Service Optimization')}:</strong>{' '}
+                {t(
+                  'Analyzing usage trends to improve product features and user experience.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Customer Support')}:</strong>{' '}
+                {t(
+                  'Responding to your inquiries, complaints, and technical support requests.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Compliance Requirements')}:</strong>{' '}
+                {t(
+                  'Complying with applicable laws, regulations, and regulatory requirements.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Service Announcements')}:</strong>{' '}
+                {t(
+                  'Sending you important service-related notifications (such as price adjustments, feature changes, security alerts, etc.).'
+                )}
+              </li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        id: 'section-3',
+        num: '3',
+        title: t('Information Storage & Security'),
+        icon: HardDrive,
+        content: (
+          <>
+            <p>
+              <strong>{t('3.1 Storage Location')}:</strong>{' '}
+              {t(
+                'Your information is stored on servers located in the United States and China. We select appropriate storage regions based on business needs and ensure compliance with local data protection regulations.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('3.2 Retention Period')}:</strong>{' '}
+              {t(
+                'We retain your personal information only for the period necessary to fulfill the purposes of collection, unless a longer retention period is required by law. After account cancellation, we will delete or anonymize your data within a reasonable timeframe.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('3.3 Security Measures')}:</strong>{' '}
+              {t(
+                'We use industry-standard security measures to protect your information:'
+              )}
+            </p>
+            <ul>
+              <li>
+                <strong>{t('Transmission Encryption')}:</strong>{' '}
+                {t(
+                  'All data transmission uses TLS/SSL encryption protocols.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Password Protection')}:</strong>{' '}
+                {t(
+                  'User passwords are stored using strong hash algorithms such as bcrypt, and no one can reverse-decrypt them.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Access Control')}:</strong>{' '}
+                {t(
+                  'Strict internal permission management ensures only authorized personnel can access necessary user data.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Security Audits')}:</strong>{' '}
+                {t(
+                  'Regular security scanning and penetration testing are conducted to promptly fix potential vulnerabilities.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Data Backup')}:</strong>{' '}
+                {t(
+                  'Critical data is regularly backed up to prevent data loss due to hardware failure or disaster events.'
+                )}
+              </li>
+            </ul>
+
+            <p>
+              <strong>{t('3.4 Security Advisory')}:</strong>{' '}
+              {t(
+                'Despite the measures we have taken, please note that no method of internet transmission or electronic storage is 100% secure. Please safeguard your account password and API Key, and avoid accessing this platform on public networks or in insecure environments.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-4',
+        num: '4',
+        title: t('Information Sharing & Disclosure'),
+        icon: Share2,
+        content: (
+          <>
+            <p>
+              {t(
+                'We do not sell your personal information. We may share or disclose your information under the following circumstances:'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('4.1 Upstream AI Service Providers')}:</strong>{' '}
+              {t(
+                'When you call AI models, your API request data (prompts, parameters, etc.) will be forwarded to the corresponding upstream service providers (such as OpenAI, Anthropic, etc.). This is a necessary step for providing the service. Please do not include sensitive personal information in API requests.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('4.2 Third-Party Payment Processors')}:</strong>{' '}
+              {t(
+                'Top-up transactions are processed by third-party payment service providers such as Stripe and Yipay. Relevant transaction information will be transmitted directly to the payment service provider.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('4.3 Legal Requirements')}:</strong>{' '}
+              {t(
+                'If we receive valid legal documents (court orders, subpoenas, etc.), or to protect our rights, property, and safety and those of others, we may need to disclose relevant information.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('4.4 Business Transfer')}:</strong>{' '}
+              {t(
+                'In the event of a merger, acquisition, or asset sale, your information may be transferred as an asset. We will notify you through on-site announcements or email.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('4.5 With Your Consent')}:</strong>{' '}
+              {t(
+                'With your explicit consent, we may share your information with other parties.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-5',
+        num: '5',
+        title: t('Cookies & Tracking Technologies'),
+        icon: Cookie,
+        content: (
+          <>
+            <p>
+              {t(
+                'We use cookies and similar technologies to enhance your experience:'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('5.1 Necessary Cookies')}:</strong>{' '}
+              {t(
+                'Used for basic functions such as maintaining login status, remembering language preferences, and theme settings. These cookies are necessary to provide the service and cannot be disabled.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('5.2 Functional Cookies')}:</strong>{' '}
+              {t(
+                'Used to remember your personalization settings (such as sidebar collapse state, table column display preferences, etc.), enhancing convenience.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('5.3 Analytics Cookies')}:</strong>{' '}
+              {t(
+                'We may use self-built or third-party analytics tools to understand how users use this platform to improve services. This data is used in anonymous, aggregated form.'
+              )}
+            </p>
+
+            <p>
+              <strong>{t('5.4 Your Choices')}:</strong>{' '}
+              {t(
+                'You can manage or delete cookies through your browser settings. However, please note that disabling necessary cookies may prevent some features from functioning properly.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-6',
+        num: '6',
+        title: t('User Rights'),
+        icon: Hand,
+        content: (
+          <>
+            <p>
+              {t(
+                'Under applicable data protection laws (including but not limited to GDPR, CCPA, etc.), you have the following rights:'
+              )}
+            </p>
+            <ul>
+              <li>
+                <strong>{t('Right of Access')}:</strong>{' '}
+                {t(
+                  'You can log into your account at any time to view the personal information we store about you.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Right of Rectification')}:</strong>{' '}
+                {t(
+                  'If you find information to be inaccurate or incomplete, you can modify it in your account settings.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Right of Erasure')}:</strong>{' '}
+                {t(
+                  'You can cancel your account at any time, and we will delete or anonymize your data (except as required by law to be retained).'
+                )}
+              </li>
+              <li>
+                <strong>{t('Right of Data Portability')}:</strong>{' '}
+                {t(
+                  'You can request to export a copy of the personal data we hold about you.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Right to Restrict Processing')}:</strong>{' '}
+                {t(
+                  'Under certain circumstances, you can request that we restrict the processing of your data.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Right to Object')}:</strong>{' '}
+                {t(
+                  'You can object to our processing of your data based on legitimate interests.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Right to Withdraw Consent')}:</strong>{' '}
+                {t(
+                  'For information collected based on your consent, you can withdraw consent at any time (without affecting the lawfulness of processing carried out prior to the withdrawal).'
+                )}
+              </li>
+            </ul>
+            <p>
+              {t(
+                'To exercise the above rights, please contact us via '
+              )}
+              <a
+                href="/user-agreement#section-12"
+                className="text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium"
+              >
+                {t('Contact Information')}
+              </a>
+              {t(
+                '. We will respond to your request within 30 days.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-7',
+        num: '7',
+        title: t('Minors Protection'),
+        icon: Baby,
+        content: (
+          <>
+            <p>
+              <strong>7.1</strong>{' '}
+              {t(
+                'This platform\'s services are intended for adults who can enter into legally binding contracts. We do not knowingly collect personal information from minors under the age of 18.'
+              )}
+            </p>
+
+            <p>
+              <strong>7.2</strong>{' '}
+              {t(
+                'If you are a parent or guardian of a minor and discover that a minor has provided us with personal information, please contact us immediately. We will delete the relevant data as soon as possible after verification.'
+              )}
+            </p>
+
+            <p>
+              <strong>7.3</strong>{' '}
+              {t(
+                'If you are a minor between 13 and 18 years of age, please read this policy accompanied by a parent or guardian and obtain their consent before using this platform.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-8',
+        num: '8',
+        title: t('Third-Party Services'),
+        icon: Globe,
+        content: (
+          <>
+            <p>
+              {t(
+                'This platform may contain links to third-party websites or services, or rely on service components provided by third parties:'
+              )}
+            </p>
+            <ul>
+              <li>
+                <strong>{t('AI Model Service Providers')}:</strong>{' '}
+                {t(
+                  'OpenAI, Anthropic, Google, etc. The data you send when calling models is subject to each service provider\'s privacy policy.'
+                )}
+              </li>
+              <li>
+                <strong>{t('Payment Service Providers')}:</strong>{' '}
+                {t(
+                  'Stripe, Yipay, etc. Your payment information is processed directly by these service providers and protected by their privacy policies.'
+                )}
+              </li>
+              <li>
+                <strong>{t('CDN & Hosting Services')}:</strong>{' '}
+                {t(
+                  'Infrastructure service providers such as Cloudflare, Vercel, etc.'
+                )}
+              </li>
+            </ul>
+            <p>
+              {t(
+                'We are not responsible for the privacy practices of third-party websites or services. We recommend that you review the privacy policies of relevant third parties before use.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-9',
+        num: '9',
+        title: t('Cross-Border Data Transfer'),
+        icon: Plane,
+        content: (
+          <>
+            <p>
+              <strong>9.1</strong>{' '}
+              {t(
+                'Your information may be stored and processed on servers outside your country of residence. The data protection laws of these countries/regions may differ from those in your location.'
+              )}
+            </p>
+
+            <p>
+              <strong>9.2</strong>{' '}
+              {t(
+                'When conducting cross-border data transfers, we will take appropriate safeguards (such as standard contractual clauses) to ensure your data receives protection equivalent to that in your location.'
+              )}
+            </p>
+
+            <p>
+              <strong>9.3</strong>{' '}
+              {t(
+                'By using this platform, you consent to the cross-border data transfer described in this section.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-10',
+        num: '10',
+        title: t('Policy Updates'),
+        icon: Bell,
+        content: (
+          <>
+            <p>
+              <strong>10.1</strong>{' '}
+              {t(
+                'We may update this privacy policy from time to time. The updated policy will be published on this page and shall take effect upon publication.'
+              )}
+            </p>
+
+            <p>
+              <strong>10.2</strong>{' '}
+              {t(
+                'For significant changes (such as changes to the purposes of information collection, expansion of sharing scope, etc.), we will notify you in advance through on-site announcements, email, and other means.'
+              )}
+            </p>
+
+            <p>
+              <strong>10.3</strong>{' '}
+              {t(
+                'We recommend that you review this policy periodically to understand how we protect your information. Continued use of this platform constitutes your agreement to the updated policy.'
+              )}
+            </p>
+          </>
+        ),
+      },
+      {
+        id: 'section-11',
+        num: '11',
+        title: t('Contact Information'),
+        icon: Mail,
+        content: (
+          <>
+            <p>
+              {t(
+                'If you have any questions, comments, or requests regarding this privacy policy or our data processing practices, please contact us through the following methods:'
+              )}
+            </p>
+            <ul>
+              <li>
+                📧 {t('Email')}: <strong>support@quantumnous.com</strong>
+              </li>
+              <li>
+                🌐 {t('Website')}: {t('Submit via the platform\'s online customer service or feedback channel')}
+              </li>
+              <li>
+                ⏱️ {t('Response Time')}: {t('We will respond to your privacy-related requests within 15 business days')}
+              </li>
+            </ul>
+          </>
+        ),
+      },
+    ],
+    [t]
+  )
+
+  const tocLinks = useMemo(
+    () =>
+      sections.map((s) => ({
+        id: s.id,
+        label: t('Article {{num}} — {{title}}', { num: s.num, title: s.title }),
+        shortLabel: s.title,
+      })),
+    [sections, t]
+  )
 
   // 滚动时高亮当前章节
   useEffect(() => {
@@ -287,17 +604,7 @@ export function PrivacyPolicy() {
       observerRef.current?.disconnect()
       window.removeEventListener('scroll', onScroll)
     }
-  }, [])
-
-  const tocLinks = useMemo(
-    () =>
-      sections.map((s) => ({
-        id: s.id,
-        label: `第${s.num}条 · ${s.title}`,
-        shortLabel: s.title,
-      })),
-    []
-  )
+  }, [sections])
 
   return (
     <PublicLayout showMainContainer={false}>
@@ -313,17 +620,20 @@ export function PrivacyPolicy() {
           <div className='mx-auto max-w-3xl text-center'>
             <div className='mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200/60 bg-blue-50/80 px-4 py-1.5 text-sm font-medium text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/50 dark:text-blue-300'>
               <Shield className='h-4 w-4' />
-              法律文档
+              {t('Legal Documents')}
             </div>
             <h1 className='text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl'>
               {t('Privacy Policy')}
             </h1>
             <p className='mt-3 text-sm text-slate-500 dark:text-slate-400'>
-              最后更新日期：2026年6月13日
+              {t('Last updated: June 13, 2026')}
             </p>
             <div className='mx-auto mt-6 max-w-xl rounded-xl border border-blue-200/80 bg-blue-50/60 p-4 text-left dark:border-blue-800/30 dark:bg-blue-950/30'>
               <p className='text-sm leading-relaxed text-blue-800 dark:text-blue-200'>
-                <strong>📋 概要：</strong>我们重视您的隐私。本政策详细说明了我们如何收集、使用、存储和保护您的个人信息。使用本平台即表示您已阅读并理解本政策。
+                <strong>📋 {t('Summary')}:</strong>{' '}
+                {t(
+                  'We value your privacy. This policy details how we collect, use, store, and protect your personal information. By using this platform, you confirm that you have read and understood this policy.'
+                )}
               </p>
             </div>
           </div>
@@ -337,7 +647,7 @@ export function PrivacyPolicy() {
           <aside className='hidden w-56 shrink-0 lg:block'>
             <nav className='sticky top-24'>
               <h4 className='mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500'>
-                目录
+                {t('Table of Contents')}
               </h4>
               <ul className='space-y-0.5'>
                 {tocLinks.map((link) => (
@@ -382,7 +692,9 @@ export function PrivacyPolicy() {
                   <span className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'>
                     <section.icon className='h-4 w-4' />
                   </span>
-                  <span className='mr-2 text-sm font-normal text-slate-400 dark:text-slate-500'>第{section.num}条</span>
+                  <span className='mr-2 text-sm font-normal text-slate-400 dark:text-slate-500'>
+                    {t('Section {{num}}', { num: section.num })}
+                  </span>
                   {section.title}
                 </h2>
 
@@ -397,13 +709,16 @@ export function PrivacyPolicy() {
             <div className='rounded-2xl border border-blue-200/60 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 text-center dark:border-blue-800/30 dark:from-blue-950/30 dark:to-indigo-950/30 sm:p-8'>
               <Shield className='mx-auto mb-3 h-8 w-8 text-blue-500' />
               <p className='text-sm font-medium text-slate-700 dark:text-slate-300'>
-                如对本隐私政策有任何疑问，请随时
-                <a href='mailto:support@quantumnous.com' className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium mx-1'>
-                  联系我们
+                {t('If you have any questions about this privacy policy, please feel free to')}{' '}
+                <a
+                  href="mailto:support@quantumnous.com"
+                  className="text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium mx-1"
+                >
+                  {t('contact us')}
                 </a>
-                。
+                {t('.')}
                 <br />
-                我们将竭诚为您解答。
+                {t('We are here to help.')}
               </p>
             </div>
           </div>
@@ -416,7 +731,7 @@ export function PrivacyPolicy() {
           type='button'
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className='fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800'
-          aria-label='回到顶部'
+          aria-label={t('Back to top')}
         >
           <ArrowUp className='h-4 w-4 text-slate-600 dark:text-slate-300' />
         </button>
