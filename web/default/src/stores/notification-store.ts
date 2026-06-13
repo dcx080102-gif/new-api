@@ -29,9 +29,14 @@ export interface Notification {
 
 interface NotificationStore {
   notifications: Notification[]
+  lastReadNotice: string
+  readAnnouncementKeys: string[]
   addNotification: (n: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
   markAsRead: (id: string) => void
   markAllAsRead: () => void
+  markNoticeRead: (content: string) => void
+  markAnnouncementsRead: (keys: string[]) => void
+  isAnnouncementRead: (key: string) => boolean
   unreadCount: () => number
 }
 
@@ -89,8 +94,46 @@ function saveToStorage(notifications: Notification[]) {
   }
 }
 
+const LAST_READ_NOTICE_KEY = 'dvl_last_read_notice'
+const READ_ANNOUNCEMENT_KEYS_KEY = 'dvl_read_announcement_keys'
+
+function loadLastReadNotice(): string {
+  try {
+    return localStorage.getItem(LAST_READ_NOTICE_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+function loadReadAnnouncementKeys(): string[] {
+  try {
+    const raw = localStorage.getItem(READ_ANNOUNCEMENT_KEYS_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function saveLastReadNotice(content: string) {
+  try {
+    localStorage.setItem(LAST_READ_NOTICE_KEY, content)
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+function saveReadAnnouncementKeys(keys: string[]) {
+  try {
+    localStorage.setItem(READ_ANNOUNCEMENT_KEYS_KEY, JSON.stringify(keys))
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
 export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: loadFromStorage(),
+  lastReadNotice: loadLastReadNotice(),
+  readAnnouncementKeys: loadReadAnnouncementKeys(),
 
   addNotification: (n) => {
     const notification: Notification = {
@@ -125,4 +168,20 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   },
 
   unreadCount: () => get().notifications.filter((n) => !n.read).length,
+
+  markNoticeRead: (content: string) => {
+    saveLastReadNotice(content)
+    set({ lastReadNotice: content })
+  },
+
+  markAnnouncementsRead: (keys: string[]) => {
+    const current = get().readAnnouncementKeys
+    const merged = [...new Set([...current, ...keys])]
+    saveReadAnnouncementKeys(merged)
+    set({ readAnnouncementKeys: merged })
+  },
+
+  isAnnouncementRead: (key: string) => {
+    return get().readAnnouncementKeys.includes(key)
+  },
 }))

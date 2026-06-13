@@ -82,6 +82,7 @@ export function Hero(props: HeroProps) {
           ) : (
             <>
               <Button
+                variant='outline'
                 className='group rounded-lg'
                 render={<Link to='/sign-up' />}
               >

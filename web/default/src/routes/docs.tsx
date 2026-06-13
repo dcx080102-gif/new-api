@@ -16,17 +16,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { type TopNavLink } from '../types'
+import { createFileRoute } from '@tanstack/react-router'
+import { Docs } from '@/features/docs'
 
-/**
- * Default top navigation links
- *
- * In practice, navigation links are dynamically fetched from backend.
- * Priority: Backend dynamic links > Provided navLinks > defaultTopNavLinks
- *
- * This is intentionally empty to encourage backend configuration.
- * If you need fallback links, add them here.
- */
-export const defaultTopNavLinks: TopNavLink[] = [
-  { title: '关于', href: '/about' },
-]
+export const Route = createFileRoute('/docs')({
+  component: Docs,
+})

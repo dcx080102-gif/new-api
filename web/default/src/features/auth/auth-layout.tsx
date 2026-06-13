@@ -77,12 +77,12 @@ export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
               >
                 {t('Home')}
               </Link>
-              <a
-                href='#'
+              <Link
+                to='/docs'
                 className='inline-block transition-all duration-200 hover:scale-105 hover:text-slate-900 dark:hover:text-white'
               >
                 {t('Docs')}
-              </a>
+              </Link>
             </nav>
             <div className='ml-2 flex items-center gap-1 border-l border-slate-200 pl-4 dark:border-slate-700'>
               <MessageDropdown />

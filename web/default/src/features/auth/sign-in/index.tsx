@@ -20,7 +20,6 @@ import { useState, useMemo } from 'react'
 import { Link, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { X, AlertTriangle, Zap, Shield, Activity, Coins, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
 import { IconGithub, IconGmail } from '@/assets/brand-icons'
 import { cn } from '@/lib/utils'
 import { FadeContent } from '@/components/effects/FadeContent'
@@ -60,15 +59,6 @@ function BrandPanel() {
 
   return (
     <FadeContent className='space-y-8 text-center md:text-left' stagger={0.08}>
-      {/* Badge */}
-      <div className='inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary'>
-        <span className='relative flex h-2 w-2'>
-          <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75' />
-          <span className='relative inline-flex h-2 w-2 rounded-full bg-green-500' />
-        </span>
-        {t('服务运行中')}
-      </div>
-
       {/* Headline */}
       <div className='space-y-3'>
         <h1 className='text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl'>
@@ -187,7 +177,7 @@ export function SignIn() {
                 {t("Don't have an account?")}{' '}
                 <Link
                   to='/sign-up'
-                  className='hover:text-primary inline-block font-medium underline underline-offset-4 transition-all duration-200 hover:scale-105'
+                  className='text-blue-800 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 inline-block font-medium underline underline-offset-4 transition-all duration-200 hover:scale-105'
                 >
                   {t('Sign up')}
                 </Link>

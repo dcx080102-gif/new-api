@@ -17,7 +17,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useEffect, useMemo, useState } from 'react'
-import type { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from '@tanstack/react-router'
@@ -126,9 +125,7 @@ export function UserAuthForm({
   } = useTurnstile()
   const { handleLoginSuccess, redirectTo2FA } = useAuthRedirect()
 
-  const hasUserAgreement = Boolean(status?.user_agreement_enabled)
-  const hasPrivacyPolicy = Boolean(status?.privacy_policy_enabled)
-  const requiresLegalConsent = hasUserAgreement || hasPrivacyPolicy
+  const requiresLegalConsent = true // 预览模式：始终显示法律协议
   const passkeyButtonDisabled =
     isPasskeyLoading ||
     !passkeySupported ||
@@ -552,7 +549,7 @@ export function UserAuthForm({
               {/* Submit Button */}
               <Button
                 type='submit'
-                className='mt-2 w-full justify-center gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
+                className='mt-2 w-full justify-center gap-2 bg-blue-800 hover:bg-blue-900 dark:bg-blue-800 dark:hover:bg-blue-700 text-white disabled:opacity-100 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
                 disabled={
                   isLoading ||
                   (requiresLegalConsent && !agreedToLegal) ||

@@ -18,13 +18,11 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { useStatus } from '@/hooks/use-status'
 import { AuthLayout } from '../auth-layout'
 import { SignUpForm } from './components/sign-up-form'
 
 export function SignUp() {
   const { t } = useTranslation()
-  const { status } = useStatus()
 
   return (
     <AuthLayout>
@@ -37,7 +35,7 @@ export function SignUp() {
             {t('Already have an account?')}{' '}
             <Link
               to='/sign-in'
-              className='hover:text-primary inline-block font-medium underline underline-offset-4 transition-all duration-200 hover:scale-105'
+              className='text-blue-800 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 inline-block font-medium underline underline-offset-4 transition-all duration-200 hover:scale-105'
             >
               {t('Sign in')}
             </Link>

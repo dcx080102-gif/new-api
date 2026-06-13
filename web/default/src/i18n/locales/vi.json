@@ -703,6 +703,7 @@
     "Cleared all models": "Đã xóa tất cả các mô hình",
     "Click \"Create Plan\" to create your first subscription plan": "Nhấp \"Tạo gói\" để tạo gói đăng ký đầu tiên",
     "Click \"Generate\" to create a token": "Nhấp \"Tạo\" để tạo một token",
+    "Click \"New Key\", set name, quota limit, and expiration": "Nhấp \"New Key\", đặt tên, giới hạn hạn ngạch và thời hạn",
     "Click any category to drill into its models, apps, and trends": "Bấm vào danh mục để xem chi tiết mô hình, ứng dụng và xu hướng",
     "Click for details": "Nhấp để xem chi tiết",
     "Click save when you&apos;re done.": "Nhấn lưu khi bạn hoàn tất.",
@@ -2946,6 +2947,7 @@
     "Please select items to delete": "Vui lòng chọn các mục để xóa",
     "Please Select user groups that can access this channel.": "Vui lòng chọn nhóm người dùng có thể truy cập kênh này.",
     "Please set Ollama API Base URL first": "Vui lòng đặt URL cơ sở API Ollama trước",
+    "Please sign in to view {{module}}.": "Vui lòng đăng nhập để xem {{module}}.",
     "Please try again later.": "Vui lòng thử lại sau.",
     "Please upload key file(s)": "Vui lòng tải lên (các) tệp khóa",
     "Please wait a moment before trying again.": "Vui lòng chờ một lát rồi thử lại.",
@@ -3185,6 +3187,7 @@
     "Redirecting to Creem checkout...": "Đang chuyển hướng đến thanh toán Creem...",
     "Redirecting to GitHub...": "Đang chuyển hướng đến GitHub...",
     "Redirecting to payment page...": "Đang chuyển hướng đến trang thanh toán...",
+    "Redirecting to sign in in {{seconds}} seconds.": "Chuyển hướng đến đăng nhập sau {{seconds}} giây.",
     "Reference Video": "Video tham chiếu",
     "Referral link:": "Liên kết giới thiệu:",
     "Referral Program": "Chương trình Giới thiệu",
@@ -3620,6 +3623,8 @@
     "Sidebar Personal Settings": "Cài đặt cá nhân thanh bên",
     "Sign in": "Đăng nhập",
     "Sign In": "Đăng nhập",
+    "Sign in now": "Đăng nhập ngay",
+    "Sign in required": "Yêu cầu đăng nhập",
     "Sign in with Passkey": "Đăng nhập bằng Passkey",
     "Sign out": "Đăng xuất",
     "Sign up": "Đăng ký",
@@ -4497,6 +4502,10 @@
     "{{value}}s": "{{value}} s",
     "| Based on": "| Dựa trên",
     "© 2025 Your Company. All rights reserved.": "© 2025 Công ty của bạn. Mọi quyền được bảo lưu.",
-    "⚠️ Security Notice: ": "⚠️ Lưu ý bảo mật: "
+    "⚠️ Security Notice: ": "⚠️ Lưu ý bảo mật: ",
+    "主页": "Trang chủ",
+    "关于": "Giới thiệu",
+    "控制台": "Bảng điều khiển",
+    "文档": "Tài liệu"
   }
 }

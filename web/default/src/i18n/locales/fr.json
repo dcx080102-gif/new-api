@@ -703,6 +703,7 @@
     "Cleared all models": "Tous les modèles effacés",
     "Click \"Create Plan\" to create your first subscription plan": "Cliquez sur « Créer un plan » pour créer votre premier abonnement",
     "Click \"Generate\" to create a token": "Cliquez sur \"Générer\" pour créer un jeton",
+    "Click \"New Key\", set name, quota limit, and expiration": "Cliquez sur « Nouvelle clé », définissez le nom, la limite de quota et l'expiration",
     "Click any category to drill into its models, apps, and trends": "Cliquez sur une catégorie pour explorer ses modèles, applications et tendances",
     "Click for details": "Cliquez pour les détails",
     "Click save when you&apos;re done.": "Cliquez sur Enregistrer lorsque vous avez terminé.",
@@ -2946,6 +2947,7 @@
     "Please select items to delete": "Veuillez sélectionner des éléments à supprimer",
     "Please Select user groups that can access this channel.": "Veuillez sélectionner les groupes d'utilisateurs qui peuvent accéder à ce canal.",
     "Please set Ollama API Base URL first": "Veuillez d'abord définir l'URL de base de l'API Ollama",
+    "Please sign in to view {{module}}.": "Veuillez vous connecter pour voir {{module}}.",
     "Please try again later.": "Veuillez réessayer plus tard.",
     "Please upload key file(s)": "Veuillez télécharger le (s) fichier(s) clé (s)",
     "Please wait a moment before trying again.": "Veuillez patienter un instant avant de réessayer.",
@@ -3185,6 +3187,7 @@
     "Redirecting to Creem checkout...": "Redirection vers la caisse Creem...",
     "Redirecting to GitHub...": "Redirection vers GitHub...",
     "Redirecting to payment page...": "Redirection vers la page de paiement...",
+    "Redirecting to sign in in {{seconds}} seconds.": "Redirection vers la connexion dans {{seconds}} secondes.",
     "Reference Video": "Vidéo de référence",
     "Referral link:": "Lien de parrainage :",
     "Referral Program": "Programme de parrainage",
@@ -3620,6 +3623,8 @@
     "Sidebar Personal Settings": "Paramètres personnels de la barre latérale",
     "Sign in": "Se connecter",
     "Sign In": "Se connecter",
+    "Sign in now": "Se connecter",
+    "Sign in required": "Connexion requise",
     "Sign in with Passkey": "Se connecter avec Passkey",
     "Sign out": "Se déconnecter",
     "Sign up": "S'inscrire",
@@ -4497,6 +4502,10 @@
     "{{value}}s": "{{value}} s",
     "| Based on": "| Basé sur",
     "© 2025 Your Company. All rights reserved.": "© 2025 Votre entreprise. Tous droits réservés.",
-    "⚠️ Security Notice: ": "⚠️ Avis de sécurité : "
+    "⚠️ Security Notice: ": "⚠️ Avis de sécurité : ",
+    "主页": "Accueil",
+    "关于": "À propos",
+    "控制台": "Console",
+    "文档": "Docs"
   }
 }
