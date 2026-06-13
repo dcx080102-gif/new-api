@@ -93,7 +93,7 @@ export function SignUpForm({
       email: '',
       password: '',
       confirmPassword: '',
-      aff_code: getAffiliateCode(),
+      aff_code: '',
     },
   })
 
@@ -296,7 +296,7 @@ export function SignUpForm({
               <FormLabel>{t('Invite code (optional)')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder={t('Enter invite code for bonus quota')}
+                  placeholder={t('Invite code')}
                   {...field}
                 />
               </FormControl>
