@@ -73,6 +73,7 @@ export function Hero(props: HeroProps) {
         >
           {props.isAuthenticated ? (
             <Button
+              variant='outline'
               className='group rounded-lg'
               render={<Link to='/dashboard' />}
             >

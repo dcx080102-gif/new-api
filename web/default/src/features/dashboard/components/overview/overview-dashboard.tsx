@@ -453,7 +453,7 @@ function CompactQuickAction(props: { action: QuickAction }) {
 }
 
 export function OverviewDashboard() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const user = useAuthStore((state) => state.auth.user)
   const { items: apiInfoItems } = useApiInfo()
   const {
@@ -549,7 +549,7 @@ export function OverviewDashboard() {
         icon: BookOpen,
       },
     ],
-    [t]
+    [t, i18n]
   )
 
   const visibleQuickActions = useMemo(
@@ -640,7 +640,7 @@ export function OverviewDashboard() {
                         <ChevronUp data-icon='inline-start' />
                         {t('Hide setup guide')}
                       </Button>
-                      <Button size='sm' render={<Link to='/keys' />}>
+                      <Button variant='outline' size='sm' render={<Link to='/keys' />}>
                         <KeyRound data-icon='inline-start' />
                         {t('Create API Key')}
                       </Button>

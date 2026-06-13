@@ -48,7 +48,7 @@ const NEW_API_FOOTER_ATTRIBUTION_KEY = [
 ].join('.')
 
 function FooterLinkItem(props: { link: FooterLink }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const isExternal = props.link.href.startsWith('http')
   const label = t(props.link.text)
 
@@ -79,7 +79,7 @@ function FooterLinkItem(props: { link: FooterLink }) {
 // copyright row when either is configured in System Settings → Site. Emits
 // fragmented siblings so the parent flex container's gap controls spacing.
 function LegalLinks(props: { leadingSeparator?: boolean }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { status } = useStatus()
   const items: { key: string; label: string; href: string }[] = []
   if (status?.user_agreement_enabled) {
@@ -123,7 +123,7 @@ function LegalLinks(props: { leadingSeparator?: boolean }) {
 // inline=true returns just the inner span for composition in a parent flex
 // row. inline=false wraps in a centered/right-aligned div (default).
 function ProjectAttribution(props: { currentYear: number; inline?: boolean; name: string }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const content = (
     <span className='text-muted-foreground/45'>
       &copy; {props.currentYear}{' '}
@@ -149,7 +149,7 @@ function ProjectAttribution(props: { currentYear: number; inline?: boolean; name
 }
 
 export function Footer(props: FooterProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const {
     systemName,
     logo: systemLogo,
@@ -216,7 +216,7 @@ export function Footer(props: FooterProps) {
         ],
       },
     ],
-    [t]
+    [t, i18n.language]
   )
 
   const displayColumns = props.columns ?? fallbackColumns
