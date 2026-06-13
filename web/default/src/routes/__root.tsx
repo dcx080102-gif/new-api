@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect } from 'react'
+import { Component, useEffect } from 'react'
 import { type QueryClient } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
@@ -34,6 +34,62 @@ import { GeneralError } from '@/features/errors/general-error'
 import { NotFoundError } from '@/features/errors/not-found-error'
 import { getSetupStatus } from '@/features/setup/api'
 
+/**
+ * Error boundary that silently recovers from DOM manipulation errors
+ * caused by browser extensions (translators, ad blockers, etc.) that
+ * modify the DOM outside React's control, triggering
+ * "Failed to execute 'removeChild' on 'Node'" errors.
+ */
+class SafeErrorBoundary extends Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: unknown) {
+    // Silently recover from DOM NotFoundError (browser extension conflicts)
+    if (error instanceof DOMException && error.name === 'NotFoundError') {
+      return { hasError: false }
+    }
+    // Also check string message for cross-browser compatibility
+    if (
+      error instanceof Error &&
+      error.message?.includes('removeChild')
+    ) {
+      return { hasError: false }
+    }
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: unknown) {
+    if (
+      error instanceof DOMException &&
+      error.name === 'NotFoundError'
+    ) {
+      // Silently ignore - browser extension DOM conflict
+      return
+    }
+    if (
+      error instanceof Error &&
+      error.message?.includes('removeChild')
+    ) {
+      // Silently ignore - browser extension DOM conflict
+      return
+    }
+    console.error('[SafeErrorBoundary]', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+    }
+    return this.props.children
+  }
+}
+
 function RootComponent() {
   // Load system configuration (logo, system name, etc.) from backend
   useSystemConfig({ autoLoad: true })
@@ -46,17 +102,19 @@ function RootComponent() {
   }, [])
 
   return (
-    <ThemeCustomizationProvider>
-      <NavigationProgress />
-      <Outlet />
-      <Toaster closeButton duration={5000} position='top-center' richColors />
-      {import.meta.env.MODE === 'development' && (
-        <>
-          <ReactQueryDevtools buttonPosition='bottom-left' />
-          <TanStackRouterDevtools position='bottom-right' />
-        </>
-      )}
-    </ThemeCustomizationProvider>
+    <SafeErrorBoundary fallback={<GeneralError />}>
+      <ThemeCustomizationProvider>
+        <NavigationProgress />
+        <Outlet />
+        <Toaster closeButton duration={5000} position='top-center' richColors />
+        {import.meta.env.MODE === 'development' && (
+          <>
+            <ReactQueryDevtools buttonPosition='bottom-left' />
+            <TanStackRouterDevtools position='bottom-right' />
+          </>
+        )}
+      </ThemeCustomizationProvider>
+    </SafeErrorBoundary>
   )
 }
 
