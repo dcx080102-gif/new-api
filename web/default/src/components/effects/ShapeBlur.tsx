@@ -23,9 +23,9 @@ interface ShapeBlurProps {
 }
 
 const DEFAULT_SHAPES: ShapeConfig[] = [
-  { color: 'rgba(120,80,255,0.25)', size: 100, x: 5, y: 15 },
-  { color: 'rgba(60,180,255,0.20)', size: 80, x: 75, y: 55 },
-  { color: 'rgba(140,100,255,0.20)', size: 90, x: 45, y: 70 },
+  { color: 'rgba(120,80,255,0.45)', size: 180, x: 5, y: 15 },
+  { color: 'rgba(60,180,255,0.40)', size: 150, x: 75, y: 55 },
+  { color: 'rgba(140,100,255,0.40)', size: 170, x: 45, y: 70 },
 ]
 
 export function ShapeBlur({

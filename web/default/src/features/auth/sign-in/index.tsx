@@ -84,7 +84,7 @@ function BrandPanel() {
       {/* Feature Grid */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         {features.map((f) => (
-          <ShapeBlur key={f.title} blur={30} borderRadius='24px'>
+          <ShapeBlur key={f.title} blur={20} borderRadius='24px'>
             <div
               className='flex items-start gap-3 rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 transition-all duration-200 hover:border-slate-300 hover:bg-white dark:border-slate-800/60 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-900'
             >
