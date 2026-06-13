@@ -35,58 +35,71 @@ import { NotFoundError } from '@/features/errors/not-found-error'
 import { getSetupStatus } from '@/features/setup/api'
 
 /**
- * Error boundary that silently recovers from DOM manipulation errors
- * caused by browser extensions (translators, ad blockers, etc.) that
- * modify the DOM outside React's control, triggering
+ * Error boundary that recovers from DOM manipulation errors caused by
+ * browser extensions (translators, ad blockers, etc.) that modify the
+ * DOM outside React's control, triggering
  * "Failed to execute 'removeChild' on 'Node'" errors.
+ *
+ * Strategy: when a DOM error is caught, force-remount children with
+ * a fresh key so React creates brand-new DOM nodes. Cap recovery
+ * attempts at 3 to prevent infinite loops.
  */
 class SafeErrorBoundary extends Component<
   { children: React.ReactNode; fallback: React.ReactNode },
-  { hasError: boolean }
+  { hasError: boolean; recoveryKey: number }
 > {
   constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
     super(props)
-    this.state = { hasError: false }
+    this.state = { hasError: false, recoveryKey: 0 }
   }
 
-  static getDerivedStateFromError(error: unknown) {
-    // Silently recover from DOM NotFoundError (browser extension conflicts)
-    if (error instanceof DOMException && error.name === 'NotFoundError') {
-      return { hasError: false }
+  static getDerivedStateFromError(
+    error: unknown,
+  ): Partial<{ hasError: boolean; recoveryKey: number }> | null {
+    const isDomError =
+      (error instanceof DOMException && error.name === 'NotFoundError') ||
+      (error instanceof Error && error.message?.includes('removeChild'))
+
+    if (!isDomError) {
+      return { hasError: true }
     }
-    // Also check string message for cross-browser compatibility
-    if (
-      error instanceof Error &&
-      error.message?.includes('removeChild')
-    ) {
-      return { hasError: false }
-    }
-    return { hasError: true }
+    // Don't return new state here — let componentDidCatch handle it
+    return null
   }
 
   componentDidCatch(error: unknown) {
-    if (
-      error instanceof DOMException &&
-      error.name === 'NotFoundError'
-    ) {
-      // Silently ignore - browser extension DOM conflict
-      return
-    }
-    if (
-      error instanceof Error &&
-      error.message?.includes('removeChild')
-    ) {
-      // Silently ignore - browser extension DOM conflict
+    const isDomError =
+      (error instanceof DOMException && error.name === 'NotFoundError') ||
+      (error instanceof Error && error.message?.includes('removeChild'))
+
+    if (isDomError) {
+      this.setState((prev) => {
+        const next = prev.recoveryKey + 1
+        if (next > 3) {
+          // Too many recovery attempts — give up and show fallback
+          return { hasError: true, recoveryKey: next }
+        }
+        // Force remount with a new key to escape the DOM corruption
+        return { hasError: false, recoveryKey: next }
+      })
       return
     }
     console.error('[SafeErrorBoundary]', error)
+    this.setState({ hasError: true })
   }
 
   render() {
     if (this.state.hasError) {
       return this.props.fallback
     }
-    return this.props.children
+    if (this.state.recoveryKey > 0) {
+      return (
+        <div key={this.state.recoveryKey}>
+          {this.props.children}
+        </div>
+      )
+    }
+    return <>{this.props.children}</>
   }
 }
 
