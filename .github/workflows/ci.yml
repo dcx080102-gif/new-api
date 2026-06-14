@@ -1,0 +1,76 @@
+name: CI
+
+# ─── 触发条件 ─────────────────────────────────────────────
+# push 到 main 分支 或 发起 PR 到 main 分支时自动运行
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 当一个 PR 有多次 push 时，取消旧的 run，节省资源
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ══════════════════════════════════════════════════════════
+  # 后端：Go 编译检查 + 静态分析
+  # ══════════════════════════════════════════════════════════
+  backend:
+    name: Go 后端检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'   # 自动读取 go.mod 中的 go 版本
+          cache: true                  # 自动缓存 Go modules
+
+      - name: 编译检查 (go build)
+        run: go build ./...
+
+      - name: 静态分析 (go vet)
+        run: go vet ./...
+
+      # 待测试完善后取消注释：
+      # - name: 运行单元测试
+      #   run: go test ./...
+
+  # ══════════════════════════════════════════════════════════
+  # 前端：类型检查 + 生产构建
+  # ══════════════════════════════════════════════════════════
+  frontend:
+    name: 前端检查（default 主题）
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1'           # 使用 Bun 1.x 最新版
+
+      - name: 安装依赖
+        working-directory: web
+        run: bun install --frozen-lockfile
+
+      - name: TypeScript 类型检查
+        working-directory: web/default
+        run: bun run typecheck
+
+      - name: 生产构建
+        working-directory: web/default
+        env:
+          DISABLE_ESLINT_PLUGIN: 'true'
+          VITE_REACT_APP_VERSION: ${{ github.sha }}
+        run: bun run build
+
+      # 待测试完善后取消注释：
+      # - name: 运行前端测试
+      #   working-directory: web/default
+      #   run: bun run test
