@@ -41,7 +41,7 @@ export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
     >
       <SoftAurora />
       {/* Top Navbar — gradient frosted glass */}
-      <header className='sticky top-0 z-50 flex h-14 shrink-0 items-center border-b border-slate-200/40 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/40 backdrop-blur-md dark:border-slate-800/40 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/90'>
+      <header className='sticky top-0 z-50 flex h-12 md:h-14 shrink-0 items-center border-b border-slate-200/40 bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/40 backdrop-blur-md dark:border-slate-800/40 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900/90'>
         <div className='flex w-full items-center justify-between px-4 md:px-6'>
           {/* Left: Logo + Brand */}
           <Link
@@ -78,10 +78,22 @@ export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
                 {t('Home')}
               </Link>
               <Link
+                to='/pricing'
+                className='inline-block transition-all duration-200 hover:scale-105 hover:text-slate-900 dark:hover:text-white'
+              >
+                {t('Model Square')}
+              </Link>
+              <Link
                 to='/docs'
                 className='inline-block transition-all duration-200 hover:scale-105 hover:text-slate-900 dark:hover:text-white'
               >
                 {t('Docs')}
+              </Link>
+              <Link
+                to='/about'
+                className='inline-block transition-all duration-200 hover:scale-105 hover:text-slate-900 dark:hover:text-white'
+              >
+                {t('About')}
               </Link>
             </nav>
             <div className='ml-2 flex items-center gap-1 border-l border-slate-200 pl-4 dark:border-slate-700'>
@@ -99,12 +111,12 @@ export function AuthLayout({ children, brandPanel }: AuthLayoutProps) {
         <main className='flex flex-1 items-center justify-center px-4 py-10 md:px-8 md:py-0'>
           <div className='grid w-full max-w-5xl gap-8 md:grid-cols-2 md:gap-12 lg:gap-16'>
             {/* Left: Brand Panel */}
-            <div className='flex items-center justify-center md:justify-end'>
+            <div className='hidden md:flex items-center justify-center md:justify-end'>
               <div className='w-full max-w-md'>{brandPanel}</div>
             </div>
-            {/* Right: Form Area (no card — matches left side) */}
+            {/* Right: Form Area */}
             <div className='flex items-center justify-center md:justify-start'>
-              <div className='w-full max-w-[400px]'>{children}</div>
+              <div className='w-full max-w-full md:max-w-[400px]'>{children}</div>
             </div>
           </div>
         </main>

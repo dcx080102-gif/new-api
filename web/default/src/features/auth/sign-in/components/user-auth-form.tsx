@@ -46,7 +46,6 @@ import { PasswordInput } from '@/components/password-input'
 import { Turnstile } from '@/components/turnstile'
 import { login, wechatLoginByCode } from '@/features/auth/api'
 import { LegalConsent } from '@/features/auth/components/legal-consent'
-import { OAuthProviders } from '@/features/auth/components/oauth-providers'
 import { createLoginFormSchema } from '@/features/auth/constants'
 import type { LoginFormValues } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
@@ -232,15 +231,6 @@ export function UserAuthForm({
     }
   }
 
-  const handleOpenWeChatDialog = () => {
-    if (requiresLegalConsent && !agreedToLegal) {
-      toast.error(legalConsentErrorMessage)
-      return
-    }
-
-    setIsWeChatDialogOpen(true)
-  }
-
   const handleWeChatDialogChange = (open: boolean) => {
     setIsWeChatDialogOpen(open)
     if (!open) {
@@ -340,8 +330,6 @@ export function UserAuthForm({
     }
   }
 
-  const isOAuthDisabled = isLoading || (requiresLegalConsent && !agreedToLegal)
-
   const alternativeLoginMethods = (
     <>
       {passkeyLoginEnabled && (
@@ -370,17 +358,7 @@ export function UserAuthForm({
         </div>
       )}
 
-      {/* OAuth Providers */}
-      <div role='group' aria-label={t('Third-party login providers')}>
-        <div className='relative'>
-          <OAuthProviders
-            status={status}
-            disabled={isOAuthDisabled}
-            onWeChatLogin={hasWeChatLogin ? handleOpenWeChatDialog : undefined}
-            isWeChatLoading={isWeChatSubmitting}
-          />
-        </div>
-      </div>
+      {/* OAuth 已在 sign-in/index.tsx 中独立渲染，此处移除避免重复 */}
     </>
   )
 
@@ -400,19 +378,6 @@ export function UserAuthForm({
           )}
         >
           {hasAlternativeLogin && alternativeLoginMethods}
-          {/* Or divider between alternative login and password */}
-          {hasAlternativeLogin && passwordLoginEnabled && (
-            <div className='relative mb-2 mt-3'>
-              <div className='absolute inset-0 flex items-center'>
-                <span className='w-full border-t' />
-              </div>
-              <div className='relative flex justify-center text-xs'>
-                <span className='bg-background text-muted-foreground px-2 font-medium'>
-                  {t('Or')}
-                </span>
-              </div>
-            </div>
-          )}
 
           {passwordLoginEnabled && (
             <>
@@ -507,19 +472,14 @@ export function UserAuthForm({
                       </div>
                     )}
                     <FormMessage role='alert' />
-                    <Link
-                      to='/forgot-password'
-                      className='text-muted-foreground absolute end-0 -top-0.5 z-10 text-sm font-medium underline underline-offset-4 transition-all duration-200 hover:text-foreground hover:scale-105'
-                    >
-                      {t('Forgot password?')}
-                    </Link>
                   </FormItem>
                 )}
               />
 
-              {/* Remember Me Checkbox */}
-              <div className='mt-3 flex items-center gap-2'>
-                <input
+              {/* Remember Me + Forgot Password */}
+              <div className='mt-3 flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <input
                   type='checkbox'
                   id='remember-me'
                   checked={rememberMe}
@@ -545,6 +505,13 @@ export function UserAuthForm({
                   {t('Remember me')}
                 </label>
               </div>
+              <Link
+                to='/forgot-password'
+                className='text-muted-foreground text-sm font-medium underline underline-offset-4 transition-all duration-200 hover:text-foreground hover:scale-105'
+              >
+                {t('Forgot password?')}
+              </Link>
+            </div>
 
               {/* Submit Button */}
               <Button

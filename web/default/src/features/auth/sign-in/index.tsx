@@ -20,11 +20,10 @@ import { useState, useMemo } from 'react'
 import { Link, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { X, AlertTriangle, Zap, Shield, Activity, Coins, Loader2 } from 'lucide-react'
-import { IconGithub, IconGmail } from '@/assets/brand-icons'
+import { IconGithub } from '@/assets/brand-icons'
 import { cn } from '@/lib/utils'
 import { FadeContent } from '@/components/effects/FadeContent'
 import { CountUp } from '@/components/effects/CountUp'
-import { ShapeBlur } from '@/components/effects/ShapeBlur'
 import { useStatus } from '@/hooks/use-status'
 import { Button } from '@/components/ui/button'
 import { AuthLayout } from '../auth-layout'
@@ -74,11 +73,11 @@ function BrandPanel() {
       {/* Feature Grid */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         {features.map((f) => (
-          <ShapeBlur key={f.title} blur={20} borderRadius='24px'>
-            <div
-              className='flex items-start gap-3 rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 transition-all duration-200 hover:border-slate-300 hover:bg-white dark:border-slate-800/60 dark:bg-slate-900/50 dark:hover:border-slate-700 dark:hover:bg-slate-900'
-            >
-              <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary'>
+          <div
+            key={f.title}
+            className='flex items-start gap-3 rounded-xl border border-slate-200/60 p-4 transition-all duration-200 hover:border-slate-300 dark:border-slate-800/60 dark:hover:border-slate-700'
+          >
+              <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg'>
                 <f.icon className='h-4 w-4' />
               </div>
               <div className='min-w-0'>
@@ -90,12 +89,11 @@ function BrandPanel() {
                 </p>
               </div>
             </div>
-          </ShapeBlur>
         ))}
       </div>
 
       {/* Trust Stat */}
-      <div className='flex items-center justify-center gap-6 border-t border-slate-200 pt-6 dark:border-slate-800 md:justify-start'>
+      <div className='flex items-center justify-center gap-6 border-t border-slate-200 pt-6 dark:border-slate-800'>
         <div className='text-center md:text-left'>
           <p className='text-2xl font-bold text-slate-900 dark:text-white'>
             <CountUp to={128000} suffix='+' />
@@ -134,7 +132,6 @@ export function SignIn() {
   const {
     isLoading: oauthLoading,
     handleGitHubLogin,
-    handleOIDCLogin,
   } = useOAuthLogin(status)
 
   const showExpired = useMemo(() => {
@@ -143,101 +140,92 @@ export function SignIn() {
   }, [])
   const [expiredBannerDismissed, setExpiredBannerDismissed] = useState(false)
 
-  // TODO: 改为 showSocialLogin 按需显示（需要 OAuth 配置）
-  // const showSocialLogin = status?.github_oauth || status?.oidc_enabled
-  const showSocialLogin = true // 预览模式：始终显示
+  const showSocialLogin = true
 
   return (
     <AuthLayout brandPanel={<BrandPanel />}>
-      <div className='w-full space-y-8'>
-        {/* Session Expired Banner */}
-        {showExpired && !expiredBannerDismissed && (
-          <div className='flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
-            <AlertTriangle className='h-4 w-4 shrink-0' />
-            <span className='flex-1'>{t('Login expired, please sign in again')}</span>
-            <button
-              type='button'
-              onClick={() => setExpiredBannerDismissed(true)}
-              className='shrink-0 rounded p-0.5 transition-colors hover:bg-amber-200 dark:hover:bg-amber-800'
-              aria-label={t('Dismiss')}
-            >
-              <X className='h-4 w-4' />
-            </button>
-          </div>
-        )}
-
-        {/* Sign-in Heading */}
-        <div className='space-y-2'>
-          <h2 className='text-left text-2xl font-semibold tracking-tight'>
-            {t('Sign in')}
-          </h2>
-          {!status?.self_use_mode_enabled &&
-            status?.register_enabled !== false && (
-              <p className='text-muted-foreground text-left text-sm sm:text-base'>
-                {t("Don't have an account?")}{' '}
-                <Link
-                  to='/sign-up'
-                  className='text-blue-800 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 inline-block font-medium underline underline-offset-4 transition-all duration-200 hover:scale-105'
-                >
-                  {t('Sign up')}
-                </Link>
-              </p>
-            )}
+      <div className='w-full space-y-4'>
+        {/* Mobile-only simplified title */}
+        <div className='md:hidden text-center'>
+          <h1 className='text-xl font-bold tracking-tight text-slate-900 dark:text-white'>
+            {t('一个 API')} {t('开启 AI 无限可能')}
+          </h1>
         </div>
 
-        <UserAuthForm redirectTo={redirect} />
+        {/* Card wrapper */}
+        <div className='rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all duration-500 hover:-translate-y-0.5 hover:shadow-md sm:p-6 dark:border-slate-800 dark:bg-slate-900'>
+          {/* Session Expired Banner */}
+          {showExpired && !expiredBannerDismissed && (
+            <div className='mb-4 flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
+              <AlertTriangle className='h-4 w-4 shrink-0' />
+              <span className='flex-1'>{t('Login expired, please sign in again')}</span>
+              <button
+                type='button'
+                onClick={() => setExpiredBannerDismissed(true)}
+                className='shrink-0 rounded p-0.5 transition-colors hover:bg-amber-200 dark:hover:bg-amber-800'
+                aria-label={t('Dismiss')}
+              >
+                <X className='h-4 w-4' />
+              </button>
+            </div>
+          )}
 
-        {/* Social Login — GitHub & Gmail, left-aligned */}
-        {showSocialLogin && (
-          <div className='space-y-3'>
-            <div className='relative'>
-              <div className='absolute inset-0 flex items-center'>
-                <span className='w-full border-t border-slate-200 dark:border-slate-800' />
-              </div>
-              <div className='relative flex justify-start'>
-                <span className='bg-slate-50 pr-3 text-xs text-slate-400 dark:bg-slate-950 dark:text-slate-500'>
-                  {t('Or continue with')}
-                </span>
-              </div>
-            </div>
-            <div className='flex gap-3'>
-              {/* GitHub */}
-              <Button
-                variant='outline'
-                type='button'
-                disabled={oauthLoading}
-                onClick={handleGitHubLogin}
-                className={cn(
-                  'h-11 flex-1 justify-center gap-2 rounded-lg border-slate-200/80 bg-white/60 text-sm font-medium text-slate-700 backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'
-                )}
-              >
-                {oauthLoading ? (
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                ) : (
-                  <IconGithub className='h-4 w-4' />
-                )}
-                GitHub
-              </Button>
-              {/* Gmail */}
-              <Button
-                variant='outline'
-                type='button'
-                disabled={oauthLoading}
-                onClick={handleOIDCLogin}
-                className={cn(
-                  'h-11 flex-1 justify-center gap-2 rounded-lg border-slate-200/80 bg-white/60 text-sm font-medium text-slate-700 backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'
-                )}
-              >
-                {oauthLoading ? (
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                ) : (
-                  <IconGmail className='h-4 w-4' />
-                )}
-                Gmail
-              </Button>
-            </div>
+          {/* Sign-in Heading */}
+          <div className='mb-6 space-y-2'>
+            <h2 className='text-left text-2xl font-semibold tracking-tight'>
+              {t('Sign in')}
+            </h2>
+            {!status?.self_use_mode_enabled &&
+              status?.register_enabled !== false && (
+                <p className='text-muted-foreground text-left text-sm sm:text-base'>
+                  {t("Don't have an account?")}{' '}
+                  <Link
+                    to='/sign-up'
+                    className='text-blue-800 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 inline-block font-medium underline underline-offset-4 transition-all duration-200 hover:scale-105'
+                  >
+                    {t('Sign up')}
+                  </Link>
+                </p>
+              )}
           </div>
-        )}
+
+          <UserAuthForm redirectTo={redirect} />
+
+          {/* Social Login — GitHub */}
+          {showSocialLogin && (
+            <div className='mt-6 space-y-3'>
+              <div className='relative'>
+                <div className='absolute inset-0 flex items-center'>
+                  <span className='w-full border-t border-slate-200 dark:border-slate-800' />
+                </div>
+                <div className='relative flex justify-center text-xs'>
+                  <span className='bg-white px-3 text-slate-400 dark:bg-slate-900 dark:text-slate-500'>
+                    {t('Or continue with')}
+                  </span>
+                </div>
+              </div>
+              <div className='flex gap-3'>
+                {/* GitHub */}
+                <Button
+                  variant='outline'
+                  type='button'
+                  disabled={oauthLoading}
+                  onClick={handleGitHubLogin}
+                  className={cn(
+                    'h-11 flex-1 justify-center gap-2 rounded-lg border-slate-200/80 bg-white/60 text-sm font-medium text-slate-700 backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-slate-300 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                  )}
+                >
+                  {oauthLoading ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : (
+                    <IconGithub className='h-4 w-4' />
+                  )}
+                  GitHub
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </AuthLayout>
   )
