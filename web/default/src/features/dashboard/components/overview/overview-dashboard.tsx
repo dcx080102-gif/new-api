@@ -20,8 +20,10 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
+  Activity,
   ArrowRight,
   BookOpen,
+  Box,
   Check,
   ChevronDown,
   ChevronUp,
@@ -671,16 +673,65 @@ export function OverviewDashboard() {
             <div className='flex h-full flex-col gap-4'>
               <div className='flex flex-col gap-1'>
                 <div className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
-                  {t('Recommended actions')}
+                  {t('Live stats')}
                 </div>
                 <h3 className='text-lg font-semibold tracking-tight'>
-                  {t('Keep the platform ready')}
+                  {t('Your API at a glance')}
                 </h3>
               </div>
-              <div className='grid gap-2'>
-                {visibleQuickActions.map((action) => (
-                  <QuickActionItem key={action.title} action={action} />
-                ))}
+              <div className='grid flex-1 gap-2'>
+                <div className='bg-background/50 flex items-center gap-3 rounded-xl px-3 py-3'>
+                  <span className='bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg'>
+                    <Box className='size-4' aria-hidden='true' />
+                  </span>
+                  <div className='flex min-w-0 flex-col'>
+                    <span className='text-muted-foreground text-xs'>
+                      {t('Available Models')}
+                    </span>
+                    <span className='text-foreground text-lg font-semibold tabular-nums'>
+                      {modelsQuery.data?.length ?? '—'}
+                    </span>
+                  </div>
+                </div>
+                <div className='bg-background/50 flex items-center gap-3 rounded-xl px-3 py-3'>
+                  <span className='bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg'>
+                    <KeyRound className='size-4' aria-hidden='true' />
+                  </span>
+                  <div className='flex min-w-0 flex-col'>
+                    <span className='text-muted-foreground text-xs'>
+                      {t('API Keys')}
+                    </span>
+                    <span className='text-foreground text-lg font-semibold tabular-nums'>
+                      {apiKeysQuery.data?.length ?? '—'}
+                    </span>
+                  </div>
+                </div>
+                <div className='bg-background/50 flex items-center gap-3 rounded-xl px-3 py-3'>
+                  <span className='bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg'>
+                    <RadioTower className='size-4' aria-hidden='true' />
+                  </span>
+                  <div className='flex min-w-0 flex-col'>
+                    <span className='text-muted-foreground text-xs'>
+                      {t('Service')}
+                    </span>
+                    <span className='text-foreground text-lg font-semibold tabular-nums'>
+                      {apiInfoItems.length > 0 ? t('Online') : t('Offline')}
+                    </span>
+                  </div>
+                </div>
+                <div className='bg-background/50 flex items-center gap-3 rounded-xl px-3 py-3'>
+                  <span className='bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg'>
+                    <Activity className='size-4' aria-hidden='true' />
+                  </span>
+                  <div className='flex min-w-0 flex-col'>
+                    <span className='text-muted-foreground text-xs'>
+                      {t('Requests sent')}
+                    </span>
+                    <span className='text-foreground text-lg font-semibold tabular-nums'>
+                      {requestCount}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardStaggerItem>
@@ -720,9 +771,6 @@ export function OverviewDashboard() {
                 </div>
 
                 <div className='flex flex-wrap items-center gap-2'>
-                  {visibleQuickActions.map((action) => (
-                    <CompactQuickAction key={action.title} action={action} />
-                  ))}
                   <Button
                     variant='outline'
                     size='sm'

@@ -32,8 +32,10 @@ import {
   Check,
   ArrowUp,
   ChevronRight,
+  ChevronDown,
   Zap,
   Globe,
+  List,
 } from 'lucide-react'
 import { PublicLayout } from '@/components/layout'
 import { cn } from '@/lib/utils'
@@ -65,10 +67,14 @@ function CodeBlock({ code, lang = 'bash', t }: { code: string; lang?: string; t:
   )
 }
 
+/* ── 稳定的节 ID 列表（放组件外部避免重复创建） ── */
+const SECTION_IDS = ['quickstart', 'apikey', 'apicall', 'models', 'billing', 'faq', 'support'] as const
+
 export function Docs() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [activeSection, setActiveSection] = useState('quickstart')
   const [showBackTop, setShowBackTop] = useState(false)
+  const [mobileTocOpen, setMobileTocOpen] = useState(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
   /* ── 章节定义 ── */
@@ -190,7 +196,7 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
       icon: Cpu,
       content: (
         <>
-          <p>{t('This platform brings together 40+ mainstream AI models, covering chat, image generation, video, and more. For available models and real-time pricing, please check the ')}<a href='/pricing' className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'>{t('Pricing')}</a>{t(' page.')}</p>
+          <p>{t('This platform brings together 40+ mainstream AI models, covering chat, image generation, video, and more. For available models and real-time pricing, please check the ')}<a href='/pricing' className='text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium'>{t('Pricing')}</a>{t(' page.')}</p>
 
           <div className='mt-4 grid gap-3 sm:grid-cols-2'>
             {[
@@ -244,7 +250,7 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
           </div>
 
           <p className='text-sm text-slate-500 dark:text-slate-400'>
-            {t('For detailed pricing, please check the ')}<a href='/pricing' className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'>{t('Pricing')}</a>{t(' page.')}
+            {t('For detailed pricing, please check the ')}<a href='/pricing' className='text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium'>{t('Pricing')}</a>{t(' page.')}
           </p>
         </>
       ),
@@ -303,7 +309,7 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
           <ul>
             <li>📧 {t('Email Support: ')}<strong>support@quantumnous.com</strong></li>
             <li>💬 {t('Live Chat: Submit via the platform support channel after logging in')}</li>
-            <li>📖 GitHub: <a href='https://github.com/QuantumNous/new-api' target='_blank' rel='noopener noreferrer' className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'>{t('Submit an Issue')}</a></li>
+            <li>📖 GitHub: <a href='https://github.com/QuantumNous/new-api' target='_blank' rel='noopener noreferrer' className='text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium'>{t('Submit an Issue')}</a></li>
           </ul>
         </>
       ),
@@ -311,7 +317,7 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
   ];
 
   useEffect(() => {
-    const sectionEls = sections.map((s) => document.getElementById(s.id)).filter(Boolean)
+    const sectionEls = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean)
     observerRef.current = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -331,11 +337,11 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
       observerRef.current?.disconnect()
       window.removeEventListener('scroll', onScroll)
     }
-  }, [sections])
+  }, [])
 
   const tocLinks = useMemo(
     () => sections.map((s) => ({ id: s.id, shortLabel: s.title })),
-    [sections]
+    [i18n.language]
   )
 
   return (
@@ -363,6 +369,56 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
           </div>
         </div>
       </section>
+
+      {/* ═══ 移动端目录（lg 以下显示） ═══ */}
+      <div className='lg:hidden border-b border-slate-200/60 dark:border-slate-800/60'>
+        <div className='container mx-auto px-4 py-3'>
+          <button
+            type='button'
+            onClick={() => setMobileTocOpen(!mobileTocOpen)}
+            className='flex w-full items-center justify-between rounded-lg bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 min-h-[44px]'
+            aria-expanded={mobileTocOpen}
+          >
+            <span className='flex items-center gap-2'>
+              <List className='h-4 w-4' />
+              {t('Table of Contents')}
+            </span>
+            <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', mobileTocOpen && 'rotate-180')} />
+          </button>
+          {mobileTocOpen && (
+            <nav className='mt-2 rounded-lg border border-slate-200/60 bg-white p-2 dark:border-slate-800/60 dark:bg-slate-900/50'>
+              <ul className='space-y-0.5'>
+                {tocLinks.map((link) => (
+                  <li key={link.id}>
+                    <a
+                      href={`#${link.id}`}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        setMobileTocOpen(false)
+                      }}
+                      className={cn(
+                        'flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 min-h-[44px]',
+                        activeSection === link.id
+                          ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-200'
+                      )}
+                    >
+                      <ChevronRight
+                        className={cn(
+                          'h-3 w-3 shrink-0 transition-transform duration-200',
+                          activeSection === link.id ? 'text-blue-500' : 'text-slate-300 dark:text-slate-600'
+                        )}
+                      />
+                      <span>{link.shortLabel}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+        </div>
+      </div>
 
       {/* ═══ 主体 ═══ */}
       <div className='container mx-auto px-4 py-10'>
@@ -430,9 +486,12 @@ console.log(response.choices[0].message.content);`} lang='javascript' t={t} />
               <p className='text-sm font-medium text-slate-700 dark:text-slate-300'>
                 {t('Start building your AI application today!')}
                 <br />
-                {t('If you have any questions, feel free to ')}<a href='mailto:support@quantumnous.com' className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'>{t('contact us')}</a>{t('.')}
+                {t('If you have any questions, feel free to ')}<a href='mailto:support@quantumnous.com' className='text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium'>{t('contact us')}</a>{t('.')}
               </p>
             </div>
+
+            {/* 底部留白：确保最后一个节也能滚到视口顶部 */}
+            <div className='h-[40vh]' aria-hidden='true' />
           </div>
         </div>
       </div>

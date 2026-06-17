@@ -204,7 +204,7 @@ function DefaultAbout() {
               href='https://github.com/songquanpeng/one-api'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'
+              className='text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium'
             >
               One API
             </a>
@@ -213,7 +213,7 @@ function DefaultAbout() {
               href='https://github.com/QuantumNous'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'
+              className='text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium'
             >
               QuantumNous
             </a>
@@ -247,10 +247,10 @@ function DefaultAbout() {
       <section className='border-t bg-slate-50/50 dark:bg-slate-900/30'>
         <div className='container mx-auto px-4 py-12'>
           <div className='mx-auto max-w-3xl text-center'>
-            <Mail className='mx-auto mb-3 h-6 w-6 text-slate-400' />
+            <Mail className='mx-auto mb-3 h-6 w-6 text-slate-400 dark:text-slate-500' />
             <h2 className='text-lg font-semibold text-slate-900 dark:text-white'>{t('Contact Us')}</h2>
             <div className='mt-4 flex flex-wrap items-center justify-center gap-3 text-sm text-slate-500 dark:text-slate-400'>
-              <a href='mailto:support@quantumnous.com' className='text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium'>
+              <a href='mailto:support@quantumnous.com' className='text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium'>
                 support@quantumnous.com
               </a>
             </div>

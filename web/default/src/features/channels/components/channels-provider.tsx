@@ -31,6 +31,7 @@ type DialogType =
   | 'create-channel'
   | 'update-channel'
   | 'test-channel'
+  | 'batch-test-channels'
   | 'balance-query'
   | 'fetch-models'
   | 'ollama-models'
@@ -54,6 +55,8 @@ type ChannelsContextType = {
   idSort: boolean
   setIdSort: (enabled: boolean) => void
   upstream: UpstreamUpdateState
+  batchTestChannels: Channel[]
+  setBatchTestChannels: (channels: Channel[]) => void
 }
 
 // ============================================================================
@@ -78,6 +81,7 @@ export function ChannelsProvider({ children }: { children: React.ReactNode }) {
   const [idSort, setIdSort] = useState(() => {
     return localStorage.getItem('channels-id-sort') === 'true'
   })
+  const [batchTestChannels, setBatchTestChannels] = useState<Channel[]>([])
 
   const queryClient = useQueryClient()
   const refreshChannels = useCallback(async () => {
@@ -99,6 +103,8 @@ export function ChannelsProvider({ children }: { children: React.ReactNode }) {
         idSort,
         setIdSort,
         upstream,
+        batchTestChannels,
+        setBatchTestChannels,
       }}
     >
       {children}

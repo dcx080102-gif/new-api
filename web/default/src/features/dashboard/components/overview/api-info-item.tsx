@@ -59,7 +59,7 @@ export function ApiInfoItemComponent(props: ApiInfoItemProps) {
               {item.description}
             </span>
           </div>
-          <span className='text-muted-foreground/40 truncate font-mono text-xs'>
+          <span className='text-muted-foreground/55 truncate font-mono text-xs'>
             {item.url}
           </span>
         </div>

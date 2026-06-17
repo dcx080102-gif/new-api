@@ -730,23 +730,45 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
           const childrenCount = (row.original as TagRow).children?.length || 0
           const hasEnabled = status === 1
 
+          const dotColor = hasEnabled
+            ? 'rgb(34 197 94)' // green-500
+            : 'rgb(239 68 68)' // red-500
+
           if (hasEnabled) {
             return (
-              <StatusBadge
-                label={`Active (${childrenCount})`}
-                variant='success'
-                size='sm'
-                copyable={false}
-              />
+              <div className='flex items-center gap-1.5'>
+                <span
+                  className='inline-block size-2 shrink-0 rounded-full'
+                  style={{
+                    backgroundColor: dotColor,
+                    animation: 'status-pulse 2s ease-in-out infinite',
+                  }}
+                />
+                <StatusBadge
+                  label={`Active (${childrenCount})`}
+                  variant='success'
+                  size='sm'
+                  copyable={false}
+                />
+              </div>
             )
           } else {
             return (
-              <StatusBadge
-                label={`Inactive (${childrenCount})`}
-                variant='neutral'
-                size='sm'
-                copyable={false}
-              />
+              <div className='flex items-center gap-1.5'>
+                <span
+                  className='inline-block size-2 shrink-0 rounded-full'
+                  style={{
+                    backgroundColor: dotColor,
+                    animation: 'status-pulse 2s ease-in-out infinite',
+                  }}
+                />
+                <StatusBadge
+                  label={`Inactive (${childrenCount})`}
+                  variant='neutral'
+                  size='sm'
+                  copyable={false}
+                />
+              </div>
             )
           }
         }
@@ -766,6 +788,16 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
           isMultiKey && keySize > 0
             ? `${t(config.label)} (${enabledCount}/${keySize})`
             : t(config.label)
+
+        // Determine dot color based on status
+        const dotColor =
+          status === 1
+            ? 'rgb(34 197 94)' // green-500
+            : status === 2
+              ? 'rgb(239 68 68)' // red-500
+              : status === 3
+                ? 'rgb(245 158 11)' // amber-500
+                : 'rgb(156 163 175)' // gray-400
 
         // Auto-disabled: show reason and time tooltip
         if (status === 3) {
@@ -787,43 +819,61 @@ export function useChannelsColumns(): ColumnDef<Channel>[] {
 
           if (statusReason || statusTime) {
             return (
-              <TooltipProvider delay={100}>
-                <Tooltip>
-                  <TooltipTrigger render={<span />}>
-                    <StatusBadge
-                      label={label}
-                      variant={config.variant}
-                      size='sm'
-                      copyable={false}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side='top' className='max-w-xs'>
-                    <div className='space-y-1 text-xs'>
-                      {statusReason && (
-                        <div>
-                          {t('Reason:')} {statusReason}
-                        </div>
-                      )}
-                      {statusTime && (
-                        <div>
-                          {t('Time:')} {statusTime}
-                        </div>
-                      )}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className='flex items-center gap-1.5'>
+                <span
+                  className='inline-block size-2 shrink-0 rounded-full'
+                  style={{
+                    backgroundColor: dotColor,
+                    animation: 'status-pulse 2s ease-in-out infinite',
+                  }}
+                />
+                <TooltipProvider delay={100}>
+                  <Tooltip>
+                    <TooltipTrigger render={<span />}>
+                      <StatusBadge
+                        label={label}
+                        variant={config.variant}
+                        size='sm'
+                        copyable={false}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side='top' className='max-w-xs'>
+                      <div className='space-y-1 text-xs'>
+                        {statusReason && (
+                          <div>
+                            {t('Reason:')} {statusReason}
+                          </div>
+                        )}
+                        {statusTime && (
+                          <div>
+                            {t('Time:')} {statusTime}
+                          </div>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             )
           }
         }
 
         return (
-          <StatusBadge
-            label={label}
-            variant={config.variant}
-            size='sm'
-            copyable={false}
-          />
+          <div className='flex items-center gap-1.5'>
+            <span
+              className='inline-block size-2 shrink-0 rounded-full'
+              style={{
+                backgroundColor: dotColor,
+                animation: 'status-pulse 2s ease-in-out infinite',
+              }}
+            />
+            <StatusBadge
+              label={label}
+              variant={config.variant}
+              size='sm'
+              copyable={false}
+            />
+          </div>
         )
       },
       filterFn: (row, id, value) => {

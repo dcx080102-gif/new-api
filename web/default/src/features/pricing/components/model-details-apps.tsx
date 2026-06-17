@@ -100,7 +100,7 @@ function AppLink(props: { app: AppRanking }) {
       className='text-foreground hover:text-primary inline-flex items-center gap-1 transition-colors'
     >
       {props.app.name}
-      <ExternalLink className='text-muted-foreground/40 size-3' />
+      <ExternalLink className='text-muted-foreground/55 size-3' />
     </a>
   )
 }

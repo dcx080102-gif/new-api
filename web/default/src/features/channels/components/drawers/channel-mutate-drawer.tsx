@@ -1787,7 +1787,7 @@ export function ChannelMutateDrawer({
                             </FormControl>
                             <FormDescription>
                               {t(
-                                'Custom API base URL. For official channels, New API has built-in addresses. Only fill this for third-party proxy sites or special endpoints. Do not add /v1 or trailing slash.'
+                                'API 服务器的地址，一般不用改。系统已内置官方地址，只有对接第三方代理或私有部署时才需填写。请勿在末尾添加 /v1 或斜杠'
                               )}
                             </FormDescription>
                             <FormMessage />

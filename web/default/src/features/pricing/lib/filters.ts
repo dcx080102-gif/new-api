@@ -22,6 +22,9 @@ import {
   QUOTA_TYPES,
   QUOTA_TYPE_VALUES,
   ENDPOINT_TYPES,
+  CATEGORIES,
+  mapEndpointToCategory,
+  type Category,
 } from '../constants'
 import type { PricingModel } from '../types'
 
@@ -200,5 +203,21 @@ export function filterByTag(
     if (!m.tags) return false
     const modelTags = parseTags(m.tags).map((t) => t.toLowerCase())
     return modelTags.includes(tagLower)
+  })
+}
+
+/**
+ * Filter models by marketplace category.
+ * Matches models whose supported_endpoint_types map to the given category.
+ */
+export function filterByCategory(
+  models: PricingModel[],
+  category: Category
+): PricingModel[] {
+  if (category === CATEGORIES.ALL) return models
+
+  return models.filter((m) => {
+    const endpoints = m.supported_endpoint_types || []
+    return endpoints.some((ep) => mapEndpointToCategory(ep) === category)
   })
 }

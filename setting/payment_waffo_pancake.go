@@ -12,4 +12,13 @@ var (
 	WaffoPancakeMinTopUp   int     = 1
 	WaffoPancakeStoreID    string
 	WaffoPancakeProductID  string
+
+	// Checkout page knobs (kept off by default)
+	WaffoPancakeEnabled          bool   = false
+	WaffoPancakeWebhookPublicKey string
+	WaffoPancakeSandbox          bool   = true
+	WaffoPancakeWebhookTestKey   string
+	WaffoPancakeCurrency         string = "USD"
+	WaffoPancakeGatewayName      string
+	WaffoPancakeGatewayIdentity  string
 )

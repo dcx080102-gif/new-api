@@ -142,3 +142,54 @@ export type ViewMode = (typeof VIEW_MODES)[keyof typeof VIEW_MODES]
 
 /** Default page size for pricing table */
 export const DEFAULT_PRICING_PAGE_SIZE = 20
+
+// ----------------------------------------------------------------------------
+// Model Category (for marketplace-style categorization)
+// ----------------------------------------------------------------------------
+
+/** Category filter values for the model marketplace */
+export const CATEGORIES = {
+  ALL: 'all',
+  TEXT: 'text',
+  IMAGE: 'image',
+  AUDIO: 'audio',
+  VIDEO: 'video',
+} as const
+
+export type Category = (typeof CATEGORIES)[keyof typeof CATEGORIES]
+
+/** Category labels */
+export function getCategoryLabels(t: TFunction): Record<Category, string> {
+  return {
+    [CATEGORIES.ALL]: t('All'),
+    [CATEGORIES.TEXT]: t('Text'),
+    [CATEGORIES.IMAGE]: t('Image'),
+    [CATEGORIES.AUDIO]: t('Audio'),
+    [CATEGORIES.VIDEO]: t('Video'),
+  }
+}
+
+/**
+ * Map endpoint types to categories for marketplace filtering.
+ * openai / anthropic / gemini etc. → text
+ * image-generation → image
+ * tts → audio
+ * openai-video → video
+ */
+export function mapEndpointToCategory(endpoint: string): Category {
+  switch (endpoint) {
+    case 'image-generation':
+      return CATEGORIES.IMAGE
+    case 'tts':
+    case 'audio':
+      return CATEGORIES.AUDIO
+    case 'openai-video':
+      return CATEGORIES.VIDEO
+    default:
+      // openai, openai-response, anthropic, gemini, embeddings, jina-rerank, etc.
+      return CATEGORIES.TEXT
+  }
+}
+
+/** Default models per page for card grid */
+export const DEFAULT_CARD_PAGE_SIZE = 20

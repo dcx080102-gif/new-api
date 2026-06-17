@@ -306,6 +306,8 @@ func InitResources() error {
 	if err != nil {
 		return err
 	}
+	// 启动缓存命中率定期统计（每 5 分钟输出一次）
+	common.StartCacheStatsLogger(5 * time.Minute)
 
 	perfmetrics.Init()
 

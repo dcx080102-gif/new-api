@@ -189,7 +189,7 @@ export function usePricingColumns(
                 {primaryEntries.map((entry, index) => (
                   <span key={entry.key}>
                     {index > 0 && (
-                      <span className='text-muted-foreground/40 mx-1'>/</span>
+                      <span className='text-muted-foreground/55 mx-1'>/</span>
                     )}
                     {stripTrailingZeros(entry.formatted)}
                   </span>
@@ -234,7 +234,7 @@ export function usePricingColumns(
             <div className='min-w-[160px]'>
               <span className='font-mono text-sm tabular-nums'>
                 {inputPrice}
-                <span className='text-muted-foreground/40 mx-1'>/</span>
+                <span className='text-muted-foreground/55 mx-1'>/</span>
                 {outputPrice}
               </span>
               <div className='text-muted-foreground/50 text-[10px]'>

@@ -16,8 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
+import {
+  type OnChangeFn,
+  type SortingState,
+} from '@tanstack/react-table'
 import { useMediaQuery } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -83,6 +88,28 @@ export function UsersTable() {
     (columnFilters.find((filter) => filter.id === 'group')?.value as string) ??
     ''
 
+  // Sorting
+  const [sorting, setSorting] = useState<SortingState>([])
+
+  const sortParams = useMemo(() => {
+    const activeSort = sorting[0]
+    if (!activeSort) return {}
+    return {
+      sort_by: activeSort.id,
+      sort_order: activeSort.desc ? 'desc' : 'asc',
+    }
+  }, [sorting])
+
+  const handleSortingChange: OnChangeFn<SortingState> = (updater) => {
+    setSorting((previous) => {
+      const next = typeof updater === 'function' ? updater(previous) : updater
+      if (pagination.pageIndex > 0) {
+        onPaginationChange({ ...pagination, pageIndex: 0 })
+      }
+      return next
+    })
+  }
+
   // Fetch data with React Query
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [
@@ -93,6 +120,7 @@ export function UsersTable() {
       statusFilter,
       roleFilter,
       groupFilter,
+      sortParams,
       refreshTrigger,
     ],
     queryFn: async () => {
@@ -102,6 +130,7 @@ export function UsersTable() {
       const params = {
         p: pagination.pageIndex + 1,
         page_size: pagination.pageSize,
+        ...sortParams,
       }
 
       const result =
@@ -136,6 +165,7 @@ export function UsersTable() {
     data: users,
     columns,
     enableRowSelection: true,
+    sorting,
     columnFilters,
     globalFilter,
     pagination,
@@ -152,10 +182,12 @@ export function UsersTable() {
           .includes(searchValue)
       )
     },
+    onSortingChange: handleSortingChange,
     onPaginationChange,
     onGlobalFilterChange,
     onColumnFiltersChange,
     manualPagination: true,
+    manualSorting: true,
     totalCount: data?.total || 0,
     ensurePageInRange,
   })

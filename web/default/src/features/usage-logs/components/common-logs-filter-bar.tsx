@@ -17,11 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useQueryClient, useIsFetching } from '@tanstack/react-query'
+import { useQueryClient, useIsFetching, useQuery } from '@tanstack/react-query'
 import { useNavigate, getRouteApi } from '@tanstack/react-router'
 import { type Table } from '@tanstack/react-table'
-import { Eye, EyeOff } from 'lucide-react'
+import { Download, Eye, EyeOff, Loader2, Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useIsAdmin } from '@/hooks/use-admin'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,7 +40,8 @@ import {
 } from '@/components/ui/tooltip'
 import { LOG_TYPE_ALL_VALUE, LOG_TYPE_FILTERS } from '../constants'
 import { buildSearchParams } from '../lib/filter'
-import { getDefaultTimeRange } from '../lib/utils'
+import { getDefaultTimeRange, downloadCSV, buildApiParams } from '../lib/utils'
+import { getAllLogs, getUserLogs } from '../api'
 import type { CommonLogFilters } from '../types'
 import { CommonLogsStats } from './common-logs-stats'
 import { CompactDateTimeRangePicker } from './compact-date-time-range-picker'
@@ -166,6 +168,88 @@ export function CommonLogsFilterBar<TData>(
     [handleApply]
   )
 
+  // CSV export handler
+  const [exporting, setExporting] = useState(false)
+  const handleExportCSV = useCallback(async () => {
+    setExporting(true)
+    try {
+      const params = buildApiParams({
+        page: 1,
+        pageSize: 10000,
+        searchParams,
+        columnFilters: [],
+        isAdmin,
+      })
+      const result = isAdmin
+        ? await getAllLogs(params)
+        : await getUserLogs(params)
+      if (result.success && result.data?.items?.length) {
+        const records = result.data.items as Record<string, unknown>[]
+        const dateStr = new Date().toISOString().slice(0, 10)
+        downloadCSV(records, `usage-logs-${dateStr}.csv`)
+        toast.success(t('CSV exported successfully'))
+      } else {
+        toast.info(t('No data to export'))
+      }
+    } catch {
+      toast.error(t('Failed to export CSV'))
+    } finally {
+      setExporting(false)
+    }
+  }, [searchParams, isAdmin, t])
+
+  // Fetch model names for autocomplete
+  const { data: modelNames } = useQuery({
+    queryKey: ['usage-logs-model-names', isAdmin],
+    queryFn: async () => {
+      const now = Date.now()
+      const thirtyDaysAgo = now - 30 * 24 * 3600 * 1000
+      const params = buildApiParams({
+        page: 1,
+        pageSize: 200,
+        searchParams: {
+          startTime: thirtyDaysAgo,
+          endTime: now,
+        },
+        columnFilters: [],
+        isAdmin,
+      })
+      const result = isAdmin
+        ? await getAllLogs(params)
+        : await getUserLogs(params)
+      if (!result.success || !result.data?.items) return []
+      const names = new Set<string>()
+      for (const item of result.data.items) {
+        const name = (item as Record<string, unknown>).model_name as string
+        if (name) names.add(name)
+      }
+      return Array.from(names).sort()
+    },
+    staleTime: 300000, // 5 min cache
+  })
+
+  // Model autocomplete state
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
+
+  const filteredModelNames = useMemo(() => {
+    if (!modelNames || !filters.model) return modelNames || []
+    const q = filters.model.toLowerCase()
+    return modelNames.filter((name) => name.toLowerCase().includes(q))
+  }, [modelNames, filters.model])
+
+  // Close dropdown after a short delay (allow click on dropdown item)
+  const handleModelBlur = useCallback(() => {
+    setTimeout(() => setModelDropdownOpen(false), 150)
+  }, [])
+
+  const handleModelSelect = useCallback(
+    (name: string) => {
+      handleChange('model', name)
+      setModelDropdownOpen(false)
+    },
+    [handleChange]
+  )
+
   const hasExpandedFilters =
     !!filters.token ||
     !!filters.username ||
@@ -217,6 +301,27 @@ export function CommonLogsFilterBar<TData>(
           {sensitiveVisible ? t('Hide') : t('Show')}
         </TooltipContent>
       </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handleExportCSV}
+              disabled={exporting}
+              className='h-7 gap-1 px-2 text-xs'
+            />
+          }
+        >
+          {exporting ? (
+            <Loader2 className='size-3 animate-spin' />
+          ) : (
+            <Download className='size-3' />
+          )}
+          {t('Export CSV')}
+        </TooltipTrigger>
+        <TooltipContent>{t('Export current filtered results as CSV')}</TooltipContent>
+      </Tooltip>
     </div>
   )
 
@@ -234,12 +339,51 @@ export function CommonLogsFilterBar<TData>(
   )
   const modelFilter = (
     <LogsFilterField>
-      <LogsFilterInput
-        placeholder={t('Model Name')}
-        value={filters.model || ''}
-        onChange={(e) => handleChange('model', e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
+      <div className='relative'>
+        <LogsFilterInput
+          placeholder={t('Model Name')}
+          value={filters.model || ''}
+          onChange={(e) => {
+            handleChange('model', e.target.value)
+            setModelDropdownOpen(true)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setModelDropdownOpen(false)
+              handleApply()
+            } else if (e.key === 'Escape') {
+              setModelDropdownOpen(false)
+            }
+          }}
+          onFocus={() => setModelDropdownOpen(true)}
+          onBlur={handleModelBlur}
+        />
+        {modelDropdownOpen && filteredModelNames.length > 0 && (
+          <div
+            className='bg-popover border-border absolute top-full z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border shadow-md'
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            {filteredModelNames.slice(0, 20).map((name) => (
+              <button
+                key={name}
+                type='button'
+                className='hover:bg-accent flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm'
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  handleModelSelect(name)
+                }}
+              >
+                {name === filters.model && (
+                  <Check className='size-3.5 shrink-0 text-primary' />
+                )}
+                <span className={name === filters.model ? '' : 'ml-5.5'}>
+                  {name}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </LogsFilterField>
   )
   const groupFilter = (

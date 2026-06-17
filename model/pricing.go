@@ -63,12 +63,81 @@ var (
 	modelSupportEndpointsLock = sync.RWMutex{}
 )
 
+const (
+	pricingRedisKey = "cache:pricing"
+	pricingCacheTTL = 5 * time.Minute // 模型价格缓存 5 分钟
+)
+
+// loadPricingFromRedis 尝试从 Redis 加载缓存的定价数据
+func loadPricingFromRedis() ([]Pricing, error) {
+	data, err := common.CacheGet(pricingRedisKey)
+	if err != nil {
+		common.RecordCacheMiss()
+		return nil, err
+	}
+	var cached []Pricing
+	if err := common.Unmarshal([]byte(data), &cached); err != nil {
+		common.RecordCacheMiss()
+		return nil, err
+	}
+	if len(cached) == 0 {
+		common.RecordCacheMiss()
+		return nil, fmt.Errorf("empty pricing cache in Redis")
+	}
+	common.RecordCacheHit()
+	common.SysLog(fmt.Sprintf("[Redis缓存] 定价数据命中，共 %d 条", len(cached)))
+	return cached, nil
+}
+
+// savePricingToRedis 将定价数据异步保存到 Redis
+func savePricingToRedis(pricing []Pricing) {
+	if len(pricing) == 0 {
+		return
+	}
+	data, err := common.Marshal(pricing)
+	if err != nil {
+		common.SysLog("failed to marshal pricing for Redis: " + err.Error())
+		return
+	}
+	if err := common.CacheSet(pricingRedisKey, string(data), pricingCacheTTL); err != nil {
+		common.SysLog("failed to save pricing to Redis: " + err.Error())
+	} else {
+		common.RecordCacheSet()
+	}
+}
+
+// rebuildPricingHelpers 根据 pricingMap 重建辅助映射表
+// 从 updatePricing() 中提取，供 Redis 热加载时使用
+func rebuildPricingHelpers() {
+	if len(pricingMap) == 0 {
+		return
+	}
+	modelEnableGroupsLock.Lock()
+	modelEnableGroups = make(map[string][]string)
+	modelQuotaTypeMap = make(map[string]int)
+	for _, p := range pricingMap {
+		modelEnableGroups[p.ModelName] = p.EnableGroup
+		modelQuotaTypeMap[p.ModelName] = p.QuotaType
+	}
+	modelEnableGroupsLock.Unlock()
+}
+
 func GetPricing() []Pricing {
 	if time.Since(lastGetPricingTime) > time.Minute*1 || len(pricingMap) == 0 {
 		updatePricingLock.Lock()
 		defer updatePricingLock.Unlock()
 		// Double check after acquiring the lock
 		if time.Since(lastGetPricingTime) > time.Minute*1 || len(pricingMap) == 0 {
+			// 冷启动时先尝试 Redis 缓存，避免直接查 DB
+			if len(pricingMap) == 0 {
+				if cached, err := loadPricingFromRedis(); err == nil && len(cached) > 0 {
+					pricingMap = cached
+					lastGetPricingTime = time.Now()
+					rebuildPricingHelpers()
+					common.SysLog("[Redis缓存] 定价数据冷启动加载成功，跳过 DB 查询")
+					return pricingMap
+				}
+			}
 			modelSupportEndpointsLock.Lock()
 			defer modelSupportEndpointsLock.Unlock()
 			updatePricing()
@@ -84,6 +153,13 @@ func InvalidatePricingCache() {
 	pricingMap = nil
 	vendorsList = nil
 	lastGetPricingTime = time.Time{}
+
+	// 同时清除 Redis 缓存
+	if err := common.CacheDelete(pricingRedisKey); err != nil {
+		common.SysLog("failed to delete pricing from Redis: " + err.Error())
+	} else {
+		common.RecordCacheDel()
+	}
 }
 
 // GetVendors 返回当前定价接口使用到的供应商信息
@@ -356,6 +432,9 @@ func updatePricing() {
 	modelEnableGroupsLock.Unlock()
 
 	lastGetPricingTime = time.Now()
+
+	// 写入 Redis 缓存，供其他实例 / 下次冷启动使用
+	go savePricingToRedis(pricingMap)
 }
 
 // GetSupportedEndpointMap 返回全局端点到路径的映射

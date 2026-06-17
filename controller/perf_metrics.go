@@ -18,7 +18,7 @@ func GetPerfMetricsSummary(c *gin.Context) {
 		}
 	}
 
-	result, err := perfmetrics.QuerySummaryAll(hours)
+	result, err := perfmetrics.QuerySummaryAll(hours, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,

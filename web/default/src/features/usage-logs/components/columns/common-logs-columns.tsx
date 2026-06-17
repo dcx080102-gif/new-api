@@ -798,7 +798,7 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
                 >
                   {primary.text}
                   {hasMore && (
-                    <span className='text-muted-foreground/40 ml-0.5'>
+                    <span className='text-muted-foreground/55 ml-0.5'>
                       +{segments.length - 1}
                     </span>
                   )}
@@ -808,7 +808,7 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
                   {log.content}
                 </span>
               ) : (
-                <span className='text-muted-foreground/40'>—</span>
+                <span className='text-muted-foreground/55'>—</span>
               )}
             </button>
             <DetailsDialog

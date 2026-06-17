@@ -116,7 +116,7 @@ export const QueueItemDescription = ({
     className={cn(
       'ml-6 text-xs',
       completed
-        ? 'text-muted-foreground/40 line-through'
+        ? 'text-muted-foreground/55 line-through'
         : 'text-muted-foreground',
       className
     )}

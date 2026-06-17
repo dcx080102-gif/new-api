@@ -68,13 +68,14 @@ export function Hero(props: HeroProps) {
           {t('Power AI applications, manage digital assets, connect the Future')}
         </p>
         <div
-          className='landing-animate-fade-up mt-8 flex items-center gap-3 opacity-0'
+          className='landing-animate-fade-up mt-8 flex flex-col items-center gap-3 sm:flex-row opacity-0'
           style={{ animationDelay: '160ms' }}
         >
           {props.isAuthenticated ? (
             <Button
               variant='outline'
-              className='group rounded-lg'
+              size='lg'
+              className='group rounded-lg min-h-[44px] min-w-[180px]'
               render={<Link to='/dashboard' />}
             >
               {t('Go to Dashboard')}
@@ -84,7 +85,8 @@ export function Hero(props: HeroProps) {
             <>
               <Button
                 variant='outline'
-                className='group rounded-lg'
+                size='lg'
+                className='group border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px] min-w-[180px]'
                 render={<Link to='/sign-up' />}
               >
                 {t('Get Started')}
@@ -92,7 +94,8 @@ export function Hero(props: HeroProps) {
               </Button>
               <Button
                 variant='outline'
-                className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg'
+                size='lg'
+                className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px]'
                 render={<Link to='/pricing' />}
               >
                 {t('View Pricing')}

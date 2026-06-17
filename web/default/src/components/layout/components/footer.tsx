@@ -20,6 +20,7 @@ import { Fragment, useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { cn, sanitizeHtml } from '@/lib/utils'
+import { useHealth } from '@/hooks/use-health'
 import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 
@@ -48,7 +49,7 @@ const NEW_API_FOOTER_ATTRIBUTION_KEY = [
 ].join('.')
 
 function FooterLinkItem(props: { link: FooterLink }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const isExternal = props.link.href.startsWith('http')
   const label = t(props.link.text)
 
@@ -75,11 +76,36 @@ function FooterLinkItem(props: { link: FooterLink }) {
   )
 }
 
+// 服务状态指示器 — 绿色/红色小圆点
+function ServerStatusDot() {
+  const { t } = useTranslation()
+  const { online, loading } = useHealth()
+
+  if (loading) return null
+
+  return (
+    <span className='inline-flex items-center gap-1.5'>
+      <span
+        className={cn(
+          'inline-block size-2 rounded-full transition-colors duration-500',
+          online
+            ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]'
+            : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
+        )}
+        aria-hidden='true'
+      />
+      <span className='text-muted-foreground/50 text-xs'>
+        {online ? t('Service Online') : t('Service Offline')}
+      </span>
+    </span>
+  )
+}
+
 // Renders User Agreement / Privacy Policy links inline with the parent's
 // copyright row when either is configured in System Settings → Site. Emits
 // fragmented siblings so the parent flex container's gap controls spacing.
 function LegalLinks(props: { leadingSeparator?: boolean }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { status } = useStatus()
   const items: { key: string; label: string; href: string }[] = []
   if (status?.user_agreement_enabled) {
@@ -123,7 +149,7 @@ function LegalLinks(props: { leadingSeparator?: boolean }) {
 // inline=true returns just the inner span for composition in a parent flex
 // row. inline=false wraps in a centered/right-aligned div (default).
 function ProjectAttribution(props: { currentYear: number; inline?: boolean; name: string }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const content = (
     <span className='text-muted-foreground/45'>
       &copy; {props.currentYear}{' '}
@@ -157,7 +183,7 @@ export function Footer(props: FooterProps) {
     demoSiteEnabled,
   } = useSystemConfig()
 
-  const displayLogo = systemLogo || props.logo || '/logo.png'
+  const displayLogo = systemLogo || props.logo || '/logo.webp'
   const displayName = systemName || props.name || 'DVLS'
   const isDemoSiteMode = Boolean(demoSiteEnabled)
   const currentYear = new Date().getFullYear()
@@ -236,6 +262,7 @@ export function Footer(props: FooterProps) {
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(footerHtml) }}
             />
             <div className='border-border/60 text-muted-foreground/45 flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t pt-4 text-xs sm:w-auto sm:justify-end sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5'>
+              <ServerStatusDot />
               <LegalLinks />
               <ProjectAttribution currentYear={currentYear} inline name={displayName} />
             </div>
@@ -292,7 +319,11 @@ export function Footer(props: FooterProps) {
         {/* Copyright + optional legal links inline on the left, project
             attribution on the right; wraps on narrow screens. */}
         <div className='border-border/30 mt-12 flex flex-col items-center justify-between gap-x-3 gap-y-2 border-t pt-6 sm:flex-row'>
-          <div className='text-muted-foreground/40 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs sm:justify-start'>
+          <div className='text-muted-foreground/55 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs sm:justify-start'>
+            <ServerStatusDot />
+            <span aria-hidden='true' className='text-muted-foreground/30'>
+              ·
+            </span>
             <span>
               &copy; {currentYear} {displayName}.{' '}
               {props.copyright ?? t('footer.defaultCopyright')}

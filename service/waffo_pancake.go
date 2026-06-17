@@ -14,6 +14,7 @@ import (
 type WaffoPancakePriceSnapshot struct {
 	Amount      string
 	TaxCategory string
+	TaxIncluded bool
 }
 
 // WaffoPancakeCreateSessionParams is the input to CreateWaffoPancakeCheckoutSession.
@@ -21,9 +22,13 @@ type WaffoPancakePriceSnapshot struct {
 // OrderMerchantExternalID = our trade_no; Pancake echoes it back in webhooks.
 type WaffoPancakeCreateSessionParams struct {
 	ProductID               string
+	StoreID                 string
+	ProductType             string
+	Currency                string
 	BuyerIdentity           string
 	PriceSnapshot           *WaffoPancakePriceSnapshot
 	BuyerEmail              string
+	SuccessURL              string
 	ExpiresInSeconds        *int
 	OrderMerchantExternalID string
 }

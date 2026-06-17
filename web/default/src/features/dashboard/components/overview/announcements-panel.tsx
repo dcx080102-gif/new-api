@@ -95,7 +95,7 @@ export function AnnouncementsPanel() {
                           {formatDateTimeObject(new Date(item.publishDate))}
                         </time>
                       )}
-                      <span className='text-muted-foreground/40 text-xs opacity-0 transition-opacity group-hover:opacity-100'>
+                      <span className='text-muted-foreground/55 text-xs opacity-0 transition-opacity group-hover:opacity-100'>
                         {t('Click for details')}
                       </span>
                     </div>

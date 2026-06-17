@@ -1115,10 +1115,16 @@ export const PromptInputSpeechButton = ({
   const recognitionRef = useRef<SpeechRecognition | null>(null)
 
   // Map i18n language to SpeechRecognition locale
+  // 中文环境强制使用 zh-CN，避免浏览器默认英文导致无法识别中文
   const speechLang = useMemo(() => {
     const lang = i18n.language || 'zh'
+
+    // 如果当前语言是中文（zh / zh-CN / zh-TW / zh-HK 等），直接用 zh-CN
+    if (lang.startsWith('zh')) {
+      return 'zh-CN'
+    }
+
     const map: Record<string, string> = {
-      zh: 'zh-CN',
       en: 'en-US',
       ja: 'ja-JP',
       ru: 'ru-RU',
@@ -1140,6 +1146,8 @@ export const PromptInputSpeechButton = ({
       speechRecognition.continuous = true
       speechRecognition.interimResults = true
       speechRecognition.lang = speechLang
+      // eslint-disable-next-line no-console
+      console.log('语音识别语言:', speechRecognition.lang)
 
       speechRecognition.onstart = () => {
         setIsListening(true)
@@ -1174,7 +1182,13 @@ export const PromptInputSpeechButton = ({
 
       speechRecognition.onerror = (event) => {
         // eslint-disable-next-line no-console
-        console.error('Speech recognition error:', event.error)
+        console.error('语音识别错误:', event.error, event.message)
+        if (event.error === 'language-not-supported') {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `当前浏览器不支持语音识别语言 "${speechRecognition.lang}"，请尝试在浏览器设置中切换语言后重试`
+          )
+        }
         setIsListening(false)
       }
 

@@ -64,10 +64,11 @@ export function CTA(props: CTAProps) {
             'Deploy your own gateway and start routing requests through your configured upstream services.'
           )}
         </p>
-        <div className='mt-8 flex items-center justify-center gap-3'>
+        <div className='mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row'>
           <Button
             variant='outline'
-            className='group rounded-lg'
+            size='lg'
+            className='group border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px] min-w-[180px]'
             render={<Link to='/sign-up' />}
           >
             {t('Get Started')}
@@ -75,7 +76,8 @@ export function CTA(props: CTAProps) {
           </Button>
           <Button
             variant='outline'
-            className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg'
+            size='lg'
+            className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px]'
             render={<Link to='/pricing' />}
           >
             {t('View Pricing')}

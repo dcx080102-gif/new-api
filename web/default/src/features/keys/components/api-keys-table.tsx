@@ -17,9 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useQuery } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { type Table as TanstackTable } from '@tanstack/react-table'
-import { Database } from 'lucide-react'
+import { Database, KeyRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { formatQuota } from '@/lib/format'
@@ -32,6 +32,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -285,6 +286,12 @@ export function ApiKeysTable() {
       emptyDescription={t(
         'No API keys available. Create your first API key to get started.'
       )}
+      emptyAction={
+        <Button variant='outline' size='lg' className='min-h-[44px]' render={<Link to='/keys' />}>
+          <KeyRound className='mr-2 size-4' />
+          {t('Create API Key')}
+        </Button>
+      }
       skeletonKeyPrefix='api-keys-skeleton'
       applyHeaderSize
       toolbarProps={{

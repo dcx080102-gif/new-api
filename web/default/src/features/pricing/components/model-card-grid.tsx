@@ -17,15 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
-import { DEFAULT_PRICING_PAGE_SIZE, DEFAULT_TOKEN_UNIT } from '../constants'
+import { DEFAULT_CARD_PAGE_SIZE, DEFAULT_TOKEN_UNIT } from '../constants'
 import type { PricingModel, TokenUnit } from '../types'
 import { ModelCard } from './model-card'
-import type { ModelPerfBadgeData } from './model-perf-badge'
 
 export interface ModelCardGridProps {
   models: PricingModel[]
@@ -39,38 +36,23 @@ export interface ModelCardGridProps {
 export function ModelCardGrid(props: ModelCardGridProps) {
   const { t } = useTranslation()
   const [page, setPage] = useState(1)
-  const pageSize = DEFAULT_PRICING_PAGE_SIZE
+  const pageSize = DEFAULT_CARD_PAGE_SIZE
   const tokenUnit = props.tokenUnit ?? DEFAULT_TOKEN_UNIT
   const totalPages = Math.max(1, Math.ceil(props.models.length / pageSize))
   const currentPage = Math.min(page, totalPages)
-
-  const perfQuery = useQuery({
-    queryKey: ['perf-metrics-summary', 24],
-    queryFn: () => getPerfMetricsSummary(24),
-    staleTime: 60 * 1000,
-    retry: false,
-  })
 
   const pagedModels = useMemo(() => {
     const start = (currentPage - 1) * pageSize
     return props.models.slice(start, start + pageSize)
   }, [currentPage, pageSize, props.models])
 
-  const perfMap = useMemo(() => {
-    const map = new Map<string, ModelPerfBadgeData>()
-    for (const model of perfQuery.data?.data?.models ?? []) {
-      map.set(model.model_name, model)
-    }
-    return map
-  }, [perfQuery.data])
-
   if (props.models.length === 0) {
     return null
   }
 
   return (
-    <div className='space-y-4 sm:space-y-5'>
-      <div className='grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3'>
+    <div className='space-y-6'>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
         {pagedModels.map((model) => (
           <ModelCard
             key={model.id ?? model.model_name}
@@ -79,14 +61,13 @@ export function ModelCardGrid(props: ModelCardGridProps) {
             priceRate={props.priceRate}
             usdExchangeRate={props.usdExchangeRate}
             showRechargePrice={props.showRechargePrice}
-            perf={perfMap.get(model.model_name || '')}
             onClick={() => props.onModelClick(model.model_name || '')}
           />
         ))}
       </div>
 
       {totalPages > 1 && (
-        <div className='text-muted-foreground flex flex-col items-center justify-between gap-3 border-t px-4 py-3 text-sm sm:flex-row'>
+        <div className='flex flex-col items-center justify-between gap-3 border-t pt-4 text-sm sm:flex-row'>
           <p className='text-muted-foreground'>
             {t('Page {{current}} of {{total}}', {
               current: currentPage,

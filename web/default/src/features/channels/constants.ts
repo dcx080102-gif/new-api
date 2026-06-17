@@ -347,28 +347,26 @@ export const FIELD_PLACEHOLDERS = {
 } as const
 
 export const FIELD_DESCRIPTIONS = {
-  NAME: 'Friendly name to identify this channel',
-  TYPE: 'Provider type (OpenAI, Anthropic, etc.)',
-  BASE_URL: 'Custom API base URL. Leave empty to use provider default.',
-  KEY: 'API key from the provider',
-  MODELS:
-    'List of models supported by this channel. Use comma to separate multiple models.',
-  GROUP: 'User groups that can access this channel. ',
-  MODEL_MAPPING:
-    'Map request model names to actual provider model names (JSON format)',
-  PRIORITY: 'Higher priority channels are selected first',
-  WEIGHT: 'Used for load balancing. Higher weight = more requests',
-  TEST_MODEL: 'Model to use when testing channel connectivity',
-  AUTO_BAN: 'Automatically disable channel on repeated failures',
-  STATUS_CODE_MAPPING: 'Map response status codes (JSON format)',
-  TAG: 'Group channels by tag for batch operations',
-  REMARK: 'Internal notes (not shown to users)',
-  SETTING: 'Channel-specific settings (JSON format)',
-  PARAM_OVERRIDE: 'Override request parameters (JSON format)',
-  HEADER_OVERRIDE: 'Override request headers (JSON format)',
-  MULTI_KEY_MODE: 'How to select keys: random or sequential polling',
-  BATCH_ADD: 'Create multiple channels from multiple keys',
-  OPENAI_ORG: 'OpenAI Organization ID (optional)',
+  NAME: '给渠道起个好记的名字，方便自己区分',
+  TYPE: '选择对应的 AI 服务商类型（OpenAI、Claude 等）',
+  BASE_URL: 'API 服务器的地址，一般不用改，使用官方默认地址即可。只有对接第三方代理或私有部署时才需要填写',
+  KEY: '从服务商后台获取的密钥（sk-... 开头），用于身份验证',
+  MODELS: '勾选该渠道可用的模型，不勾就不会被调用。已勾选的模型才会分配给用户使用',
+  GROUP: '指定哪些用户组可以使用此渠道，不填默认所有用户可用',
+  MODEL_MAPPING: '将用户请求的模型名映射为服务商实际模型名（JSON 格式）。例如：{"gpt-4o": "gpt-4o-2024-08-06"}',
+  PRIORITY: '优先级越高越优先被选中。当多个渠道都支持同一模型时，系统按优先级从高到低选择',
+  WEIGHT: '负载均衡权重，数值越大分配的请求越多。只影响同优先级渠道之间的流量分配',
+  TEST_MODEL: '测试渠道连通性时使用的模型。留空则自动选择第一个模型',
+  AUTO_BAN: '开启后，渠道连续失败多次会自动禁用，防止浪费资源',
+  STATUS_CODE_MAPPING: '将上游返回的状态码映射为其他状态码（JSON 格式）。例如：{"400": "500"}',
+  TAG: '给渠道打标签，方便分类管理和批量操作',
+  REMARK: '内部备注，仅管理员可见，不会展示给用户',
+  SETTING: '渠道专属配置（JSON 格式），一般不需要修改',
+  PARAM_OVERRIDE: '覆盖请求参数（JSON 格式），用于微调模型行为',
+  HEADER_OVERRIDE: '覆盖请求头（JSON 格式），用于添加自定义 HTTP 头',
+  MULTI_KEY_MODE: '多 Key 的选取策略：轮询（按顺序切换）或随机',
+  BATCH_ADD: '批量创建：每行一个密钥，一次性创建多个渠道',
+  OPENAI_ORG: 'OpenAI 组织 ID（可选），用于企业版账号',
 } as const
 
 // ============================================================================

@@ -19,9 +19,11 @@ For commercial licensing, please contact support@quantumnous.com
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
+import { Cpu } from 'lucide-react'
 import { useMediaQuery } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
+import { Button } from '@/components/ui/button'
 import { DataTablePage, useDataTable } from '@/components/data-table'
 import { getModels, searchModels, getVendors } from '../api'
 import {
@@ -205,6 +207,12 @@ export function ModelsTable() {
       emptyDescription={t(
         'No models available. Create your first model to get started.'
       )}
+      emptyAction={
+        <Button variant='outline' size='lg' className='min-h-[44px]'>
+          <Cpu className='mr-2 size-4' />
+          {t('Add Model')}
+        </Button>
+      }
       skeletonKeyPrefix='model-skeleton'
       applyHeaderSize
       toolbarProps={{

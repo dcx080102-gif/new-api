@@ -106,7 +106,7 @@ function ModalityFlow(props: { input: Modality[]; output: Modality[] }) {
   return (
     <span className='inline-flex items-center gap-1 align-middle'>
       <ModalityIcons modalities={props.input} className='size-3.5' />
-      <span className='text-muted-foreground/40'>→</span>
+      <span className='text-muted-foreground/55'>→</span>
       <ModalityIcons modalities={props.output} className='size-3.5' />
     </span>
   )

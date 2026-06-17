@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { type Table } from '@tanstack/react-table'
-import { Power, PowerOff, Tag, Trash2 } from 'lucide-react'
+import { Power, PowerOff, Tag, TestTube, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,6 +38,7 @@ import {
   handleBatchSetTag,
 } from '../lib'
 import type { Channel } from '../types'
+import { useChannels } from './channels-provider'
 
 interface DataTableBulkActionsProps<TData> {
   table: Table<TData>
@@ -48,6 +49,7 @@ export function DataTableBulkActions<TData>({
 }: DataTableBulkActionsProps<TData>) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const { setOpen, setBatchTestChannels } = useChannels()
   const [showTagDialog, setShowTagDialog] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [tagValue, setTagValue] = useState('')
@@ -155,6 +157,33 @@ export function DataTableBulkActions<TData>({
           </TooltipTrigger>
           <TooltipContent>
             <p>{t('Set tag for selected channels')}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant='outline'
+                size='icon'
+                onClick={() => {
+                  const channels = selectedRows.map(
+                    (row) => row.original as Channel
+                  )
+                  setBatchTestChannels(channels)
+                  setOpen('batch-test-channels')
+                }}
+                className='size-8'
+                aria-label={t('Test selected channels')}
+                title={t('Test selected channels')}
+              />
+            }
+          >
+            <TestTube />
+            <span className='sr-only'>{t('Test selected channels')}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t('Test selected channels connectivity')}</p>
           </TooltipContent>
         </Tooltip>
 

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -192,6 +193,8 @@ func loadOptionsFromDatabase() {
 			common.SysLog("failed to update option map: " + err.Error())
 		}
 	}
+	// 写入 Redis 缓存，供下次冷启动 / 其他实例使用
+	go saveOptionsToRedis(options)
 }
 
 func SyncOptions(frequency int) {
@@ -215,7 +218,10 @@ func UpdateOption(key string, value string) error {
 	// otherwise it will execute Update (with all fields).
 	DB.Save(&option)
 	// Update OptionMap
-	return updateOptionMap(key, value)
+	err := updateOptionMap(key, value)
+	// 配置变更后清除 Redis 缓存，让下次同步时重新加载
+	invalidateOptionsRedisCache()
+	return err
 }
 
 // UpdateOptionsBulk persists multiple key/value pairs in a single database
@@ -248,6 +254,8 @@ func UpdateOptionsBulk(values map[string]string) error {
 			return err
 		}
 	}
+	// 批量配置变更后清除 Redis 缓存
+	invalidateOptionsRedisCache()
 	return nil
 }
 
@@ -605,4 +613,73 @@ func handleConfigUpdate(key, value string) bool {
 	}
 
 	return true // 已处理
+}
+
+// ────────────────────────────────────────────────────────────
+// 系统设置 Redis 缓存（30 分钟 TTL，用于冷启动和其他实例共享）
+// ────────────────────────────────────────────────────────────
+
+const (
+	optionsRedisKey = "cache:options"
+	optionsCacheTTL = 30 * time.Minute
+)
+
+// saveOptionsToRedis 将选项列表序列化后写入 Redis
+func saveOptionsToRedis(options []*Option) {
+	if len(options) == 0 {
+		return
+	}
+	data, err := common.Marshal(options)
+	if err != nil {
+		common.SysLog("failed to marshal options for Redis: " + err.Error())
+		return
+	}
+	if err := common.CacheSet(optionsRedisKey, string(data), optionsCacheTTL); err != nil {
+		common.SysLog("failed to save options to Redis: " + err.Error())
+	} else {
+		common.RecordCacheSet()
+	}
+}
+
+// loadOptionsFromRedis 从 Redis 加载缓存的选项列表
+// 用于 InitOptionMap 冷启动时的快速加载
+func loadOptionsFromRedis() ([]*Option, error) {
+	data, err := common.CacheGet(optionsRedisKey)
+	if err != nil {
+		common.RecordCacheMiss()
+		return nil, err
+	}
+	var options []*Option
+	if err := common.Unmarshal([]byte(data), &options); err != nil {
+		common.RecordCacheMiss()
+		return nil, err
+	}
+	common.RecordCacheHit()
+	common.SysLog(fmt.Sprintf("[Redis缓存] 系统设置命中，共 %d 项", len(options)))
+	return options, nil
+}
+
+// invalidateOptionsRedisCache 清除系统设置的 Redis 缓存
+func invalidateOptionsRedisCache() {
+	if err := common.CacheDelete(optionsRedisKey); err != nil {
+		common.SysLog("failed to delete options from Redis: " + err.Error())
+	} else {
+		common.RecordCacheDel()
+	}
+}
+
+// LoadOptionsWithRedisFallback 优先从 Redis 加载选项，失败则查 DB
+// 在 InitOptionMap 中作为数据库查询前的快速路径
+func LoadOptionsWithRedisFallback() []*Option {
+	if options, err := loadOptionsFromRedis(); err == nil && len(options) > 0 {
+		return options
+	}
+	options, err := AllOption()
+	if err != nil {
+		common.SysLog("failed to load options from DB: " + err.Error())
+		return nil
+	}
+	// 异步写入 Redis
+	go saveOptionsToRedis(options)
+	return options
 }

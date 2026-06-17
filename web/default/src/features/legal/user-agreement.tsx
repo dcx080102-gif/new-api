@@ -39,7 +39,7 @@ import { PublicLayout } from '@/components/layout'
 import { cn } from '@/lib/utils'
 
 export function UserAgreement() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [activeSection, setActiveSection] = useState('section-1')
   const [showBackTop, setShowBackTop] = useState(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -227,7 +227,7 @@ export function UserAgreement() {
               )}
               <Link
                 to="/pricing"
-                className="text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium"
+                className="text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium"
               >
                 {t('Pricing page')}
               </Link>
@@ -363,7 +363,7 @@ export function UserAgreement() {
               )}
               <Link
                 to="/privacy-policy"
-                className="text-blue-700 hover:text-blue-800 underline underline-offset-2 font-medium"
+                className="text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-2 font-medium"
               >
                 {t('Privacy Policy')}
               </Link>

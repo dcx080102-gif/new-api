@@ -109,3 +109,16 @@ GNU Affero General Public License for more details.
     transform: translate(-10%, -5%) rotate(4deg) scale(1.05);
   }
 }
+
+/* Channel Status Breathing Dot 渠道状态呼吸灯 */
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+}

@@ -193,7 +193,15 @@ func GetRandomSatisfiedChannel(group string, model string, retry int) (*Channel,
 
 func CacheGetChannel(id int) (*Channel, error) {
 	if !common.MemoryCacheEnabled {
-		return GetChannelById(id, true)
+		// 内存缓存未启用时，先尝试 Redis 缓存
+		if ch, err := getChannelFromRedis(id); err == nil && ch != nil {
+			return ch, nil
+		}
+		ch, err := GetChannelById(id, true)
+		if err == nil && ch != nil {
+			saveChannelToRedis(ch)
+		}
+		return ch, err
 	}
 	channelSyncLock.RLock()
 	defer channelSyncLock.RUnlock()
@@ -207,10 +215,15 @@ func CacheGetChannel(id int) (*Channel, error) {
 
 func CacheGetChannelInfo(id int) (*ChannelInfo, error) {
 	if !common.MemoryCacheEnabled {
+		// 内存缓存未启用时，先尝试 Redis 缓存
+		if ch, err := getChannelFromRedis(id); err == nil && ch != nil {
+			return &ch.ChannelInfo, nil
+		}
 		channel, err := GetChannelById(id, true)
 		if err != nil {
 			return nil, err
 		}
+		saveChannelToRedis(channel)
 		return &channel.ChannelInfo, nil
 	}
 	channelSyncLock.RLock()
@@ -246,6 +259,8 @@ func CacheUpdateChannelStatus(id int, status int) {
 			}
 		}
 	}
+	// 状态变更后清除 Redis 缓存
+	invalidateChannelRedisCache(id)
 }
 
 func CacheUpdateChannel(channel *Channel) {
@@ -266,4 +281,61 @@ func CacheUpdateChannel(channel *Channel) {
 	}
 	channelsIDM[channel.Id] = channel
 	logger.LogDebug(nil, "CacheUpdateChannel after: id=%d, name=%s, status=%d, polling_index=%d", channel.Id, channel.Name, channel.Status, channel.ChannelInfo.MultiKeyPollingIndex)
+
+	// 渠道信息变更后清除 Redis 缓存
+	invalidateChannelRedisCache(channel.Id)
+}
+
+// ────────────────────────────────────────────────────────────
+// 渠道 Redis 缓存（内存缓存的补充，10 分钟 TTL）
+// ────────────────────────────────────────────────────────────
+
+const (
+	channelRedisKeyPrefix  = "channel:"
+	channelRedisCacheTTL   = 10 * time.Minute
+)
+
+func channelRedisKey(id int) string {
+	return fmt.Sprintf("%s%d", channelRedisKeyPrefix, id)
+}
+
+// getChannelFromRedis 从 Redis 加载单个渠道缓存
+func getChannelFromRedis(id int) (*Channel, error) {
+	data, err := common.CacheGet(channelRedisKey(id))
+	if err != nil {
+		common.RecordCacheMiss()
+		return nil, err
+	}
+	var ch Channel
+	if err := common.Unmarshal([]byte(data), &ch); err != nil {
+		common.RecordCacheMiss()
+		return nil, err
+	}
+	common.RecordCacheHit()
+	return &ch, nil
+}
+
+// saveChannelToRedis 将单个渠道保存到 Redis
+func saveChannelToRedis(ch *Channel) {
+	if ch == nil {
+		return
+	}
+	data, err := common.Marshal(ch)
+	if err != nil {
+		return
+	}
+	if err := common.CacheSet(channelRedisKey(ch.Id), string(data), channelRedisCacheTTL); err != nil {
+		common.SysLog("failed to save channel to Redis: " + err.Error())
+	} else {
+		common.RecordCacheSet()
+	}
+}
+
+// invalidateChannelRedisCache 清除单个渠道的 Redis 缓存
+func invalidateChannelRedisCache(id int) {
+	if err := common.CacheDelete(channelRedisKey(id)); err != nil {
+		common.SysLog("failed to delete channel from Redis: " + err.Error())
+	} else {
+		common.RecordCacheDel()
+	}
 }

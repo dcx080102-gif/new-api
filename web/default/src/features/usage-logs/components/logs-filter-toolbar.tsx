@@ -189,6 +189,8 @@ export function LogsFilterToolbar<TData>(props: LogsFilterToolbarProps<TData>) {
     <div
       className={cn(
         'bg-card/50 rounded-lg border p-2.5 sm:p-3',
+        props.hasActiveFilters &&
+          'border-primary/30 ring-1 ring-primary/10',
         props.className
       )}
     >

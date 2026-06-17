@@ -302,3 +302,51 @@ export async function fetchLogsByCategory(
     ? await getAllTaskLogs(paramsWithFilter as GetTaskLogsParams)
     : await getUserTaskLogs(paramsWithFilter as GetTaskLogsParams)
 }
+
+// ============================================================================
+// CSV Export
+// ============================================================================
+
+/**
+ * Convert usage log records to CSV string and trigger download
+ */
+export function downloadCSV(
+  records: Array<Record<string, unknown>>,
+  filename: string
+): void {
+  if (records.length === 0) return
+
+  // CSV headers from the first record keys
+  const headers = Object.keys(records[0])
+
+  // BOM for Excel UTF-8 compatibility
+  let csv = '\uFEFF'
+
+  // Header row
+  csv += headers.join(',') + '\n'
+
+  // Data rows
+  for (const record of records) {
+    const row = headers.map((h) => {
+      const val = record[h]
+      if (val == null) return ''
+      const str = String(val)
+      // Escape quotes and wrap in quotes if contains comma, newline, or quote
+      if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+        return '"' + str.replace(/"/g, '""') + '"'
+      }
+      return str
+    })
+    csv += row.join(',') + '\n'
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}

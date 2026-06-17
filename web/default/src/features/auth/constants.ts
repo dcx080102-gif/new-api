@@ -37,7 +37,10 @@ export function createRegisterFormSchema() {
   return z
     .object({
       username: z.string().min(1, t('Please enter your username')),
-      email: z.string().optional(),
+      email: z
+        .string()
+        .min(1, t('Please enter your email'))
+        .email(t('Please enter a valid email address')),
       password: z
         .string()
         .min(1, t('Please enter your password'))

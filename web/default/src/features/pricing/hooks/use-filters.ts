@@ -23,11 +23,13 @@ import {
   SORT_OPTIONS,
   QUOTA_TYPES,
   ENDPOINT_TYPES,
+  CATEGORIES,
   DEFAULT_TOKEN_UNIT,
   VIEW_MODES,
   type ViewMode,
+  type Category,
 } from '../constants'
-import { filterAndSortModels, extractAllTags } from '../lib/filters'
+import { filterAndSortModels, filterByCategory, extractAllTags } from '../lib/filters'
 import type { PricingModel, TokenUnit } from '../types'
 
 type FilterState = {
@@ -38,6 +40,7 @@ type FilterState = {
   quotaType?: string
   endpointType?: string
   tag?: string
+  category?: Category
   tokenUnit?: TokenUnit
   view?: ViewMode
   rechargePrice?: boolean
@@ -60,6 +63,7 @@ export function useFilters(models: PricingModel[]) {
     quotaType: search.quotaType,
     endpointType: search.endpointType,
     tag: search.tag,
+    category: search.category as Category | undefined,
     tokenUnit: search.tokenUnit,
     view: search.view,
     rechargePrice: search.rechargePrice,
@@ -72,6 +76,7 @@ export function useFilters(models: PricingModel[]) {
   const quotaTypeFilter = filterState.quotaType || QUOTA_TYPES.ALL
   const endpointTypeFilter = filterState.endpointType || ENDPOINT_TYPES.ALL
   const tagFilter = filterState.tag || FILTER_ALL
+  const categoryFilter: Category = filterState.category || CATEGORIES.ALL
   const tokenUnit: TokenUnit =
     filterState.tokenUnit === 'K' ? 'K' : DEFAULT_TOKEN_UNIT
   const viewMode = normalizeViewMode(filterState.view)
@@ -122,6 +127,11 @@ export function useFilters(models: PricingModel[]) {
     (v: string) => updateFilters({ tag: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
+  const setCategoryFilter = useCallback(
+    (v: Category) =>
+      updateFilters({ category: v === CATEGORIES.ALL ? undefined : v }),
+    [updateFilters]
+  )
   const setTokenUnit = useCallback(
     (v: TokenUnit) =>
       updateFilters({ tokenUnit: v === DEFAULT_TOKEN_UNIT ? undefined : v }),
@@ -145,7 +155,7 @@ export function useFilters(models: PricingModel[]) {
   const filteredModels = useMemo(() => {
     if (!models || models.length === 0) return []
 
-    return filterAndSortModels(models, {
+    let result = filterAndSortModels(models, {
       search: searchInput,
       vendor: vendorFilter,
       group: groupFilter,
@@ -154,6 +164,11 @@ export function useFilters(models: PricingModel[]) {
       tag: tagFilter,
       sortBy,
     })
+
+    // Apply category filter separately (not in filterAndSortModels to avoid breaking existing code)
+    result = filterByCategory(result, categoryFilter)
+
+    return result
   }, [
     models,
     searchInput,
@@ -162,6 +177,7 @@ export function useFilters(models: PricingModel[]) {
     quotaTypeFilter,
     endpointTypeFilter,
     tagFilter,
+    categoryFilter,
     sortBy,
   ])
 
@@ -207,6 +223,7 @@ export function useFilters(models: PricingModel[]) {
     quotaTypeFilter,
     endpointTypeFilter,
     tagFilter,
+    categoryFilter,
     tokenUnit,
     viewMode,
     showRechargePrice,
@@ -217,6 +234,7 @@ export function useFilters(models: PricingModel[]) {
     setQuotaTypeFilter,
     setEndpointTypeFilter,
     setTagFilter,
+    setCategoryFilter,
     setTokenUnit,
     setViewMode,
     setShowRechargePrice,

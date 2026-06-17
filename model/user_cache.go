@@ -69,11 +69,15 @@ func updateUserCache(user User) error {
 		return nil
 	}
 
-	return common.RedisHSetObj(
+	err := common.RedisHSetObj(
 		getUserCacheKey(user.Id),
 		user.ToBaseUser(),
 		time.Duration(common.RedisKeyCacheSeconds())*time.Second,
 	)
+	if err == nil {
+		common.RecordCacheSet()
+	}
+	return err
 }
 
 // GetUserCache gets complete user cache from hash
@@ -126,8 +130,10 @@ func cacheGetUserBase(userId int) (*UserBase, error) {
 	// Try getting from Redis first
 	err := common.RedisHGetObj(getUserCacheKey(userId), &userCache)
 	if err != nil {
+		common.RecordCacheMiss()
 		return nil, err
 	}
+	common.RecordCacheHit()
 	return &userCache, nil
 }
 

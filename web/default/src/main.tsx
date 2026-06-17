@@ -24,8 +24,8 @@ For commercial licensing, please contact support@quantumnous.com
 (function () {
   var methods = ['removeChild', 'insertBefore', 'appendChild', 'replaceChild']
   methods.forEach(function (method) {
-    var orig = Node.prototype[method]
-    Node.prototype[method] = function () {
+    var orig = (Node.prototype as any)[method]
+    ;(Node.prototype as any)[method] = function () {
       try {
         return orig.apply(this, arguments)
       } catch (e) {

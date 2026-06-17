@@ -137,7 +137,7 @@ export function ModalitiesMatrix(props: {
                   'inline-flex items-center justify-center',
                   enabled
                     ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-muted-foreground/40'
+                    : 'text-muted-foreground/55'
                 )}
                 aria-label={
                   enabled

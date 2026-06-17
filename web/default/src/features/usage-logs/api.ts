@@ -91,6 +91,24 @@ export async function getUserInfo(
 }
 
 // ============================================================================
+// CSV Export
+// ============================================================================
+
+export async function exportLogsCSV(
+  params: GetLogsParams
+): Promise<Blob> {
+  const queryParams = buildQueryParams({
+    ...params,
+    p: params.p || 1,
+    page_size: params.page_size || 10000,
+  } as unknown as Record<string, unknown>)
+  const res = await api.get(`/api/log?${queryParams}`, {
+    responseType: 'blob',
+  })
+  return res.data as Blob
+}
+
+// ============================================================================
 // Midjourney (Drawing) Logs API
 // ============================================================================
 

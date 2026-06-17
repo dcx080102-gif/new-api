@@ -15,6 +15,7 @@ import (
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const UserNameMaxLength = 20
@@ -191,7 +192,56 @@ func GetMaxUserId() int {
 	return user.Id
 }
 
-func GetAllUsers(pageInfo *common.PageInfo) (users []*User, total int64, err error) {
+// ============================================================================
+// User Sort Options
+// ============================================================================
+
+type UserSortOptions struct {
+	SortBy    string
+	SortOrder string
+}
+
+var userSortColumns = map[string]string{
+	"id":             "id",
+	"created_at":     "created_at",
+	"quota":          "quota",
+	"used_quota":     "used_quota",
+	"request_count":  "request_count",
+	"aff_count":      "aff_count",
+	"last_login_at":  "last_login_at",
+}
+
+func NewUserSortOptions(sortBy string, sortOrder string) UserSortOptions {
+	normalizedSortBy := strings.ToLower(strings.TrimSpace(sortBy))
+	normalizedSortOrder := strings.ToLower(strings.TrimSpace(sortOrder))
+	if _, ok := userSortColumns[normalizedSortBy]; !ok {
+		normalizedSortBy = ""
+		normalizedSortOrder = ""
+	} else if normalizedSortOrder != "asc" {
+		normalizedSortOrder = "desc"
+	}
+
+	return UserSortOptions{
+		SortBy:    normalizedSortBy,
+		SortOrder: normalizedSortOrder,
+	}
+}
+
+func (options UserSortOptions) Apply(query *gorm.DB) *gorm.DB {
+	if columnName, ok := userSortColumns[options.SortBy]; ok {
+		return query.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: columnName},
+			Desc:   options.SortOrder != "asc",
+		})
+	}
+	// Default: sort by id desc
+	return query.Order(clause.OrderByColumn{
+		Column: clause.Column{Name: "id"},
+		Desc:   true,
+	})
+}
+
+func GetAllUsers(pageInfo *common.PageInfo, sortOptions ...UserSortOptions) (users []*User, total int64, err error) {
 	// Start transaction
 	tx := DB.Begin()
 	if tx.Error != nil {
@@ -210,8 +260,16 @@ func GetAllUsers(pageInfo *common.PageInfo) (users []*User, total int64, err err
 		return nil, 0, err
 	}
 
+	// Resolve sort options
+	baseQuery := tx.Unscoped()
+	if len(sortOptions) > 0 {
+		baseQuery = sortOptions[0].Apply(baseQuery)
+	} else {
+		baseQuery = baseQuery.Order("id desc")
+	}
+
 	// Get paginated users within same transaction
-	err = tx.Unscoped().Order("id desc").Limit(pageInfo.GetPageSize()).Offset(pageInfo.GetStartIdx()).Omit("password").Find(&users).Error
+	err = baseQuery.Limit(pageInfo.GetPageSize()).Offset(pageInfo.GetStartIdx()).Omit("password").Find(&users).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, 0, err
@@ -225,7 +283,7 @@ func GetAllUsers(pageInfo *common.PageInfo) (users []*User, total int64, err err
 	return users, total, nil
 }
 
-func SearchUsers(keyword string, group string, role *int, status *int, startIdx int, num int) ([]*User, int64, error) {
+func SearchUsers(keyword string, group string, role *int, status *int, startIdx int, num int, sortOptions ...UserSortOptions) ([]*User, int64, error) {
 	var users []*User
 	var total int64
 	var err error
@@ -274,8 +332,15 @@ func SearchUsers(keyword string, group string, role *int, status *int, startIdx 
 		return nil, 0, err
 	}
 
+	// Apply sort options
+	if len(sortOptions) > 0 {
+		query = sortOptions[0].Apply(query)
+	} else {
+		query = query.Order("id desc")
+	}
+
 	// 获取分页数据
-	err = query.Omit("password").Order("id desc").Limit(num).Offset(startIdx).Find(&users).Error
+	err = query.Omit("password").Limit(num).Offset(startIdx).Find(&users).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, 0, err

@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useChannels } from './channels-provider'
 import { BalanceQueryDialog } from './dialogs/balance-query-dialog'
+import { ChannelBatchTestDialog } from './dialogs/channel-batch-test-dialog'
 import { ChannelTestDialog } from './dialogs/channel-test-dialog'
 import { CopyChannelDialog } from './dialogs/copy-channel-dialog'
 import { EditTagDialog } from './dialogs/edit-tag-dialog'
@@ -26,24 +27,42 @@ import { MultiKeyManageDialog } from './dialogs/multi-key-manage-dialog'
 import { OllamaModelsDialog } from './dialogs/ollama-models-dialog'
 import { TagBatchEditDialog } from './dialogs/tag-batch-edit-dialog'
 import { UpstreamUpdateDialog } from './dialogs/upstream-update-dialog'
+import { ChannelWizard } from './channel-wizard'
 import { ChannelMutateDrawer } from './drawers/channel-mutate-drawer'
 
 export function ChannelsDialogs() {
-  const { open, setOpen, currentRow, upstream } = useChannels()
+  const { open, setOpen, currentRow, batchTestChannels, upstream } =
+    useChannels()
 
   return (
     <>
-      {/* Channel Create/Update Drawer */}
-      <ChannelMutateDrawer
-        open={open === 'create-channel' || open === 'update-channel'}
+      {/* Channel Create Wizard */}
+      <ChannelWizard
+        open={open === 'create-channel'}
         onOpenChange={(v) => !v && setOpen(null)}
-        currentRow={open === 'update-channel' ? currentRow : null}
+      />
+
+      {/* Channel Update Drawer */}
+      <ChannelMutateDrawer
+        open={open === 'update-channel'}
+        onOpenChange={(v) => !v && setOpen(null)}
+        currentRow={currentRow}
       />
 
       {/* Test Channel Dialog */}
       <ChannelTestDialog
         open={open === 'test-channel'}
         onOpenChange={(v) => !v && setOpen(null)}
+      />
+
+      {/* Batch Test Channels Dialog */}
+      <ChannelBatchTestDialog
+        open={open === 'batch-test-channels'}
+        onOpenChange={(v) => !v && setOpen(null)}
+        channels={batchTestChannels}
+        onComplete={() => {
+          // Refresh channel list to show updated response times
+        }}
       />
 
       {/* Balance Query Dialog */}

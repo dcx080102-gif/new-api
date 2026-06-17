@@ -430,7 +430,7 @@ function PriceSection(props: {
                 </div>
                 <div className='text-foreground mt-1 font-mono text-base font-semibold tabular-nums'>
                   {entry.formatted}
-                  <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                  <span className='text-muted-foreground/55 ml-1 text-xs font-normal'>
                     / {tokenUnitLabel}
                   </span>
                 </div>
@@ -455,7 +455,7 @@ function PriceSection(props: {
                   </span>
                   <span className='text-muted-foreground font-mono text-sm tabular-nums'>
                     {entry.formatted}
-                    <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+                    <span className='text-muted-foreground/55 ml-1 text-xs font-normal'>
                       / {tokenUnitLabel}
                     </span>
                   </span>
@@ -504,7 +504,7 @@ function PriceSection(props: {
         props.usdExchangeRate,
         baseGroupRatioMap
       )}
-      <span className='text-muted-foreground/40 ml-1 text-xs font-normal'>
+      <span className='text-muted-foreground/55 ml-1 text-xs font-normal'>
         / {tokenUnitLabel}
       </span>
     </>
@@ -564,12 +564,12 @@ function AutoGroupChain(props: { model: PricingModel; autoGroups: string[] }) {
   return (
     <div className='text-muted-foreground mb-3 flex flex-wrap items-center gap-1 text-xs'>
       <span className='font-medium'>{t('Auto Group Chain')}</span>
-      <span className='text-muted-foreground/40'>→</span>
+      <span className='text-muted-foreground/55'>→</span>
       {autoChain.map((g, idx) => (
         <span key={g} className='flex items-center gap-1'>
           <GroupBadge group={g} size='sm' />
           {idx < autoChain.length - 1 && (
-            <span className='text-muted-foreground/40'>→</span>
+            <span className='text-muted-foreground/55'>→</span>
           )}
         </span>
       ))}
@@ -774,7 +774,7 @@ function GroupPricingSection(props: {
               </div>
             )
           })}
-          <p className='text-muted-foreground/40 mt-1.5 text-[10px]'>
+          <p className='text-muted-foreground/55 mt-1.5 text-[10px]'>
             {t('Prices shown per')} {tokenUnitLabel} tokens
           </p>
         </div>
@@ -865,7 +865,7 @@ function GroupPricingSection(props: {
       />
       <div className='-mx-4 sm:mx-0'>
         {isTokenBased && (
-          <p className='text-muted-foreground/40 mt-1.5 px-4 text-[10px] sm:px-0'>
+          <p className='text-muted-foreground/55 mt-1.5 px-4 text-[10px] sm:px-0'>
             {t('Prices shown per')} {tokenUnitLabel} tokens
           </p>
         )}

@@ -488,4 +488,20 @@ export const STATIC_I18N_KEYS = [
   'Failed to load',
   'Expired at',
   'Cancelled at',
+
+  // Model Square: purchase & use buttons
+  'Buy',
+  'Use',
+  'Purchase',
+  'Base URL',
+  'cURL Example',
+  'Copy Key',
+  'Copy Full Command',
+  'No API key available. Please create one in Console.',
+  'Input Price',
+  'Output Price',
+  'Current Balance',
+  'We recommend topping up at least ¥10 to start using this model.',
+  'Go to Wallet',
+  'Please top up first',
 ] as const

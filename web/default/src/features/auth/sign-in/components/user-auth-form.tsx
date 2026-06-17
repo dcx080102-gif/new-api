@@ -533,16 +533,6 @@ export function UserAuthForm({
                 {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
                 {t('Sign in')}
               </Button>
-
-              {/* Turnstile */}
-              {isTurnstileEnabled && (
-                <div className='mt-2'>
-                  <Turnstile
-                    siteKey={turnstileSiteKey}
-                    onVerify={setTurnstileToken}
-                  />
-                </div>
-              )}
             </>
           )}
 
@@ -551,6 +541,16 @@ export function UserAuthForm({
             onCheckedChange={setAgreedToLegal}
             className='mt-1'
           />
+
+          {/* Turnstile */}
+          {isTurnstileEnabled && (
+            <div className='mt-3'>
+              <Turnstile
+                siteKey={turnstileSiteKey}
+                onVerify={setTurnstileToken}
+              />
+            </div>
+          )}
 
           {!hasAlternativeLogin && alternativeLoginMethods}
         </div>

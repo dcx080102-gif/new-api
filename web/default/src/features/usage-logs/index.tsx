@@ -30,6 +30,7 @@ import {
   useUsageLogsContext,
 } from './components/usage-logs-provider'
 import { UsageLogsTable } from './components/usage-logs-table'
+import { UsageCharts } from './components/usage-charts'
 import {
   isUsageLogsSectionId,
   USAGE_LOGS_DEFAULT_SECTION,
@@ -127,6 +128,7 @@ function UsageLogsContent() {
                 </TabsList>
               </Tabs>
             )}
+            {activeCategory === 'common' && <UsageCharts />}
             <div className='min-h-0 flex-1'>
               <UsageLogsTable logCategory={activeCategory} />
             </div>

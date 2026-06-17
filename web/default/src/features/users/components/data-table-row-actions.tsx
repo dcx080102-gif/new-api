@@ -30,6 +30,7 @@ import {
   ShieldAlert,
   Link2,
   CreditCard,
+  Eye,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -63,11 +64,16 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { t } = useTranslation()
   const user = row.original
-  const { setOpen, setCurrentRow, triggerRefresh } = useUsers()
+  const { setOpen, setCurrentRow, triggerRefresh, setDetailOpen, setDetailUser } = useUsers()
   const [resetPasskeyOpen, setResetPasskeyOpen] = useState(false)
   const [resetTwoFAOpen, setResetTwoFAOpen] = useState(false)
   const [bindingDialogOpen, setBindingDialogOpen] = useState(false)
   const [subscriptionsDialogOpen, setSubscriptionsDialogOpen] = useState(false)
+
+  const handleDetail = () => {
+    setDetailUser(user)
+    setDetailOpen(true)
+  }
 
   const handleEdit = () => {
     setCurrentRow(user)
@@ -150,6 +156,15 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
           <span className='sr-only'>{t('Open menu')}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-[180px]'>
+          <DropdownMenuItem onClick={handleDetail}>
+            {t('View Details')}
+            <DropdownMenuShortcut>
+              <Eye size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
           <DropdownMenuItem onClick={handleEdit}>
             {t('Edit')}
             <DropdownMenuShortcut>
