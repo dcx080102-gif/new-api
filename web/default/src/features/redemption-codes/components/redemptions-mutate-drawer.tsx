@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
 import { addTimeToDate } from '@/lib/time'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -78,6 +79,10 @@ export function RedemptionsMutateDrawer({
   const isUpdate = !!currentRow
   const { triggerRefresh } = useRedemptions()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [quickExpiry, setQuickExpiry] = useState<
+    'never' | '1m' | '1w' | '1day' | 'custom' | null
+  >(null)
+  const [customDays, setCustomDays] = useState('')
 
   const form = useForm<RedemptionFormValues>({
     resolver: zodResolver(getRedemptionFormSchema(t)),
@@ -135,9 +140,24 @@ export function RedemptionsMutateDrawer({
     }
   }
 
-  const handleSetExpiry = (months: number, days: number, hours: number) => {
-    const newDate = addTimeToDate(months, days, hours)
-    form.setValue('expired_time', newDate)
+  const handleSetExpiry = (
+    months: number,
+    days: number,
+    hours: number,
+    key: 'never' | '1m' | '1w' | '1day' | 'custom'
+  ) => {
+    setQuickExpiry(key)
+    if (key === 'custom') {
+      // Custom: only select the button, don't change the date
+      return
+    }
+    // Switching away from Custom — clear the days input
+    setCustomDays('')
+    if (months === 0 && days === 0 && hours === 0) {
+      form.setValue('expired_time', undefined)
+    } else {
+      form.setValue('expired_time', addTimeToDate(months, days, hours))
+    }
   }
 
   const { meta: currencyMeta } = getCurrencyDisplay()
@@ -207,12 +227,13 @@ export function RedemptionsMutateDrawer({
                     <FormControl>
                       <Input
                         {...field}
-                        type='number'
-                        step={tokensOnly ? 1 : 0.01}
+                        type='text'
+                        inputMode='decimal'
                         placeholder={quotaPlaceholder}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 0)
-                        }
+                        onChange={(e) => {
+                          const val = e.target.value
+                          field.onChange(val === '' ? '' : Number(val))
+                        }}
                       />
                     </FormControl>
                     <FormDescription>
@@ -237,44 +258,117 @@ export function RedemptionsMutateDrawer({
                       <FormControl>
                         <DateTimePicker
                           value={field.value}
-                          onChange={field.onChange}
+                          onChange={(value) => {
+                            // Clear preset selections, but keep 'custom'
+                            if (quickExpiry !== 'custom') {
+                              setQuickExpiry(null)
+                              setCustomDays('')
+                            }
+                            field.onChange(value)
+                          }}
                           placeholder={t('Never expires')}
                         />
                       </FormControl>
-                      <div className='grid grid-cols-4 gap-1.5 sm:flex sm:gap-2'>
+                      <div className='grid grid-cols-5 gap-1.5 sm:flex sm:gap-2'>
                         <Button
                           type='button'
-                          variant='outline'
+                          variant={
+                            quickExpiry === 'never' ? 'default' : 'outline'
+                          }
                           size='sm'
-                          onClick={() => handleSetExpiry(0, 0, 0)}
+                          className={cn(
+                            'transition-all duration-200 hover:scale-105 active:scale-95',
+                            quickExpiry === 'never' &&
+                              'bg-blue-800 text-white hover:bg-blue-700'
+                          )}
+                          onClick={() => handleSetExpiry(0, 0, 0, 'never')}
                         >
                           {t('Never')}
                         </Button>
                         <Button
                           type='button'
-                          variant='outline'
+                          variant={quickExpiry === '1m' ? 'default' : 'outline'}
                           size='sm'
-                          onClick={() => handleSetExpiry(1, 0, 0)}
+                          className={cn(
+                            'transition-all duration-200 hover:scale-105 active:scale-95',
+                            quickExpiry === '1m' &&
+                              'bg-blue-800 text-white hover:bg-blue-700'
+                          )}
+                          onClick={() => handleSetExpiry(1, 0, 0, '1m')}
                         >
                           {t('1M')}
                         </Button>
                         <Button
                           type='button'
-                          variant='outline'
+                          variant={quickExpiry === '1w' ? 'default' : 'outline'}
                           size='sm'
-                          onClick={() => handleSetExpiry(0, 7, 0)}
+                          className={cn(
+                            'transition-all duration-200 hover:scale-105 active:scale-95',
+                            quickExpiry === '1w' &&
+                              'bg-blue-800 text-white hover:bg-blue-700'
+                          )}
+                          onClick={() => handleSetExpiry(0, 7, 0, '1w')}
                         >
                           {t('1W')}
                         </Button>
                         <Button
                           type='button'
-                          variant='outline'
+                          variant={
+                            quickExpiry === '1day' ? 'default' : 'outline'
+                          }
                           size='sm'
-                          onClick={() => handleSetExpiry(0, 1, 0)}
+                          className={cn(
+                            'transition-all duration-200 hover:scale-105 active:scale-95',
+                            quickExpiry === '1day' &&
+                              'bg-blue-800 text-white hover:bg-blue-700'
+                          )}
+                          onClick={() => handleSetExpiry(0, 1, 0, '1day')}
                         >
                           {t('1 Day')}
                         </Button>
+                        <Button
+                          type='button'
+                          variant={
+                            quickExpiry === 'custom' ? 'default' : 'outline'
+                          }
+                          size='sm'
+                          className={cn(
+                            'transition-all duration-200 hover:scale-105 active:scale-95',
+                            quickExpiry === 'custom' &&
+                              'bg-blue-800 text-white hover:bg-blue-700'
+                          )}
+                          onClick={() =>
+                            handleSetExpiry(0, 0, 0, 'custom')
+                          }
+                        >
+                          {t('Custom')}
+                        </Button>
                       </div>
+                      {quickExpiry === 'custom' && (
+                        <div className='flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200'>
+                          <Input
+                            type='text'
+                            inputMode='numeric'
+                            placeholder={t('Enter days')}
+                            value={customDays}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              setCustomDays(val)
+                              const days = parseInt(val, 10)
+                              if (!isNaN(days) && days >= 0) {
+                                form.setValue(
+                                  'expired_time',
+                                  addTimeToDate(0, days, 0)
+                                )
+                              }
+                            }}
+                            className='h-8 w-24 text-sm'
+                          />
+                          <span className='text-sm text-muted-foreground'>
+                            {t('days')}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <FormDescription>
                       {t('Leave empty for never expires')}
@@ -294,13 +388,13 @@ export function RedemptionsMutateDrawer({
                       <FormControl>
                         <Input
                           {...field}
-                          type='number'
-                          min='1'
-                          max='100'
+                          type='text'
+                          inputMode='numeric'
                           placeholder={t('Number of codes to create')}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value, 10) || 1)
-                          }
+                          onChange={(e) => {
+                            const val = e.target.value
+                            field.onChange(val === '' ? '' : Number(val))
+                          }}
                         />
                       </FormControl>
                       <FormDescription>

@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { type QueryClient } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
@@ -24,15 +24,41 @@ import {
   redirect,
 } from '@tanstack/react-router'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { ThemeCustomizationProvider } from '@/context/theme-customization-provider'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { Toaster } from '@/components/ui/sonner'
 import { NavigationProgress } from '@/components/navigation-progress'
 import { saveAffiliateCode } from '@/features/auth/lib/storage'
-import { GeneralError } from '@/features/errors/general-error'
-import { NotFoundError } from '@/features/errors/not-found-error'
 import { getSetupStatus } from '@/features/setup/api'
+
+// Lazy-loaded error components — only loaded when a route fails or 404s,
+// keeping them out of the initial bundle.
+const GeneralError = lazy(() =>
+  import('@/features/errors/general-error').then((m) => ({
+    default: m.GeneralError,
+  })),
+)
+const NotFoundError = lazy(() =>
+  import('@/features/errors/not-found-error').then((m) => ({
+    default: m.NotFoundError,
+  })),
+)
+
+function LazyGeneralError() {
+  return (
+    <Suspense fallback={<div className='flex items-center justify-center min-h-[200px]' />}>
+      <GeneralError />
+    </Suspense>
+  )
+}
+
+function LazyNotFoundError() {
+  return (
+    <Suspense fallback={<div className='flex items-center justify-center min-h-[200px]' />}>
+      <NotFoundError />
+    </Suspense>
+  )
+}
 
 function RootComponent() {
   // Load system configuration (logo, system name, etc.) from backend
@@ -51,10 +77,7 @@ function RootComponent() {
       <Outlet />
       <Toaster closeButton duration={5000} position='top-center' richColors />
       {import.meta.env.MODE === 'development' && (
-        <>
           <ReactQueryDevtools buttonPosition='bottom-left' />
-          <TanStackRouterDevtools position='bottom-right' />
-        </>
       )}
     </ThemeCustomizationProvider>
   )
@@ -126,6 +149,6 @@ export const Route = createRootRouteWithContext<{
     // 如果用户有有效 session 但 localStorage 被清空，会被重定向到登录页重新登录
   },
   component: RootComponent,
-  notFoundComponent: NotFoundError,
-  errorComponent: GeneralError,
+  notFoundComponent: LazyNotFoundError,
+  errorComponent: LazyGeneralError,
 })

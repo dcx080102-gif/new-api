@@ -36,9 +36,11 @@ export function getRedemptionFormSchema(t: TFunction) {
       .string()
       .min(REDEMPTION_VALIDATION.NAME_MIN_LENGTH, msg.NAME_LENGTH_INVALID)
       .max(REDEMPTION_VALIDATION.NAME_MAX_LENGTH, msg.NAME_LENGTH_INVALID),
-    quota_dollars: z.number().min(0, t('Quota must be a positive number')),
+    quota_dollars: z.coerce
+      .number()
+      .min(0, t('Quota must be a positive number')),
     expired_time: z.date().optional(),
-    count: z
+    count: z.coerce
       .number()
       .min(REDEMPTION_VALIDATION.COUNT_MIN, msg.COUNT_INVALID)
       .max(REDEMPTION_VALIDATION.COUNT_MAX, msg.COUNT_INVALID)
@@ -48,9 +50,9 @@ export function getRedemptionFormSchema(t: TFunction) {
 
 export type RedemptionFormValues = {
   name: string
-  quota_dollars: number
+  quota_dollars: number | string
   expired_time?: Date
-  count?: number
+  count: number | string
 }
 
 // ============================================================================
@@ -59,9 +61,9 @@ export type RedemptionFormValues = {
 
 export const REDEMPTION_FORM_DEFAULT_VALUES: RedemptionFormValues = {
   name: '',
-  quota_dollars: 10,
+  quota_dollars: '',
   expired_time: undefined,
-  count: 1,
+  count: '',
 }
 
 // ============================================================================
@@ -76,11 +78,18 @@ export function transformFormDataToPayload(
 ): RedemptionFormData {
   return {
     name: data.name,
-    quota: parseQuotaFromDollars(data.quota_dollars),
+    quota: parseQuotaFromDollars(
+      typeof data.quota_dollars === 'string'
+        ? parseFloat(data.quota_dollars) || 0
+        : data.quota_dollars
+    ),
     expired_time: data.expired_time
       ? Math.floor(data.expired_time.getTime() / 1000)
       : 0,
-    count: data.count || 1,
+    count:
+      typeof data.count === 'string'
+        ? parseInt(data.count, 10) || 1
+        : data.count || 1,
   }
 }
 
