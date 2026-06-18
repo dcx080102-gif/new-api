@@ -20,7 +20,6 @@ import { Fragment, useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { cn, sanitizeHtml } from '@/lib/utils'
-import { useHealth } from '@/hooks/use-health'
 import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 
@@ -73,31 +72,6 @@ function FooterLinkItem(props: { link: FooterLink }) {
     >
       {label}
     </Link>
-  )
-}
-
-// 服务状态指示器 — 绿色/红色小圆点
-function ServerStatusDot() {
-  const { t } = useTranslation()
-  const { online, loading } = useHealth()
-
-  if (loading) return null
-
-  return (
-    <span className='inline-flex items-center gap-1.5'>
-      <span
-        className={cn(
-          'inline-block size-2 rounded-full transition-colors duration-500',
-          online
-            ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]'
-            : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'
-        )}
-        aria-hidden='true'
-      />
-      <span className='text-muted-foreground/50 text-xs'>
-        {online ? t('Service Online') : t('Service Offline')}
-      </span>
-    </span>
   )
 }
 
@@ -319,10 +293,6 @@ export function Footer(props: FooterProps) {
             attribution on the right; wraps on narrow screens. */}
         <div className='border-border/30 mt-12 flex flex-col items-center justify-between gap-x-3 gap-y-2 border-t pt-6 sm:flex-row'>
           <div className='text-muted-foreground/55 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs sm:justify-start'>
-            <ServerStatusDot />
-            <span aria-hidden='true' className='text-muted-foreground/30'>
-              ·
-            </span>
             <span>
               &copy; {currentYear} {displayName}.{' '}
               {props.copyright ?? t('footer.defaultCopyright')}
