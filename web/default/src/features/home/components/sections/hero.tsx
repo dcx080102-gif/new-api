@@ -20,6 +20,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { HeroTerminalDemo } from '../hero-terminal-demo'
 
 interface HeroProps {
   className?: string
@@ -104,40 +105,11 @@ export function Hero(props: HeroProps) {
         </div>
       </div>
 
-      {/* Three-step onboarding guide */}
       <div
-        className='landing-animate-fade-up w-full max-w-3xl mt-12 opacity-0'
+        className='landing-animate-fade-up w-full opacity-0'
         style={{ animationDelay: '300ms' }}
       >
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-          {[
-            { step: '1', icon: '📝', title: t('Sign Up Free'), desc: t('Create your account in seconds') },
-            { step: '2', icon: '🔑', title: t('Get API Key'), desc: t('Generate your API key instantly') },
-            { step: '3', icon: '🚀', title: t('Start Building'), desc: t('Use any model with one API') },
-          ].map((item) => (
-            <div
-              key={item.step}
-              className='relative flex flex-col items-center rounded-2xl border border-border/50 bg-card/60 p-6 text-center backdrop-blur-sm transition-all duration-300 hover:border-border hover:shadow-lg hover:-translate-y-0.5'
-            >
-              <span className='mb-3 text-3xl'>{item.icon}</span>
-              <h3 className='text-base font-semibold'>{item.title}</h3>
-              <p className='mt-1.5 text-sm text-muted-foreground'>{item.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Playground CTA */}
-        <div className='mt-6 flex justify-center'>
-          <Button
-            variant='outline'
-            size='lg'
-            className='group border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px]'
-            render={<Link to='/playground' />}
-          >
-            {'💬'} {t('Try Online')}
-            <ArrowRight className='ml-1 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5' />
-          </Button>
-        </div>
+        <HeroTerminalDemo />
       </div>
     </section>
   )

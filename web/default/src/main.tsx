@@ -38,33 +38,6 @@ For commercial licensing, please contact support@quantumnous.com
   })
 })()
 
-
-// Auto-reload on chunk load failure (stale cache after deploy)
-// When the browser has old HTML referencing old JS chunks that no longer
-// exist on the server, force a hard refresh to get the new version.
-(function () {
-  var RELOAD_KEY = 'hermes_chunk_reload'
-  window.addEventListener('error', function (e) {
-    var msg = String(e.message || '')
-    if (/Loading chunk/i.test(msg) || /Failed to load/i.test(msg)) {
-      if (!sessionStorage.getItem(RELOAD_KEY)) {
-        sessionStorage.setItem(RELOAD_KEY, '1')
-        window.location.reload()
-      }
-    }
-  })
-  // Also handle unhandled promise rejections from dynamic imports
-  window.addEventListener('unhandledrejection', function (e) {
-    var msg = String(e.reason?.message || e.reason || '')
-    if (/Loading chunk/i.test(msg) || /Failed to load/i.test(msg)) {
-      if (!sessionStorage.getItem(RELOAD_KEY)) {
-        sessionStorage.setItem(RELOAD_KEY, '1')
-        window.location.reload()
-      }
-    }
-  })
-})()
-
 import '@/styles/effects.css'
 import ReactDOM from 'react-dom/client'
 import { AxiosError } from 'axios'
