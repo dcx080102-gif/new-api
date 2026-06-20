@@ -32,10 +32,22 @@ export function buildChatCompletionPayload(
   config: PlaygroundConfig,
   parameterEnabled: ParameterEnabled
 ): ChatCompletionRequest {
+  // Auto-inject system prompt to let model know its identity
+  const modelName = config.model || ''
+  const identityPrompt = {
+    role: 'system',
+    content: `你是 ${modelName} AI 模型。请用中文自然友好地回复用户，如果被问到你的身份或模型名称，请如实告知你是 ${modelName}。`
+  }
+
   // Filter and format valid messages
   const processedMessages = messages
     .filter(isValidMessage)
     .map(formatMessageForAPI)
+
+  // Prepend system prompt (only if there isn't already a system message)
+  if (!processedMessages.some(m => m.role === 'system')) {
+    processedMessages.unshift(identityPrompt as any)
+  }
 
   const payload: ChatCompletionRequest = {
     model: config.model,

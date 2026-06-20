@@ -26,6 +26,7 @@ import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { DEFAULT_TOKEN_UNIT } from '../constants'
 import { isTokenBasedModel } from '../lib/model-helpers'
 import { formatPrice } from '../lib/price'
+import { calcSavingsPct } from '../lib/official-prices'
 import type { PricingModel, TokenUnit } from '../types'
 
 export interface ModelCardProps {
@@ -110,9 +111,16 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         </div>
 
         {/* Model name */}
-        <h3 className='text-foreground truncate font-semibold text-base mb-2'>
+        <h3 className='text-foreground truncate font-semibold text-base mb-1'>
           {props.model.model_name}
         </h3>
+
+        {/* Description */}
+        {props.model.description && (
+          <p className='text-muted-foreground/70 text-xs leading-relaxed mb-2 line-clamp-2'>
+            {props.model.description}
+          </p>
+        )}
 
         {/* Tags: endpoint types */}
         {displayTags.length > 0 && (
@@ -190,6 +198,25 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             </div>
           )}
         </div>
+
+        {/* Divider */}
+        <div className='border-t border-border/60 my-2' />
+
+        {/* Savings vs official */}
+        {(() => {
+          if (!isTokenBased) return null
+          const ourInput = props.model.model_ratio * 2
+          const ourOutput = ourInput * props.model.completion_ratio
+          const savings = calcSavingsPct(props.model.model_name, ourInput, ourOutput)
+          if (savings === null || savings <= 0) return null
+          return (
+            <div className='flex items-center gap-1.5 mb-1'>
+              <span className='inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400'>
+                {t('Save {{pct}}% vs official', { pct: savings })}
+              </span>
+            </div>
+          )
+        })()}
 
         {/* Divider */}
         <div className='border-t border-border/60 my-2' />

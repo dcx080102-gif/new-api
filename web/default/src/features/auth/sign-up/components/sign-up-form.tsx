@@ -46,6 +46,7 @@ import type { RegisterFormValues } from '@/features/auth/constants'
 import { useAuthRedirect } from '@/features/auth/hooks/use-auth-redirect'
 import { useEmailVerification } from '@/features/auth/hooks/use-email-verification'
 import { useTurnstile } from '@/features/auth/hooks/use-turnstile'
+import { Link } from '@tanstack/react-router'
 import {
   getAffiliateCode,
   saveAffiliateCode,
@@ -62,6 +63,7 @@ export function SignUpForm({
   const [wechatCode, setWeChatCode] = useState('')
   const [isWeChatDialogOpen, setIsWeChatDialogOpen] = useState(false)
   const [isWeChatSubmitting, setIsWeChatSubmitting] = useState(false)
+  const [onboardingOpen, setOnboardingOpen] = useState(false)
   const legalConsentErrorMessage = t('Please agree to the legal terms first')
 
   const { status } = useStatus()
@@ -170,8 +172,8 @@ export function SignUpForm({
       })
 
       if (res?.success) {
-        toast.success(t('Account created! Please sign in'))
-        redirectToLogin()
+        toast.success(t('Account created!'))
+        setOnboardingOpen(true)
       } else {
         toast.error(res?.message || t('Failed to create account'))
       }
@@ -391,6 +393,74 @@ export function SignUpForm({
           />
         )}
       </form>
+
+      {/* Onboarding guide modal */}
+      <Dialog
+        open={onboardingOpen}
+        onOpenChange={(open) => {
+          setOnboardingOpen(open)
+          if (!open) redirectToLogin()
+        }}
+        title={t('Welcome to otter Link!')}
+        description={t('Get started in 3 easy steps')}
+        contentClassName='max-w-md'
+        headerClassName='text-center'
+        contentHeight='auto'
+        bodyClassName='space-y-5 px-2'
+        footer={
+          <Button
+            type='button'
+            onClick={() => {
+              setOnboardingOpen(false)
+              redirectToLogin()
+            }}
+            className='w-full bg-blue-800 hover:bg-blue-900 dark:bg-blue-800 dark:hover:bg-blue-700 text-white disabled:opacity-100 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
+          >
+            {t('Go to Sign In')}
+          </Button>
+        }
+      >
+        <div className='space-y-3'>
+          {[
+            {
+              step: '1',
+              icon: '💰',
+              title: t('Top Up'),
+              desc: t('Recharge your account to get credits'),
+              link: '/topup',
+            },
+            {
+              step: '2',
+              icon: '🔑',
+              title: t('Get API Key'),
+              desc: t('Generate your API key in the console'),
+              link: '/keys',
+            },
+            {
+              step: '3',
+              icon: '🚀',
+              title: t('Start Using'),
+              desc: t('Use any AI model through our unified API'),
+              link: '/playground',
+            },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className='flex items-start gap-3 rounded-lg border border-border/50 p-3 transition-all duration-200 hover:border-border hover:bg-muted/30'
+            >
+              <span className='flex size-8 shrink-0 items-center justify-center rounded-full bg-muted/50 text-lg'>
+                {item.icon}
+              </span>
+              <div className='min-w-0 flex-1'>
+                <h4 className='text-sm font-semibold'>{item.title}</h4>
+                <p className='mt-0.5 text-xs text-muted-foreground'>
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Dialog>
 
       {hasWeChatLogin && (
         <Dialog
