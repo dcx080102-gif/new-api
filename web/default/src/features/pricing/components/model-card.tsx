@@ -97,8 +97,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const isDefaultPrice = (props.model.model_ratio || 0) >= 30
-
   // Check if any metadata is worth showing
   const hasContext = metadata.context_length > 0
   const hasMaxOutput = metadata.max_output_tokens > 0
@@ -205,11 +203,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       </div>
 
       {/* Row 3: Price (Input / Output / Cache inline) */}
-      {isDefaultPrice ? (
-        <div className='text-sm text-muted-foreground mt-2'>
-          {t('暂无定价')}
-        </div>
-      ) : isTokenBased ? (
+      {isTokenBased ? (
         <div className='flex items-baseline gap-x-3 text-sm mt-2'>
           <span className='inline-flex items-baseline gap-1'>
             <span className='text-muted-foreground text-xs'>{t('Input')}</span>

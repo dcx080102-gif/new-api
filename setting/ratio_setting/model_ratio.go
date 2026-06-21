@@ -730,6 +730,15 @@ func GetAudioCompletionRatioCopy() map[string]float64 {
 // 转换模型名，减少渠道必须配置各种带参数模型
 func FormatMatchingModelName(name string) string {
 
+	// Strip known upstream vendor prefixes so that "openai/gpt-4.1"
+	// and "anthropic/claude-opus-4.8" match their non-prefixed entries.
+	for _, prefix := range []string{"openai/", "anthropic/"} {
+		if strings.HasPrefix(name, prefix) {
+			name = name[len(prefix):]
+			break
+		}
+	}
+
 	if strings.HasPrefix(name, "gemini-2.5-flash-lite") {
 		name = handleThinkingBudgetModel(name, "gemini-2.5-flash-lite", "gemini-2.5-flash-lite-thinking-*")
 	} else if strings.HasPrefix(name, "gemini-2.5-flash") {
