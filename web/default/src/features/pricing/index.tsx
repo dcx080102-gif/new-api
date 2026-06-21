@@ -37,6 +37,7 @@ import {
   ModelCardGrid,
   ModelDetailsDrawer,
   PricingSidebar,
+  QuickFilterPills,
 } from './components'
 import { CATEGORIES, EXCLUDED_GROUPS, getCategoryLabels } from './constants'
 import type { Category } from './constants'
@@ -73,6 +74,10 @@ export function Pricing() {
     quotaTypeFilter,
     endpointTypeFilter,
     tagFilter,
+    seriesFilter,
+    protocolFilter,
+    contextFilter,
+    quickFilter,
     setSearchInput,
     setCategoryFilter,
     setVendorFilter,
@@ -80,6 +85,10 @@ export function Pricing() {
     setQuotaTypeFilter,
     setEndpointTypeFilter,
     setTagFilter,
+    setSeriesFilter,
+    setProtocolFilter,
+    setContextFilter,
+    setQuickFilter,
     filteredModels,
     hasActiveFilters,
     availableTags,
@@ -131,11 +140,17 @@ export function Pricing() {
       vendorFilter={vendorFilter}
       groupFilter={groupFilter}
       tagFilter={tagFilter}
+      seriesFilter={seriesFilter}
+      protocolFilter={protocolFilter}
+      contextFilter={contextFilter}
       onQuotaTypeChange={setQuotaTypeFilter}
       onEndpointTypeChange={setEndpointTypeFilter}
       onVendorChange={setVendorFilter}
       onGroupChange={setGroupFilter}
       onTagChange={setTagFilter}
+      onSeriesChange={setSeriesFilter}
+      onProtocolChange={setProtocolFilter}
+      onContextChange={setContextFilter}
       vendors={vendors}
       groups={groups}
       groupRatios={groupRatio || {}}
@@ -167,6 +182,15 @@ export function Pricing() {
         </button>
       ))}
     </div>
+  )
+
+  // ---- quick filter pills (displayed above card grid) ----
+  const quickFilterPills = (
+    <QuickFilterPills
+      value={quickFilter}
+      onChange={setQuickFilter}
+      className='mx-auto max-w-xl'
+    />
   )
 
   // ---- loading state ----
@@ -285,6 +309,9 @@ export function Pricing() {
 
               {/* CTA Banner — guides users based on their state */}
               <CtaBanner className='mb-6 sm:mb-8' />
+
+              {/* Quick filter pills */}
+              <div className='mb-4'>{quickFilterPills}</div>
 
               {/* Model count indicator */}
               {filteredModels.length > 0 && (

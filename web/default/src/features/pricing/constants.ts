@@ -191,5 +191,101 @@ export function mapEndpointToCategory(endpoint: string): Category {
   }
 }
 
+// ----------------------------------------------------------------------------
+// Model Series (for marketplace-style series filtering)
+// ----------------------------------------------------------------------------
+
+/** Model series filter values */
+export const MODEL_SERIES = {
+  ALL: 'all',
+  GPT: 'gpt',
+  CLAUDE: 'claude',
+  GEMINI: 'gemini',
+  DEEPSEEK: 'deepseek',
+  QWEN: 'qwen',
+} as const
+
+export type ModelSeries = (typeof MODEL_SERIES)[keyof typeof MODEL_SERIES]
+
+export function getModelSeriesLabels(
+  t: TFunction
+): Record<ModelSeries, string> {
+  return {
+    [MODEL_SERIES.ALL]: t('All'),
+    [MODEL_SERIES.GPT]: 'GPT',
+    [MODEL_SERIES.CLAUDE]: 'Claude',
+    [MODEL_SERIES.GEMINI]: 'Gemini',
+    [MODEL_SERIES.DEEPSEEK]: 'DeepSeek',
+    [MODEL_SERIES.QWEN]: 'Qwen',
+  }
+}
+
+/**
+ * Map model name to its series based on keyword matching.
+ */
+export function mapModelToSeries(modelName: string): ModelSeries | null {
+  if (!modelName) return null
+  const lower = modelName.toLowerCase()
+  if (lower.includes('gpt')) return MODEL_SERIES.GPT
+  if (lower.includes('claude')) return MODEL_SERIES.CLAUDE
+  if (lower.includes('gemini')) return MODEL_SERIES.GEMINI
+  if (lower.includes('deepseek')) return MODEL_SERIES.DEEPSEEK
+  if (lower.includes('qwen')) return MODEL_SERIES.QWEN
+  return null
+}
+
+/** Icons for model series (LobeHub icon names) */
+export const MODEL_SERIES_ICONS: Record<string, string> = {
+  [MODEL_SERIES.GPT]: 'OpenAI',
+  [MODEL_SERIES.CLAUDE]: 'Anthropic',
+  [MODEL_SERIES.GEMINI]: 'Google',
+  [MODEL_SERIES.DEEPSEEK]: 'DeepSeek',
+  [MODEL_SERIES.QWEN]: 'Qwen',
+}
+
+// ----------------------------------------------------------------------------
+// API Protocol (for marketplace-style protocol filtering)
+// ----------------------------------------------------------------------------
+
+/** API protocol filter values */
+export const PROTOCOLS = {
+  ALL: 'all',
+  OPENAI: 'openai',
+  ANTHROPIC: 'anthropic',
+  GEMINI: 'gemini',
+} as const
+
+export type Protocol = (typeof PROTOCOLS)[keyof typeof PROTOCOLS]
+
+export function getProtocolLabels(t: TFunction): Record<Protocol, string> {
+  return {
+    [PROTOCOLS.ALL]: t('All'),
+    [PROTOCOLS.OPENAI]: 'OpenAI',
+    [PROTOCOLS.ANTHROPIC]: 'Anthropic',
+    [PROTOCOLS.GEMINI]: 'Gemini',
+  }
+}
+
+/** Icons for API protocols (LobeHub icon names) */
+export const PROTOCOL_ICONS: Record<string, string> = {
+  [PROTOCOLS.OPENAI]: 'OpenAI',
+  [PROTOCOLS.ANTHROPIC]: 'Anthropic',
+  [PROTOCOLS.GEMINI]: 'Google',
+}
+
+// ----------------------------------------------------------------------------
+// Quick Filters
+// ----------------------------------------------------------------------------
+
+/** Quick filter values */
+export const QUICK_FILTERS = {
+  ALL: 'all',
+  HOT: 'hot',
+  FREE: 'free',
+  DISCOUNT: 'discount',
+} as const
+
+export type QuickFilter = (typeof QUICK_FILTERS)[keyof typeof QUICK_FILTERS]
+
 /** Default models per page for card grid */
 export const DEFAULT_CARD_PAGE_SIZE = 20

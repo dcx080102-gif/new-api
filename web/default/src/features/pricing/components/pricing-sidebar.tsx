@@ -36,6 +36,9 @@ import {
   getQuotaTypeLabels,
 } from '../constants'
 import { parseTags } from '../lib/filters'
+import { ModelSeriesFilter } from './pricing-series-filter'
+import { APIProtocolFilter } from './pricing-protocol-filter'
+import { ContextSliderFilter } from './pricing-context-slider'
 import type { PricingModel, PricingVendor } from '../types'
 
 type FilterOption = {
@@ -59,11 +62,17 @@ export interface PricingSidebarProps {
   vendorFilter: string
   groupFilter: string
   tagFilter: string
+  seriesFilter: string
+  protocolFilter: string
+  contextFilter: number
   onQuotaTypeChange: (value: string) => void
   onEndpointTypeChange: (value: string) => void
   onVendorChange: (value: string) => void
   onGroupChange: (value: string) => void
   onTagChange: (value: string) => void
+  onSeriesChange: (value: string) => void
+  onProtocolChange: (value: string) => void
+  onContextChange: (value: number) => void
   vendors: PricingVendor[]
   groups: string[]
   groupRatios?: Record<string, number>
@@ -272,6 +281,66 @@ export function PricingSidebar(props: PricingSidebarProps) {
       )}
 
       <div className='space-y-1'>
+        {/* NEW: Model Series */}
+        <Collapsible
+          defaultOpen
+          className='border-border/70 border-b pb-3 last:border-b-0'
+        >
+          <CollapsibleTrigger className='group flex w-full items-center justify-between py-2.5 text-left'>
+            <span className='text-foreground text-sm font-semibold'>
+              {t('Model Series')}
+            </span>
+            <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <ModelSeriesFilter
+              value={props.seriesFilter}
+              onChange={props.onSeriesChange}
+              models={props.models}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* NEW: API Protocol */}
+        <Collapsible
+          defaultOpen
+          className='border-border/70 border-b pb-3 last:border-b-0'
+        >
+          <CollapsibleTrigger className='group flex w-full items-center justify-between py-2.5 text-left'>
+            <span className='text-foreground text-sm font-semibold'>
+              {t('API Protocol')}
+            </span>
+            <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <APIProtocolFilter
+              value={props.protocolFilter}
+              onChange={props.onProtocolChange}
+              models={props.models}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* NEW: Context Window Slider */}
+        <Collapsible
+          defaultOpen
+          className='border-border/70 border-b pb-3 last:border-b-0'
+        >
+          <CollapsibleTrigger className='group flex w-full items-center justify-between py-2.5 text-left'>
+            <span className='text-foreground text-sm font-semibold'>
+              {t('Context Window')}
+            </span>
+            <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <ContextSliderFilter
+              value={props.contextFilter}
+              onChange={props.onContextChange}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Existing sections */}
         <FilterSection
           title={t('Groups')}
           value={props.groupFilter}

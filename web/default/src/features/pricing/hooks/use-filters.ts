@@ -24,12 +24,19 @@ import {
   QUOTA_TYPES,
   ENDPOINT_TYPES,
   CATEGORIES,
+  MODEL_SERIES,
+  PROTOCOLS,
+  QUICK_FILTERS,
   DEFAULT_TOKEN_UNIT,
   VIEW_MODES,
   type ViewMode,
   type Category,
 } from '../constants'
-import { filterAndSortModels, filterByCategory, extractAllTags } from '../lib/filters'
+import {
+  filterAndSortModels,
+  filterByCategory,
+  extractAllTags,
+} from '../lib/filters'
 import type { PricingModel, TokenUnit } from '../types'
 
 type FilterState = {
@@ -40,6 +47,10 @@ type FilterState = {
   quotaType?: string
   endpointType?: string
   tag?: string
+  series?: string
+  protocol?: string
+  contextLength?: number
+  quickFilter?: string
   category?: Category
   tokenUnit?: TokenUnit
   view?: ViewMode
@@ -54,19 +65,23 @@ function normalizeViewMode(value: unknown): ViewMode {
 }
 
 export function useFilters(models: PricingModel[]) {
-  const search = useSearch({ from: '/pricing/' })
+  const search = useSearch({ from: '/pricing/' }) as Record<string, unknown>
   const [filterState, setFilterState] = useState<FilterState>(() => ({
-    search: search.search,
-    sort: search.sort,
-    vendor: search.vendor,
-    group: search.group,
-    quotaType: search.quotaType,
-    endpointType: search.endpointType,
-    tag: search.tag,
-    category: search.category as Category | undefined,
-    tokenUnit: search.tokenUnit,
-    view: search.view,
-    rechargePrice: search.rechargePrice,
+    search: (search.search as string) || undefined,
+    sort: (search.sort as string) || undefined,
+    vendor: (search.vendor as string) || undefined,
+    group: (search.group as string) || undefined,
+    quotaType: (search.quotaType as string) || undefined,
+    endpointType: (search.endpointType as string) || undefined,
+    tag: (search.tag as string) || undefined,
+    series: (search.series as string) || undefined,
+    protocol: (search.protocol as string) || undefined,
+    contextLength: (search.contextLength as number) || undefined,
+    quickFilter: (search.quickFilter as string) || undefined,
+    category: (search.category as Category) || undefined,
+    tokenUnit: (search.tokenUnit as TokenUnit) || undefined,
+    view: (search.view as ViewMode) || undefined,
+    rechargePrice: (search.rechargePrice as boolean) || undefined,
   }))
 
   const searchInput = filterState.search || ''
@@ -76,6 +91,10 @@ export function useFilters(models: PricingModel[]) {
   const quotaTypeFilter = filterState.quotaType || QUOTA_TYPES.ALL
   const endpointTypeFilter = filterState.endpointType || ENDPOINT_TYPES.ALL
   const tagFilter = filterState.tag || FILTER_ALL
+  const seriesFilter = filterState.series || MODEL_SERIES.ALL
+  const protocolFilter = filterState.protocol || PROTOCOLS.ALL
+  const contextFilter = filterState.contextLength || 0
+  const quickFilter = filterState.quickFilter || QUICK_FILTERS.ALL
   const categoryFilter: Category = filterState.category || CATEGORIES.ALL
   const tokenUnit: TokenUnit =
     filterState.tokenUnit === 'K' ? 'K' : DEFAULT_TOKEN_UNIT
@@ -127,6 +146,25 @@ export function useFilters(models: PricingModel[]) {
     (v: string) => updateFilters({ tag: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
+  const setSeriesFilter = useCallback(
+    (v: string) =>
+      updateFilters({ series: v === MODEL_SERIES.ALL ? undefined : v }),
+    [updateFilters]
+  )
+  const setProtocolFilter = useCallback(
+    (v: string) =>
+      updateFilters({ protocol: v === PROTOCOLS.ALL ? undefined : v }),
+    [updateFilters]
+  )
+  const setContextFilter = useCallback(
+    (v: number) => updateFilters({ contextLength: v <= 0 ? undefined : v }),
+    [updateFilters]
+  )
+  const setQuickFilter = useCallback(
+    (v: string) =>
+      updateFilters({ quickFilter: v === QUICK_FILTERS.ALL ? undefined : v }),
+    [updateFilters]
+  )
   const setCategoryFilter = useCallback(
     (v: Category) =>
       updateFilters({ category: v === CATEGORIES.ALL ? undefined : v }),
@@ -162,6 +200,10 @@ export function useFilters(models: PricingModel[]) {
       quotaType: quotaTypeFilter,
       endpointType: endpointTypeFilter,
       tag: tagFilter,
+      series: seriesFilter,
+      protocol: protocolFilter,
+      contextLength: contextFilter,
+      quickFilter,
       sortBy,
     })
 
@@ -177,6 +219,10 @@ export function useFilters(models: PricingModel[]) {
     quotaTypeFilter,
     endpointTypeFilter,
     tagFilter,
+    seriesFilter,
+    protocolFilter,
+    contextFilter,
+    quickFilter,
     categoryFilter,
     sortBy,
   ])
@@ -187,8 +233,22 @@ export function useFilters(models: PricingModel[]) {
       groupFilter !== FILTER_ALL ||
       quotaTypeFilter !== QUOTA_TYPES.ALL ||
       endpointTypeFilter !== ENDPOINT_TYPES.ALL ||
-      tagFilter !== FILTER_ALL,
-    [vendorFilter, groupFilter, quotaTypeFilter, endpointTypeFilter, tagFilter]
+      tagFilter !== FILTER_ALL ||
+      seriesFilter !== MODEL_SERIES.ALL ||
+      protocolFilter !== PROTOCOLS.ALL ||
+      contextFilter > 0 ||
+      quickFilter !== QUICK_FILTERS.ALL,
+    [
+      vendorFilter,
+      groupFilter,
+      quotaTypeFilter,
+      endpointTypeFilter,
+      tagFilter,
+      seriesFilter,
+      protocolFilter,
+      contextFilter,
+      quickFilter,
+    ]
   )
 
   const activeFilterCount = useMemo(
@@ -197,8 +257,22 @@ export function useFilters(models: PricingModel[]) {
       (groupFilter !== FILTER_ALL ? 1 : 0) +
       (quotaTypeFilter !== QUOTA_TYPES.ALL ? 1 : 0) +
       (endpointTypeFilter !== ENDPOINT_TYPES.ALL ? 1 : 0) +
-      (tagFilter !== FILTER_ALL ? 1 : 0),
-    [vendorFilter, groupFilter, quotaTypeFilter, endpointTypeFilter, tagFilter]
+      (tagFilter !== FILTER_ALL ? 1 : 0) +
+      (seriesFilter !== MODEL_SERIES.ALL ? 1 : 0) +
+      (protocolFilter !== PROTOCOLS.ALL ? 1 : 0) +
+      (contextFilter > 0 ? 1 : 0) +
+      (quickFilter !== QUICK_FILTERS.ALL ? 1 : 0),
+    [
+      vendorFilter,
+      groupFilter,
+      quotaTypeFilter,
+      endpointTypeFilter,
+      tagFilter,
+      seriesFilter,
+      protocolFilter,
+      contextFilter,
+      quickFilter,
+    ]
   )
 
   const clearFilters = useCallback(() => {
@@ -208,6 +282,10 @@ export function useFilters(models: PricingModel[]) {
       quotaType: undefined,
       endpointType: undefined,
       tag: undefined,
+      series: undefined,
+      protocol: undefined,
+      contextLength: undefined,
+      quickFilter: undefined,
     })
   }, [updateFilters])
 
@@ -223,6 +301,10 @@ export function useFilters(models: PricingModel[]) {
     quotaTypeFilter,
     endpointTypeFilter,
     tagFilter,
+    seriesFilter,
+    protocolFilter,
+    contextFilter,
+    quickFilter,
     categoryFilter,
     tokenUnit,
     viewMode,
@@ -234,6 +316,10 @@ export function useFilters(models: PricingModel[]) {
     setQuotaTypeFilter,
     setEndpointTypeFilter,
     setTagFilter,
+    setSeriesFilter,
+    setProtocolFilter,
+    setContextFilter,
+    setQuickFilter,
     setCategoryFilter,
     setTokenUnit,
     setViewMode,
