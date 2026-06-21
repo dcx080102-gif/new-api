@@ -114,8 +114,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   return (
     <div
       className={cn(
-        'group relative flex cursor-pointer flex-col rounded-xl border bg-card p-4 transition-all duration-300',
-        'hover:-translate-y-1 hover:shadow-lg hover:border-primary/30',
+        'w-full rounded-xl border bg-card p-4 cursor-pointer transition-all',
+        'hover:shadow-lg hover:-translate-y-0.5',
         'dark:bg-card dark:hover:border-primary/40'
       )}
       onClick={() => {
@@ -134,8 +134,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         }
       }}
     >
-      {/* ── Row 1: Vendor icon + Model name + API protocol badge ── */}
-      <div className='flex items-center gap-2.5 mb-2'>
+      {/* Row 1: Vendor icon + Model display name + Protocol badge + spacer + Release date */}
+      <div className='flex items-center gap-3 flex-wrap'>
         <div className='bg-muted/50 flex size-8 shrink-0 items-center justify-center rounded-lg'>
           {modelIcon || (
             <span className='text-muted-foreground text-sm font-bold'>
@@ -143,7 +143,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             </span>
           )}
         </div>
-        <h3 className='text-foreground truncate font-semibold text-base flex-1 min-w-0'>
+        <h3 className='font-semibold text-base'>
           {displayName}
         </h3>
         {protocol && (
@@ -156,12 +156,18 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             {protocol}
           </span>
         )}
+        <div className='flex-1' />
+        {hasReleaseDate && (
+          <span className='text-[11px] text-muted-foreground/50'>
+            {formatYearMonth(metadata.release_date)}
+          </span>
+        )}
       </div>
 
-      {/* ── Row 2: Model ID (monospace, gray) + copy icon ── */}
-      <div className='flex items-center gap-1.5 mb-2.5'>
-        <code className='text-muted-foreground/60 text-[11px] font-mono truncate flex-1 min-w-0'>
-          {displayName}
+      {/* Row 2: Model ID (monospace) + Copy button + spacer + Context / Max Output / Knowledge cutoff */}
+      <div className='flex items-center gap-2 text-xs text-muted-foreground mt-2'>
+        <code className='text-[11px] font-mono'>
+          {modelName}
         </code>
         <button
           type='button'
@@ -179,38 +185,40 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             <Copy className='size-3.5' />
           )}
         </button>
+        {hasAnyParams && (
+          <>
+            <div className='flex-1' />
+            {hasContext && (
+              <span className='inline-flex items-center gap-1'>
+                <span className='font-medium text-foreground/70'>{t('Context')}</span>
+                <span className='tabular-nums'>{formatTokenCount(metadata.context_length)}</span>
+              </span>
+            )}
+            {hasMaxOutput && (
+              <>
+                <span className='text-muted-foreground/30'>·</span>
+                <span className='inline-flex items-center gap-1'>
+                  <span className='font-medium text-foreground/70'>{t('Max Output')}</span>
+                  <span className='tabular-nums'>{formatTokenCount(metadata.max_output_tokens)}</span>
+                </span>
+              </>
+            )}
+            {hasKnowledgeCutoff && (
+              <>
+                <span className='text-muted-foreground/30'>·</span>
+                <span className='inline-flex items-center gap-1'>
+                  <span className='font-medium text-foreground/70'>{t('Knowledge cutoff')}</span>
+                  <span className='tabular-nums'>{formatYearMonth(metadata.knowledge_cutoff)}</span>
+                </span>
+              </>
+            )}
+          </>
+        )}
       </div>
 
-      {/* ── Row 3: Key parameters (context / max output / knowledge cutoff) ── */}
-      {hasAnyParams && (
-        <div className='flex flex-wrap items-center gap-x-3 gap-y-1 mb-2.5'>
-          {hasContext && (
-            <span className='inline-flex items-center gap-1 text-xs text-muted-foreground'>
-              <span className='font-medium text-foreground/70'>{t('Context')}</span>
-              <span className='tabular-nums'>{formatTokenCount(metadata.context_length)}</span>
-            </span>
-          )}
-          {hasMaxOutput && (
-            <span className='inline-flex items-center gap-1 text-xs text-muted-foreground'>
-              <span className='font-medium text-foreground/70'>{t('Max Output')}</span>
-              <span className='tabular-nums'>{formatTokenCount(metadata.max_output_tokens)}</span>
-            </span>
-          )}
-          {hasKnowledgeCutoff && (
-            <span className='inline-flex items-center gap-1 text-xs text-muted-foreground'>
-              <span className='font-medium text-foreground/70'>{t('Knowledge cutoff')}</span>
-              <span className='tabular-nums'>{formatYearMonth(metadata.knowledge_cutoff)}</span>
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* ── Divider ── */}
-      <div className='border-t border-border/50 my-2' />
-
-      {/* ── Row 4: Price row (input / output) ── */}
+      {/* Row 3: Price (Input / Output / Cache inline) */}
       {isTokenBased ? (
-        <div className='flex items-baseline gap-x-3 text-sm mb-1.5'>
+        <div className='flex items-baseline gap-x-3 text-sm mt-2'>
           <span className='inline-flex items-baseline gap-1'>
             <span className='text-muted-foreground text-xs'>{t('Input')}</span>
             <span className='text-foreground font-mono font-semibold text-sm'>
@@ -240,9 +248,19 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             </span>
             <span className='text-muted-foreground/50 text-[10px]'>/{tokenUnitLabel}</span>
           </span>
+          {cacheReadPrice && cacheReadPrice !== '-' && (
+            <>
+              <span className='text-muted-foreground/30 text-xs'>·</span>
+              <span className='inline-flex items-baseline gap-1'>
+                <span className='text-muted-foreground text-xs'>{t('Cache Read')}</span>
+                <span className='text-foreground font-mono font-semibold text-sm'>{cacheReadPrice}</span>
+                <span className='text-muted-foreground/50 text-[10px]'>/{tokenUnitLabel}</span>
+              </span>
+            </>
+          )}
         </div>
       ) : (
-        <div className='flex items-baseline gap-x-3 text-sm mb-1.5'>
+        <div className='flex items-baseline gap-x-3 text-sm mt-2'>
           <span className='inline-flex items-baseline gap-1'>
             <span className='text-muted-foreground text-xs'>{t('Price')}</span>
             <span className='text-foreground font-mono font-semibold text-sm'>
@@ -259,16 +277,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         </div>
       )}
 
-      {/* ── Row 5: Additional prices (cache read / web search) ── */}
-      {cacheReadPrice && cacheReadPrice !== '-' && (
-        <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground/60 mb-1'>
-          <span>{t('Cache Read')}</span>
-          <span className='font-mono'>{cacheReadPrice}</span>
-          <span className='text-muted-foreground/40'>/{tokenUnitLabel}</span>
-        </div>
-      )}
-
-      {/* ── Row 6: Capability tags ── */}
+      {/* Row 4: Capability tags */}
       {displayCapabilities.length > 0 && (
         <div className='flex flex-wrap items-center gap-1 mt-2'>
           {displayCapabilities.map((cap) => (
@@ -284,18 +293,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
               {t('+{{n}} more', { n: overflowCount })}
             </span>
           )}
-        </div>
-      )}
-
-      {/* ── Spacer to push release date to bottom ── */}
-      <div className='flex-1 min-h-[4px]' />
-
-      {/* ── Row 7: Release date (right-aligned, gray) ── */}
-      {hasReleaseDate && (
-        <div className='flex justify-end mt-1.5'>
-          <span className='text-[11px] text-muted-foreground/50'>
-            {t('Release Date')}: {formatYearMonth(metadata.release_date)}
-          </span>
         </div>
       )}
     </div>

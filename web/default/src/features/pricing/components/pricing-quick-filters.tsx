@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com>
 */
 import { useTranslation } from 'react-i18next'
-import { Star, Sparkles, Percent } from 'lucide-react'
+import { Star, Sparkles, Command, Code } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QUICK_FILTERS } from '../constants'
 
@@ -39,19 +39,24 @@ export function QuickFilterPills(props: QuickFilterPillsProps) {
   const pills: QuickPill[] = [
     { value: QUICK_FILTERS.ALL, label: t('All') },
     {
-      value: QUICK_FILTERS.HOT,
-      label: t('Hot'),
+      value: QUICK_FILTERS.POPULAR,
+      label: t('Popular'),
       icon: <Star className='size-3.5' />,
-    },
-    {
-      value: QUICK_FILTERS.FREE,
-      label: t('Free'),
-      icon: <Sparkles className='size-3.5' />,
     },
     {
       value: QUICK_FILTERS.DISCOUNT,
       label: t('Discount'),
-      icon: <Percent className='size-3.5' />,
+      icon: <Sparkles className='size-3.5' />,
+    },
+    {
+      value: QUICK_FILTERS.CLAUDE_CODE,
+      label: t('Claude Code'),
+      icon: <Command className='size-3.5' />,
+    },
+    {
+      value: QUICK_FILTERS.CODEX,
+      label: t('Codex'),
+      icon: <Code className='size-3.5' />,
     },
   ]
 

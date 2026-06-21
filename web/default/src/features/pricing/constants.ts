@@ -280,9 +280,10 @@ export const PROTOCOL_ICONS: Record<string, string> = {
 /** Quick filter values */
 export const QUICK_FILTERS = {
   ALL: 'all',
-  HOT: 'hot',
-  FREE: 'free',
+  POPULAR: 'popular',
   DISCOUNT: 'discount',
+  CLAUDE_CODE: 'claude-code',
+  CODEX: 'codex',
 } as const
 
 export type QuickFilter = (typeof QUICK_FILTERS)[keyof typeof QUICK_FILTERS]

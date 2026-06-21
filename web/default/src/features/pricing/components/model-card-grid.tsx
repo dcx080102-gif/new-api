@@ -16,11 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { DEFAULT_CARD_PAGE_SIZE, DEFAULT_TOKEN_UNIT } from '../constants'
+import { DEFAULT_TOKEN_UNIT } from '../constants'
 import type { PricingModel, TokenUnit } from '../types'
 import { ModelCard } from './model-card'
 
@@ -34,74 +30,25 @@ export interface ModelCardGridProps {
 }
 
 export function ModelCardGrid(props: ModelCardGridProps) {
-  const { t } = useTranslation()
-  const [page, setPage] = useState(1)
-  const pageSize = DEFAULT_CARD_PAGE_SIZE
   const tokenUnit = props.tokenUnit ?? DEFAULT_TOKEN_UNIT
-  const totalPages = Math.max(1, Math.ceil(props.models.length / pageSize))
-  const currentPage = Math.min(page, totalPages)
-
-  const pagedModels = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return props.models.slice(start, start + pageSize)
-  }, [currentPage, pageSize, props.models])
 
   if (props.models.length === 0) {
     return null
   }
 
   return (
-    <div className='space-y-6'>
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-        {pagedModels.map((model) => (
-          <ModelCard
-            key={model.id ?? model.model_name}
-            model={model}
-            tokenUnit={tokenUnit}
-            priceRate={props.priceRate}
-            usdExchangeRate={props.usdExchangeRate}
-            showRechargePrice={props.showRechargePrice}
-            onClick={() => props.onModelClick(model.model_name || '')}
-          />
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <div className='flex flex-col items-center justify-between gap-3 border-t pt-4 text-sm sm:flex-row'>
-          <p className='text-muted-foreground'>
-            {t('Page {{current}} of {{total}}', {
-              current: currentPage,
-              total: totalPages,
-            })}
-          </p>
-          <div className='flex items-center gap-2'>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              disabled={currentPage <= 1}
-              className='gap-1.5'
-            >
-              <ChevronLeft className='size-4' />
-              {t('Previous page')}
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() =>
-                setPage((current) => Math.min(totalPages, current + 1))
-              }
-              disabled={currentPage >= totalPages}
-              className='gap-1.5'
-            >
-              {t('Next page')}
-              <ChevronRight className='size-4' />
-            </Button>
-          </div>
-        </div>
-      )}
+    <div className='flex flex-col gap-3'>
+      {props.models.map((model) => (
+        <ModelCard
+          key={model.id ?? model.model_name}
+          model={model}
+          tokenUnit={tokenUnit}
+          priceRate={props.priceRate}
+          usdExchangeRate={props.usdExchangeRate}
+          showRechargePrice={props.showRechargePrice}
+          onClick={() => props.onModelClick(model.model_name || '')}
+        />
+      ))}
     </div>
   )
 }

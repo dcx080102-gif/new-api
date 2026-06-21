@@ -280,40 +280,56 @@ export function filterByContextLength(
 
 /**
  * Filter models by quick filter preset.
- * - hot: Claude / GPT / DeepSeek series
- * - free: model_price = 0 or ratio very low
- * - discount: price lower than official
+ * - popular: sort by combined ratio (lower = more popular proxy)
+ * - discount: sort by savings percent vs official price (greater discount first)
+ * - claude-code: filter Claude series models
+ * - codex: filter models with 'codex' in name
  */
 export function filterByQuickFilter(
   models: PricingModel[],
   quickFilter: string
 ): PricingModel[] {
-  if (quickFilter === 'hot') {
+  // 热门：按使用量降序。当前无真实用量API，用"低价=热门"作为代理——ratio越低越多人用
+  if (quickFilter === 'popular') {
+    return [...models].sort((a, b) => {
+      const scoreA = (a.model_ratio || 0) + (a.completion_ratio || 0)
+      const scoreB = (b.model_ratio || 0) + (b.completion_ratio || 0)
+      return scoreA - scoreB // 越低越靠前
+    })
+  }
+
+  // 优惠：按比官方便宜的折扣百分比从大到小排序
+  if (quickFilter === 'discount') {
+    return [...models]
+      .map((m) => {
+        const official = getOfficialPrice(m.model_name || '')
+        if (!official) return { model: m, savings: -1 }
+        const ourAvg = ((m.model_ratio || 0) + (m.completion_ratio || 0)) / 2
+        const officialAvg = (official.input + official.output) / 2
+        if (officialAvg <= 0) return { model: m, savings: -1 }
+        const savings = Math.round((1 - ourAvg / officialAvg) * 100)
+        return { model: m, savings }
+      })
+      .sort((a, b) => b.savings - a.savings) // 折扣大的排前面
+      .filter((item) => item.savings > 0) // 只保留真有折扣的
+      .map((item) => item.model)
+  }
+
+  // Claude Code：匹配 Claude 系列模型
+  if (quickFilter === 'claude-code') {
     return models.filter((m) => {
       const series = mapModelToSeries(m.model_name || '')
-      return (
-        series === MODEL_SERIES.GPT ||
-        series === MODEL_SERIES.CLAUDE ||
-        series === MODEL_SERIES.DEEPSEEK
-      )
+      return series === MODEL_SERIES.CLAUDE
     })
   }
-  if (quickFilter === 'free') {
+
+  // Codex：匹配 codex 相关模型
+  if (quickFilter === 'codex') {
     return models.filter((m) => {
-      // Token-based: low ratio => very cheap; per-request: price = 0
-      if (m.quota_type === 0) return m.model_ratio <= 0.2
-      return (m.model_price ?? 0) <= 0.01
+      const name = (m.model_name || '').toLowerCase()
+      return name.includes('codex')
     })
   }
-  if (quickFilter === 'discount') {
-    // Models with known official price where our price is lower
-    return models.filter((m) => {
-      const official = getOfficialPrice(m.model_name || '')
-      if (!official) return false
-      const ourAvg = (m.model_ratio + m.completion_ratio) / 2
-      const officialAvg = (official.input + official.output) / 2
-      return ourAvg < officialAvg
-    })
-  }
+
   return models
 }

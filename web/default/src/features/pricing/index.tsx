@@ -184,15 +184,6 @@ export function Pricing() {
     </div>
   )
 
-  // ---- quick filter pills (displayed above card grid) ----
-  const quickFilterPills = (
-    <QuickFilterPills
-      value={quickFilter}
-      onChange={setQuickFilter}
-      className='mx-auto max-w-xl'
-    />
-  )
-
   // ---- loading state ----
   if (isLoading) {
     return (
@@ -282,7 +273,7 @@ export function Pricing() {
           <div className='flex gap-6'>
             {/* Desktop left sidebar — sticky */}
             <aside className='hidden lg:block w-64 shrink-0'>
-              <div className='sticky top-24 space-y-4'>
+              <div className='sticky top-[72px] space-y-4'>
                 {/* Modality filter (category pills) */}
                 <div className='rounded-xl border p-3'>
                   <h3 className='text-sm font-semibold mb-2.5'>
@@ -296,31 +287,31 @@ export function Pricing() {
 
             {/* Right content area */}
             <div className='flex-1 min-w-0'>
-              {/* Search bar */}
-              <SearchBar
-                value={searchInput}
-                onChange={setSearchInput}
-                onClear={clearSearch}
-                placeholder={t(
-                  'Search model name, provider, endpoint, or tag...'
-                )}
-                className='mx-auto max-w-xl mb-6 sm:mb-8'
-              />
-
-              {/* CTA Banner — guides users based on their state */}
-              <CtaBanner className='mb-6 sm:mb-8' />
-
-              {/* Quick filter pills */}
-              <div className='mb-4'>{quickFilterPills}</div>
-
-              {/* Model count indicator */}
-              {filteredModels.length > 0 && (
-                <p className='text-muted-foreground mb-4 text-center text-xs sm:text-sm'>
-                  {t('Showing {{count}} models', {
-                    count: filteredModels.length,
-                  })}
-                </p>
-              )}
+              {/* ── Unified search + quick filter bar (sticky) ── */}
+              <div className='sticky top-[72px] z-20 -mx-2 px-2 pt-2 pb-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
+                <div className='rounded-xl border bg-card p-3 shadow-sm'>
+                  {/* Row 1: Search + count */}
+                  <div className='flex items-center gap-3'>
+                    <SearchBar
+                      value={searchInput}
+                      onChange={setSearchInput}
+                      onClear={clearSearch}
+                      placeholder={t('搜索模型名称、供应商、端点或标签...')}
+                      className='flex-1'
+                    />
+                    <p className='text-muted-foreground shrink-0 text-xs sm:text-sm whitespace-nowrap'>
+                      {t('{{count}} 个模型', { count: filteredModels.length })}
+                    </p>
+                  </div>
+                  {/* Row 2: Quick filter pills */}
+                  <div className='mt-2.5'>
+                    <QuickFilterPills
+                      value={quickFilter}
+                      onChange={setQuickFilter}
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Card grid or empty state */}
               {filteredModels.length === 0 ? (
@@ -344,6 +335,8 @@ export function Pricing() {
                   showRechargePrice={showRechargePrice}
                 />
               )}
+
+              <CtaBanner className='mt-6 sm:mt-8' />
             </div>
           </div>
 
