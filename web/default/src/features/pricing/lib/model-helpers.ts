@@ -52,3 +52,21 @@ export function replaceModelInPath(path: string, modelName: string): string {
 export function isTokenBasedModel(model: PricingModel): boolean {
   return model.quota_type === QUOTA_TYPE_VALUES.TOKEN
 }
+
+/** Known upstream prefixes that should be stripped for display. */
+const UPSTREAM_PREFIXES = ['openai/', 'anthropic/', 'google/', 'meta/', 'cohere/']
+
+/**
+ * Strip well-known upstream vendor prefixes from model names for display.
+ * e.g. "openai/gpt-4.1" → "gpt-4.1", "anthropic/claude-opus-4-8" → "claude-opus-4-8"
+ * The original model_name is preserved for API calls.
+ */
+export function normalizeModelName(name: string): string {
+  const lower = name.toLowerCase()
+  for (const prefix of UPSTREAM_PREFIXES) {
+    if (lower.startsWith(prefix)) {
+      return name.slice(prefix.length)
+    }
+  }
+  return name
+}

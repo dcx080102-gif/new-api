@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '../lib/price'
-import { isTokenBasedModel } from '../lib/model-helpers'
+import { isTokenBasedModel, normalizeModelName } from '../lib/model-helpers'
 import { DEFAULT_TOKEN_UNIT } from '../constants'
 import type { PricingModel, TokenUnit } from '../types'
 
@@ -51,6 +51,7 @@ export function PurchaseDialog(props: PurchaseDialogProps) {
   const tokenUnitLabel = tokenUnit === 'K' ? '1K' : '1M'
 
   const modelName = props.model.model_name || ''
+  const displayName = normalizeModelName(modelName)
   const isTokenBased = isTokenBasedModel(props.model)
   const quota = user?.quota ?? 0
 
@@ -63,7 +64,7 @@ export function PurchaseDialog(props: PurchaseDialogProps) {
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle>
-            {t('Purchase')} {modelName}
+            {t('Purchase')} {displayName}
           </DialogTitle>
         </DialogHeader>
 

@@ -34,7 +34,7 @@ import {
   getDynamicPricingSummary,
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
-import { isTokenBasedModel } from '../lib/model-helpers'
+import { isTokenBasedModel, normalizeModelName } from '../lib/model-helpers'
 import {
   formatPrice,
   formatRequestPrice,
@@ -113,7 +113,7 @@ export function usePricingColumns(
           <div className='flex min-w-[200px] items-center gap-2'>
             {modelIcon}
             <span className='truncate font-mono text-sm font-medium'>
-              {model.model_name}
+              {normalizeModelName(model.model_name || '')}
             </span>
           </div>
         )

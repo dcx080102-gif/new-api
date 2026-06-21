@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import type { Modality, ModelCapability, PricingModel } from '../types'
 import { hashStringToSeed, seededRandom } from './seed'
+import { normalizeModelName } from './model-helpers'
 
 // ----------------------------------------------------------------------------
 // Model metadata inference
@@ -87,8 +88,26 @@ const KNOWLEDGE_CUTOFFS = [
   '2024-12',
   '2025-02',
   '2025-04',
+  '2025-06',
   '2025-08',
+  '2025-10',
+  '2025-12',
 ]
+
+/** Exact knowledge cutoff dates for known models (YYYY-MM).
+ *  Checked before the random-bucket fallback so models always show
+ *  their real cutoff date regardless of seed. */
+const MODEL_KNOWLEDGE_CUTOFFS: Record<string, string> = {
+  'gpt-5.5': '2025-12',
+  'gpt-5.4': '2025-08',
+  'gpt-5.4-mini': '2025-08',
+  'gpt-5.4-pro': '2025-04',
+  'gpt-5.5-openai-compact': '2025-08',
+  'claude-opus-4-8': '2025-06',
+  'claude-sonnet-4-6': '2025-06',
+  'claude-haiku-4-5': '2025-02',
+  'codex-auto-review': '2025-06',
+}
 
 const PARAM_BUCKETS = [
   '1.5B',
@@ -342,7 +361,10 @@ export function inferModelMetadata(model: PricingModel): ModelMetadata {
   return {
     context_length: model.context_length ?? fallback.context,
     max_output_tokens: model.max_output_tokens ?? fallback.maxOutput,
-    knowledge_cutoff: model.knowledge_cutoff ?? cutoffAndRelease.cutoff,
+    knowledge_cutoff:
+      model.knowledge_cutoff ??
+      MODEL_KNOWLEDGE_CUTOFFS[name.toLowerCase()] ??
+      cutoffAndRelease.cutoff,
     release_date: model.release_date ?? cutoffAndRelease.release,
     parameter_count:
       model.parameter_count ?? pickFromBuckets(PARAM_BUCKETS, rand),
@@ -352,7 +374,7 @@ export function inferModelMetadata(model: PricingModel): ModelMetadata {
   }
 }
 
-const TOKEN_FORMAT = new Intl.NumberFormat(undefined, {
+const TOKEN_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
 })
 
@@ -370,15 +392,14 @@ export function formatTokenCount(tokens: number): string {
   return TOKEN_FORMAT.format(tokens)
 }
 
-/** Format a YYYY-MM (or YYYY-MM-DD) date as `Mon YYYY` for display. */
+/** Format a YYYY-MM (or YYYY-MM-DD) date as `YYYY.MM` for display. */
 export function formatYearMonth(value: string): string {
   if (!value) return '—'
   const [yearStr, monthStr] = value.split('-')
   const year = Number(yearStr)
   const month = Number(monthStr)
   if (!Number.isFinite(year) || !Number.isFinite(month)) return value
-  const date = new Date(Date.UTC(year, month - 1, 1))
-  return date.toLocaleString(undefined, { year: 'numeric', month: 'short' })
+  return `${year}.${String(month).padStart(2, '0')}`
 }
 
 // ---------------------------------------------------------------------------
@@ -565,5 +586,167 @@ export function inferApiInfo(model: PricingModel): ApiInfo {
     data_retention_days: retention,
     training_opt_out: true,
     homepage: HOMEPAGE_BY_VENDOR[vendor],
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Context-length helpers for filtering
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the effective context length for a model, preferring explicit data,
+ * falling back to the metadata inference.
+ */
+export function getModelContextLength(model: PricingModel): number {
+  if (model.context_length != null && model.context_length > 0) {
+    return model.context_length
+  }
+  const meta = inferModelMetadata(model)
+  return meta.context_length
+}
+
+/**
+ * Parse a user-facing context label back to approximate tokens.
+ * Supports: "128K" → 128000, "1M" → 1000000, "200K" → 200000
+ */
+export function parseContextLabel(label: string): number {
+  if (!label) return 0
+  const upper = label.toUpperCase().trim()
+  if (upper.endsWith('M')) {
+    const num = parseFloat(upper.slice(0, -1))
+    return isNaN(num) ? 0 : Math.round(num * 1_000_000)
+  }
+  if (upper.endsWith('K')) {
+    const num = parseFloat(upper.slice(0, -1))
+    return isNaN(num) ? 0 : Math.round(num * 1_000)
+  }
+  const num = parseInt(upper, 10)
+  return isNaN(num) ? 0 : num
+}
+
+// ---------------------------------------------------------------------------
+// API protocol detection
+// ---------------------------------------------------------------------------
+
+/** Protocol badge info for model cards. */
+export type ApiProtocol = 'OpenAI' | 'Anthropic' | 'Gemini' | null
+
+/** Protocol brand colors for badges */
+export const PROTOCOL_COLORS: Record<string, string> = {
+  OpenAI: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  Anthropic: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  Gemini: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+}
+
+/**
+ * Infer the API protocol from the model's name and supported endpoint types.
+ * Name-based detection takes priority so that models reachable through
+ * OpenAI-compatible endpoints (e.g. Claude via a proxy) still show their
+ * native protocol badge.  Falls back to endpoint types for unknown models.
+ * Returns null when no specific protocol can be determined.
+ */
+export function inferApiProtocol(model: PricingModel): ApiProtocol {
+  const rawName = (model.model_name || '').toLowerCase()
+  // Strip known upstream prefixes so that "openai/gpt-5.5" and
+  // "anthropic/claude-opus-4-8" match the same patterns as their
+  // non-prefixed counterparts.
+  const name = normalizeModelName(rawName)
+
+  // ── Name-based heuristics (PRIORITY) ──────────────────────────────
+  if (name.includes('claude')) return 'Anthropic'
+  if (name.includes('gemini') || name.includes('gemma')) return 'Gemini'
+  if (/^gpt|^o[1-4]|dall|whisper|tts|^sora/.test(name)) return 'OpenAI'
+
+  // ── Endpoint-type fallback (for models whose name doesn't hint) ───
+  const endpoints = model.supported_endpoint_types || []
+  if (endpoints.includes('anthropic')) return 'Anthropic'
+  if (endpoints.includes('gemini')) return 'Gemini'
+  if (
+    endpoints.includes('openai') ||
+    endpoints.includes('openai-response') ||
+    endpoints.includes('image-generation') ||
+    endpoints.includes('openai-video') ||
+    endpoints.includes('embeddings')
+  ) {
+    return 'OpenAI'
+  }
+
+  return null
+}
+
+/**
+ * Check whether a model belongs to a given protocol string
+ * (one of 'openai' / 'anthropic' / 'gemini').
+ * Uses name-aware detection so that Claude models reached through
+ * OpenAI-compatible endpoints still match 'anthropic'.
+ */
+export function modelMatchesProtocol(
+  model: PricingModel,
+  protocol: string
+): boolean {
+  const inferred = inferApiProtocol(model)
+  if (!inferred) return false
+  return inferred.toLowerCase() === protocol
+}
+
+// ---------------------------------------------------------------------------
+// Capability display labels (i18n key → display label)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ordered list of capability types to display as tags on model cards.
+ * Uninteresting capabilities like 'streaming' and 'system_prompt' are
+ * excluded because almost every model supports them.
+ */
+const DISPLAY_CAPABILITIES: ModelCapability[] = [
+  'vision',
+  'function_calling',
+  'reasoning',
+  'caching',
+  'web_search',
+  'code_interpreter',
+  'json_mode',
+  'embeddings',
+]
+
+/** Map a ModelCapability to its i18n key for display. */
+export function getCapabilityI18nKey(cap: ModelCapability): string {
+  const map: Record<string, string> = {
+    function_calling: 'Function calling',
+    streaming: 'Streaming',
+    vision: 'Vision',
+    json_mode: 'JSON',
+    structured_output: 'JSON',
+    reasoning: 'Reasoning',
+    tools: 'Function calling',
+    system_prompt: 'System prompt',
+    web_search: 'Search',
+    code_interpreter: 'Code',
+    caching: 'Caching',
+    embeddings: 'Embeddings',
+  }
+  return map[cap] || cap
+}
+
+/**
+ * Get the ordered list of display-ready capability tags for a model card.
+ * Returns at most `maxTags` capabilities; also returns the total count
+ * before slicing so callers can compute the correct overflow indicator.
+ */
+export function getDisplayCapabilities(
+  capabilities: ModelCapability[],
+  maxTags = 5
+): { displayed: ModelCapability[]; total: number } {
+  // Keep only display-worthy capabilities in priority order
+  const ordered = DISPLAY_CAPABILITIES.filter((c) => capabilities.includes(c))
+  // Also include any capabilities not in our display list at the end
+  for (const cap of capabilities) {
+    if (!ordered.includes(cap) && !['streaming', 'system_prompt', 'tools', 'structured_output'].includes(cap)) {
+      ordered.push(cap)
+    }
+  }
+  return {
+    displayed: ordered.slice(0, maxTags),
+    total: ordered.length,
   }
 }

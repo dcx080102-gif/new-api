@@ -24,9 +24,15 @@ import {
   ENDPOINT_TYPES,
   CATEGORIES,
   mapEndpointToCategory,
+  MODEL_SERIES,
+  mapModelToSeries,
+  PROTOCOLS,
   type Category,
 } from '../constants'
 import type { PricingModel } from '../types'
+import { getModelContextLength, modelMatchesProtocol } from './model-metadata'
+import { getOfficialPrice } from './official-prices'
+import { normalizeModelName } from './model-helpers'
 
 // ----------------------------------------------------------------------------
 // Filter Utilities
@@ -45,6 +51,7 @@ export function filterBySearch(
   return models.filter(
     (m) =>
       m.model_name?.toLowerCase().includes(lowerQuery) ||
+      normalizeModelName(m.model_name || '').toLowerCase().includes(lowerQuery) ||
       m.description?.toLowerCase().includes(lowerQuery) ||
       m.tags?.toLowerCase().includes(lowerQuery) ||
       m.vendor_name?.toLowerCase().includes(lowerQuery)
@@ -146,15 +153,23 @@ export function filterAndSortModels(
     quotaType: string
     endpointType: string
     tag: string
+    series: string
+    protocol: string
+    contextLength: number
+    quickFilter: string
     sortBy: string
   }
 ): PricingModel[] {
   let result = filterBySearch(models, filters.search)
+  result = filterByQuickFilter(result, filters.quickFilter)
+  result = filterBySeries(result, filters.series)
   result = filterByVendor(result, filters.vendor)
   result = filterByGroup(result, filters.group)
   result = filterByQuotaType(result, filters.quotaType)
   result = filterByEndpointType(result, filters.endpointType)
   result = filterByTag(result, filters.tag)
+  result = filterByProtocol(result, filters.protocol)
+  result = filterByContextLength(result, filters.contextLength)
   result = sortModels(result, filters.sortBy)
 
   return result
@@ -220,4 +235,85 @@ export function filterByCategory(
     const endpoints = m.supported_endpoint_types || []
     return endpoints.some((ep) => mapEndpointToCategory(ep) === category)
   })
+}
+
+/**
+ * Filter models by model series (GPT / Claude / Gemini / DeepSeek / Qwen).
+ */
+export function filterBySeries(
+  models: PricingModel[],
+  series: string
+): PricingModel[] {
+  if (series === MODEL_SERIES.ALL) return models
+  return models.filter((m) => {
+    const mapped = mapModelToSeries(m.model_name || '')
+    return mapped === series
+  })
+}
+
+/**
+ * Filter models by API protocol (openai / anthropic / gemini).
+ */
+export function filterByProtocol(
+  models: PricingModel[],
+  protocol: string
+): PricingModel[] {
+  if (protocol === PROTOCOLS.ALL) return models
+  return models.filter((m) => modelMatchesProtocol(m, protocol))
+}
+
+/**
+ * Filter models by minimum context window length.
+ * Models with unknown context_length (0 or undefined) pass through.
+ */
+export function filterByContextLength(
+  models: PricingModel[],
+  minTokens: number
+): PricingModel[] {
+  if (minTokens <= 0) return models
+  return models.filter((m) => {
+    const ctx = getModelContextLength(m)
+    // Unknown context (0) = show always, otherwise must meet minimum
+    return ctx === 0 || ctx >= minTokens
+  })
+}
+
+/**
+ * Filter models by quick filter preset.
+ * - hot: Claude / GPT / DeepSeek series
+ * - free: model_price = 0 or ratio very low
+ * - discount: price lower than official
+ */
+export function filterByQuickFilter(
+  models: PricingModel[],
+  quickFilter: string
+): PricingModel[] {
+  if (quickFilter === 'hot') {
+    return models.filter((m) => {
+      const series = mapModelToSeries(m.model_name || '')
+      return (
+        series === MODEL_SERIES.GPT ||
+        series === MODEL_SERIES.CLAUDE ||
+        series === MODEL_SERIES.DEEPSEEK
+      )
+    })
+  }
+  if (quickFilter === 'free') {
+    return models.filter((m) => {
+      // Token-based: low ratio => very cheap; per-request: price = 0
+      if (m.quota_type === 0) return m.model_ratio <= 0.2
+      return (m.model_price ?? 0) <= 0.01
+    })
+  }
+  if (quickFilter === 'discount') {
+    // Models with known official price where our price is lower
+    return models.filter((m) => {
+      const official = getOfficialPrice(m.model_name || '')
+      if (!official) return false
+      const ourAvg = (m.model_ratio + m.completion_ratio) / 2
+      const officialAvg = (official.input + official.output) / 2
+      return ourAvg < officialAvg
+    })
+  }
+  return models
 }

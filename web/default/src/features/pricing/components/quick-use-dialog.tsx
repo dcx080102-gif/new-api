@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { PricingModel } from '../types'
+import { normalizeModelName } from '../lib/model-helpers'
 
 export interface QuickUseDialogProps {
   open: boolean
@@ -46,6 +47,7 @@ export function QuickUseDialog(props: QuickUseDialogProps) {
   const [copiedCurl, setCopiedCurl] = useState(false)
 
   const modelName = props.model.model_name || ''
+  const displayName = normalizeModelName(modelName)
   const baseUrl =
     typeof window !== 'undefined' ? `${window.location.origin}/v1` : ''
 
@@ -117,7 +119,7 @@ export function QuickUseDialog(props: QuickUseDialogProps) {
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader>
           <DialogTitle>
-            {t('Use')} {modelName}
+            {t('Use')} {displayName}
           </DialogTitle>
         </DialogHeader>
 
