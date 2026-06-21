@@ -18,8 +18,16 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { SlidersHorizontal } from 'lucide-react'
 import { PublicLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import {
   LoadingSkeleton,
@@ -28,8 +36,9 @@ import {
   CtaBanner,
   ModelCardGrid,
   ModelDetailsDrawer,
+  PricingSidebar,
 } from './components'
-import { CATEGORIES, getCategoryLabels } from './constants'
+import { CATEGORIES, EXCLUDED_GROUPS, getCategoryLabels } from './constants'
 import type { Category } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
@@ -39,6 +48,7 @@ export function Pricing() {
   const [selectedModelName, setSelectedModelName] = useState<string | null>(
     null
   )
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   const {
     models,
@@ -58,11 +68,33 @@ export function Pricing() {
     tokenUnit,
     viewMode,
     showRechargePrice,
+    vendorFilter,
+    groupFilter,
+    quotaTypeFilter,
+    endpointTypeFilter,
+    tagFilter,
     setSearchInput,
     setCategoryFilter,
+    setVendorFilter,
+    setGroupFilter,
+    setQuotaTypeFilter,
+    setEndpointTypeFilter,
+    setTagFilter,
     filteredModels,
+    hasActiveFilters,
+    availableTags,
+    clearFilters,
     clearSearch,
   } = useFilters(models || [])
+
+  // Derive groups from groupRatio keys, excluding empty/auto
+  const groups = useMemo(
+    () =>
+      Object.keys(groupRatio || {}).filter(
+        (g) => !EXCLUDED_GROUPS.includes(g)
+      ),
+    [groupRatio]
+  )
 
   const handleModelClick = useCallback((modelName: string) => {
     setSelectedModelName(modelName)
@@ -91,6 +123,53 @@ export function Pricing() {
     { key: CATEGORIES.VIDEO, label: categoryLabels[CATEGORIES.VIDEO] },
   ]
 
+  // ---- sidebar element (reused in desktop and mobile) ----
+  const sidebarElement = (
+    <PricingSidebar
+      quotaTypeFilter={quotaTypeFilter}
+      endpointTypeFilter={endpointTypeFilter}
+      vendorFilter={vendorFilter}
+      groupFilter={groupFilter}
+      tagFilter={tagFilter}
+      onQuotaTypeChange={setQuotaTypeFilter}
+      onEndpointTypeChange={setEndpointTypeFilter}
+      onVendorChange={setVendorFilter}
+      onGroupChange={setGroupFilter}
+      onTagChange={setTagFilter}
+      vendors={vendors}
+      groups={groups}
+      groupRatios={groupRatio || {}}
+      tags={availableTags}
+      models={models || []}
+      hasActiveFilters={hasActiveFilters}
+      onClearFilters={clearFilters}
+    />
+  )
+
+  // ---- category pills (modality filter, shared) ----
+  const modalityPills = (
+    <div className='flex flex-wrap gap-1.5'>
+      {categories.map((cat) => (
+        <button
+          key={cat.key}
+          type='button'
+          onClick={() => setCategoryFilter(cat.key)}
+          className={cn(
+            'inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium transition-all duration-200',
+            'hover:border-primary/40 hover:bg-primary/5',
+            'focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none',
+            categoryFilter === cat.key
+              ? 'border-primary/40 bg-primary/10 text-primary dark:bg-primary/15'
+              : 'border-border/60 text-muted-foreground'
+          )}
+        >
+          {cat.label}
+        </button>
+      ))}
+    </div>
+  )
+
+  // ---- loading state ----
   if (isLoading) {
     return (
       <PublicLayout showMainContainer={false}>
@@ -122,7 +201,7 @@ export function Pricing() {
         />
 
         <PageTransition className='relative mx-auto w-full max-w-[1400px] px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10'>
-          {/* Header */}
+          {/* Header — full width */}
           <header className='mx-auto mb-8 max-w-3xl pt-5 text-center sm:mb-10 sm:pt-10'>
             <h1 className='text-[clamp(2rem,5.5vw,3.5rem)] leading-[1.15] font-bold tracking-tight'>
               {t('Model Square')}
@@ -140,69 +219,106 @@ export function Pricing() {
                 'Discover curated AI models, compare pricing and capabilities, and choose the right model for every scenario.'
               )}
             </p>
-
-            {/* Search bar */}
-            <SearchBar
-              value={searchInput}
-              onChange={setSearchInput}
-              onClear={clearSearch}
-              placeholder={t(
-                'Search model name, provider, endpoint, or tag...'
-              )}
-              className='mx-auto mt-5 max-w-xl sm:mt-6'
-            />
           </header>
 
-          {/* Category pills */}
-          <div className='mb-6 flex flex-wrap items-center justify-center gap-2 sm:mb-8'>
-            {categories.map((cat) => (
-              <button
-                key={cat.key}
-                type='button'
-                onClick={() => setCategoryFilter(cat.key)}
-                className={cn(
-                  'inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200',
-                  'hover:border-primary/50 hover:bg-primary/5',
-                  'focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none',
-                  categoryFilter === cat.key
-                    ? 'border-primary/40 bg-primary/10 text-primary dark:bg-primary/15'
-                    : 'border-border/60 text-muted-foreground'
+          {/* Mobile filter trigger */}
+          <div className='lg:hidden mb-4'>
+            <Sheet
+              open={mobileSidebarOpen}
+              onOpenChange={setMobileSidebarOpen}
+            >
+              <SheetTrigger className='inline-flex shrink-0 items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-xs transition-[color,box-shadow] outline-none hover:bg-accent hover:text-accent-foreground min-h-[44px] w-full'>
+                <SlidersHorizontal className='size-4' />
+                {t('Filters')}
+                {hasActiveFilters && (
+                  <span className='ml-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary'>
+                    {t('Active')}
+                  </span>
                 )}
-              >
-                {cat.label}
-              </button>
-            ))}
+              </SheetTrigger>
+              <SheetContent side='left' className='w-80 p-0'>
+                <SheetHeader className='border-b px-4 py-3'>
+                  <SheetTitle>{t('Filters')}</SheetTitle>
+                </SheetHeader>
+                <div className='flex-1 overflow-y-auto px-4 py-3 space-y-4'>
+                  {/* Modality filter in mobile sheet */}
+                  <div>
+                    <h3 className='text-sm font-semibold mb-2.5'>
+                      {t('Modality')}
+                    </h3>
+                    {modalityPills}
+                  </div>
+                  {sidebarElement}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
 
-          {/* CTA Banner — guides users based on their state */}
-          <CtaBanner className='mb-6 sm:mb-8' />
+          {/* Two-column layout */}
+          <div className='flex gap-6'>
+            {/* Desktop left sidebar — sticky */}
+            <aside className='hidden lg:block w-64 shrink-0'>
+              <div className='sticky top-24 space-y-4'>
+                {/* Modality filter (category pills) */}
+                <div className='rounded-xl border p-3'>
+                  <h3 className='text-sm font-semibold mb-2.5'>
+                    {t('Modality')}
+                  </h3>
+                  {modalityPills}
+                </div>
+                {sidebarElement}
+              </div>
+            </aside>
 
-          {/* Model count indicator */}
-          {filteredModels.length > 0 && (
-            <p className='text-muted-foreground mb-4 text-center text-xs sm:text-sm'>
-              {t('Showing {{count}} models', {
-                count: filteredModels.length,
-              })}
-            </p>
-          )}
+            {/* Right content area */}
+            <div className='flex-1 min-w-0'>
+              {/* Search bar */}
+              <SearchBar
+                value={searchInput}
+                onChange={setSearchInput}
+                onClear={clearSearch}
+                placeholder={t(
+                  'Search model name, provider, endpoint, or tag...'
+                )}
+                className='mx-auto max-w-xl mb-6 sm:mb-8'
+              />
 
-          {/* Card grid or empty state */}
-          {filteredModels.length === 0 ? (
-            <EmptyState
-              searchQuery={searchInput}
-              hasActiveFilters={categoryFilter !== CATEGORIES.ALL}
-              onClearFilters={() => setCategoryFilter(CATEGORIES.ALL)}
-            />
-          ) : (
-            <ModelCardGrid
-              models={filteredModels}
-              onModelClick={handleModelClick}
-              priceRate={priceRate}
-              usdExchangeRate={usdExchangeRate}
-              tokenUnit={tokenUnit}
-              showRechargePrice={showRechargePrice}
-            />
-          )}
+              {/* CTA Banner — guides users based on their state */}
+              <CtaBanner className='mb-6 sm:mb-8' />
+
+              {/* Model count indicator */}
+              {filteredModels.length > 0 && (
+                <p className='text-muted-foreground mb-4 text-center text-xs sm:text-sm'>
+                  {t('Showing {{count}} models', {
+                    count: filteredModels.length,
+                  })}
+                </p>
+              )}
+
+              {/* Card grid or empty state */}
+              {filteredModels.length === 0 ? (
+                <EmptyState
+                  searchQuery={searchInput}
+                  hasActiveFilters={
+                    categoryFilter !== CATEGORIES.ALL || hasActiveFilters
+                  }
+                  onClearFilters={() => {
+                    setCategoryFilter(CATEGORIES.ALL)
+                    clearFilters()
+                  }}
+                />
+              ) : (
+                <ModelCardGrid
+                  models={filteredModels}
+                  onModelClick={handleModelClick}
+                  priceRate={priceRate}
+                  usdExchangeRate={usdExchangeRate}
+                  tokenUnit={tokenUnit}
+                  showRechargePrice={showRechargePrice}
+                />
+              )}
+            </div>
+          </div>
 
           {/* Model details drawer */}
           {selectedModel && (
