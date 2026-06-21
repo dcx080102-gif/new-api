@@ -312,6 +312,7 @@ export function PricingToolbar(props: PricingToolbarProps) {
               tags={props.tags}
               models={props.models}
               hasActiveFilters={props.hasActiveFilters}
+              activeCount={props.activeFilterCount}
               onClearFilters={props.onClearFilters}
               className='border-0 bg-transparent p-0 shadow-none'
             />

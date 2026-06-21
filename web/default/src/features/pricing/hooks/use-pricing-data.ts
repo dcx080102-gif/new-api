@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useStatus } from '@/hooks/use-status'
+import { normalizeModelName } from '../lib/model-helpers'
 import { getPricing } from '../api'
 
 export function usePricingData() {
@@ -45,7 +46,7 @@ export function usePricingData() {
 
     const vendorMap = new Map(data.vendors.map((v) => [v.id, v]))
 
-    return data.data.map((model) => {
+    const mapped = data.data.map((model) => {
       const vendor = model.vendor_id
         ? vendorMap.get(model.vendor_id)
         : undefined
@@ -58,6 +59,17 @@ export function usePricingData() {
         group_ratio: data.group_ratio,
       }
     })
+
+    // Deduplicate by normalized model name, keep the one with lower ratio (cheaper)
+    const seen = new Map<string, (typeof mapped)[number]>()
+    for (const m of mapped) {
+      const normKey = normalizeModelName(m.model_name || '')
+      const existing = seen.get(normKey)
+      if (!existing || (m.model_ratio || 0) < (existing.model_ratio || 0)) {
+        seen.set(normKey, m)
+      }
+    }
+    return Array.from(seen.values())
   }, [data])
 
   return {

@@ -37,10 +37,9 @@ export function QuickFilterPills(props: QuickFilterPillsProps) {
   const { t } = useTranslation()
 
   const pills: QuickPill[] = [
-    { value: QUICK_FILTERS.ALL, label: t('All') },
     {
       value: QUICK_FILTERS.POPULAR,
-      label: t('Popular'),
+      label: t('热门'),
       icon: <Star className='size-3.5' />,
     },
     {

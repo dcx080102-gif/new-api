@@ -30,8 +30,6 @@ import {
   inferModelMetadata,
   formatTokenCount,
   formatYearMonth,
-  inferApiProtocol,
-  PROTOCOL_COLORS,
   getCapabilityI18nKey,
   getDisplayCapabilities,
 } from '../lib/model-metadata'
@@ -67,11 +65,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     [props.model]
   )
 
-  const protocol = useMemo(
-    () => inferApiProtocol(props.model),
-    [props.model]
-  )
-
   const displayResult = useMemo(
     () => getDisplayCapabilities(metadata.capabilities, MAX_TAGS_DISPLAY),
     [metadata.capabilities]
@@ -104,6 +97,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const isDefaultPrice = (props.model.model_ratio || 0) >= 30
+
   // Check if any metadata is worth showing
   const hasContext = metadata.context_length > 0
   const hasMaxOutput = metadata.max_output_tokens > 0
@@ -134,7 +129,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         }
       }}
     >
-      {/* Row 1: Vendor icon + Model display name + Protocol badge + spacer + Release date */}
+      {/* Row 1: Vendor icon + Vendor: ModelName + Release date */}
       <div className='flex items-center gap-3 flex-wrap'>
         <div className='bg-muted/50 flex size-8 shrink-0 items-center justify-center rounded-lg'>
           {modelIcon || (
@@ -144,18 +139,11 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           )}
         </div>
         <h3 className='font-semibold text-base'>
+          {props.model.vendor_name && (
+            <span className='text-muted-foreground font-normal'>{props.model.vendor_name}: </span>
+          )}
           {displayName}
         </h3>
-        {protocol && (
-          <span
-            className={cn(
-              'shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-medium leading-none',
-              PROTOCOL_COLORS[protocol]
-            )}
-          >
-            {protocol}
-          </span>
-        )}
         <div className='flex-1' />
         {hasReleaseDate && (
           <span className='text-[11px] text-muted-foreground/50'>
@@ -217,7 +205,11 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       </div>
 
       {/* Row 3: Price (Input / Output / Cache inline) */}
-      {isTokenBased ? (
+      {isDefaultPrice ? (
+        <div className='text-sm text-muted-foreground mt-2'>
+          {t('暂无定价')}
+        </div>
+      ) : isTokenBased ? (
         <div className='flex items-baseline gap-x-3 text-sm mt-2'>
           <span className='inline-flex items-baseline gap-1'>
             <span className='text-muted-foreground text-xs'>{t('Input')}</span>

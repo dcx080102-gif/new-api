@@ -91,6 +91,7 @@ export function Pricing() {
     setQuickFilter,
     filteredModels,
     hasActiveFilters,
+    activeFilterCount,
     availableTags,
     clearFilters,
     clearSearch,
@@ -157,6 +158,7 @@ export function Pricing() {
       tags={availableTags}
       models={models || []}
       hasActiveFilters={hasActiveFilters}
+      activeCount={activeFilterCount}
       onClearFilters={clearFilters}
     />
   )
@@ -216,26 +218,6 @@ export function Pricing() {
         />
 
         <PageTransition className='relative mx-auto w-full max-w-[1400px] px-4 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10'>
-          {/* Header — full width */}
-          <header className='mx-auto mb-8 max-w-3xl pt-5 text-center sm:mb-10 sm:pt-10'>
-            <h1 className='text-[clamp(2rem,5.5vw,3.5rem)] leading-[1.15] font-bold tracking-tight'>
-              {t('Model Square')}
-            </h1>
-            <p className='text-muted-foreground/80 mt-3 text-sm sm:mt-4 sm:text-base'>
-              {t(
-                'This site currently has {{count}} models enabled',
-                {
-                  count: models?.length || 0,
-                }
-              )}
-            </p>
-            <p className='text-muted-foreground/60 mx-auto mt-2 max-w-2xl text-xs leading-relaxed sm:text-sm'>
-              {t(
-                'Discover curated AI models, compare pricing and capabilities, and choose the right model for every scenario.'
-              )}
-            </p>
-          </header>
-
           {/* Mobile filter trigger */}
           <div className='lg:hidden mb-4'>
             <Sheet
@@ -245,9 +227,9 @@ export function Pricing() {
               <SheetTrigger className='inline-flex shrink-0 items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-xs transition-[color,box-shadow] outline-none hover:bg-accent hover:text-accent-foreground min-h-[44px] w-full'>
                 <SlidersHorizontal className='size-4' />
                 {t('Filters')}
-                {hasActiveFilters && (
+                {activeFilterCount > 0 && (
                   <span className='ml-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary'>
-                    {t('Active')}
+                    {activeFilterCount}
                   </span>
                 )}
               </SheetTrigger>
@@ -289,29 +271,27 @@ export function Pricing() {
 
             {/* Right content area */}
             <div className='flex-1 min-w-0'>
-              {/* ── Unified search + quick filter bar (sticky) ── */}
+              {/* ── Unified search + quick filter bar (sticky, single row) ── */}
               <div className='sticky top-[72px] z-20 -mx-2 px-2 pt-2 pb-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-                <div className='rounded-xl border bg-card p-3 shadow-sm overflow-visible'>
-                  {/* Row 1: Search + count */}
-                  <div className='flex items-center gap-3'>
-                    <SearchBar
-                      value={searchInput}
-                      onChange={setSearchInput}
-                      onClear={clearSearch}
-                      placeholder={t('搜索模型名称、供应商、端点或标签...')}
-                      className='flex-1'
-                    />
-                    <p className='text-muted-foreground shrink-0 text-xs sm:text-sm whitespace-nowrap'>
-                      {t('{{count}} 个模型', { count: filteredModels.length })}
-                    </p>
-                  </div>
-                  {/* Row 2: Quick filter pills */}
-                  <div className='mt-2.5'>
-                    <QuickFilterPills
-                      value={quickFilter}
-                      onChange={setQuickFilter}
-                    />
-                  </div>
+                <div className='flex items-center gap-3 rounded-xl border bg-card p-2.5 shadow-sm'>
+                  <h1 className='text-foreground shrink-0 text-sm font-bold'>
+                    {t('Model Square')}
+                  </h1>
+                  <span className='text-muted-foreground/30'>·</span>
+                  <SearchBar
+                    value={searchInput}
+                    onChange={setSearchInput}
+                    onClear={clearSearch}
+                    placeholder={t('搜索模型名称、供应商、端点或标签...')}
+                    className='flex-1 max-w-[260px]'
+                  />
+                  <QuickFilterPills
+                    value={quickFilter}
+                    onChange={setQuickFilter}
+                  />
+                  <p className='text-muted-foreground shrink-0 text-xs whitespace-nowrap ml-auto'>
+                    {t('{{count}} 个模型', { count: filteredModels.length })}
+                  </p>
                 </div>
               </div>
 

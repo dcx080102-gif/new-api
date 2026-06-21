@@ -19,7 +19,6 @@ For commercial licensing, please contact support@quantumnous.com
 import type { ReactNode } from 'react'
 import { ChevronDown, RotateCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,7 +34,6 @@ import {
   getEndpointTypeLabels,
   getQuotaTypeLabels,
 } from '../constants'
-import { parseTags } from '../lib/filters'
 import { ModelSeriesFilter } from './pricing-series-filter'
 import { APIProtocolFilter } from './pricing-protocol-filter'
 import { ContextSliderFilter } from './pricing-context-slider'
@@ -54,6 +52,7 @@ type FilterSectionProps = {
   value: string
   options: FilterOption[]
   onChange: (value: string) => void
+  defaultOpen?: boolean
 }
 
 export interface PricingSidebarProps {
@@ -79,6 +78,7 @@ export interface PricingSidebarProps {
   tags: string[]
   models: PricingModel[]
   hasActiveFilters: boolean
+  activeCount: number
   onClearFilters: () => void
   className?: string
 }
@@ -138,7 +138,7 @@ function FilterChip(props: {
 function FilterSection(props: FilterSectionProps) {
   return (
     <Collapsible
-      defaultOpen
+      defaultOpen={props.defaultOpen ?? true}
       className='border-border/70 border-b pb-3 last:border-b-0'
     >
       <CollapsibleTrigger className='group flex w-full items-center justify-between py-2.5 text-left'>
@@ -149,14 +149,16 @@ function FilterSection(props: FilterSectionProps) {
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className='flex flex-wrap gap-1.5'>
-          {props.options.map((option) => (
-            <FilterChip
-              key={option.value}
-              option={option}
-              active={props.value === option.value}
-              onClick={() => props.onChange(option.value)}
-            />
-          ))}
+          {props.options
+            .filter((opt) => opt.value === FILTER_ALL || (opt.count ?? 1) > 0)
+            .map((option) => (
+              <FilterChip
+                key={option.value}
+                option={option}
+                active={props.value === option.value}
+                onClick={() => props.onChange(option.value)}
+              />
+            ))}
         </div>
       </CollapsibleContent>
     </Collapsible>
@@ -167,25 +169,6 @@ export function PricingSidebar(props: PricingSidebarProps) {
   const { t } = useTranslation()
   const quotaTypeLabels = getQuotaTypeLabels(t)
   const endpointTypeLabels = getEndpointTypeLabels(t)
-
-  const vendorOptions: FilterOption[] = [
-    {
-      value: FILTER_ALL,
-      label: t('All Vendors'),
-      count: props.models.length,
-    },
-    ...props.vendors
-      .map((vendor) => ({
-        value: vendor.name,
-        label: vendor.name,
-        count: countBy(
-          props.models,
-          (model) => model.vendor_name === vendor.name
-        ),
-        icon: vendor.icon ? getLobeIcon(vendor.icon, 14) : undefined,
-      }))
-      .filter((vendor) => vendor.count > 0),
-  ]
 
   const groupOptions: FilterOption[] = [
     {
@@ -217,23 +200,6 @@ export function PricingSidebar(props: PricingSidebarProps) {
     },
   ]
 
-  const tagOptions: FilterOption[] = [
-    {
-      value: FILTER_ALL,
-      label: t('All Tags'),
-      count: props.models.length,
-    },
-    ...props.tags.map((tag) => ({
-      value: tag,
-      label: tag,
-      count: countBy(props.models, (model) =>
-        parseTags(model.tags)
-          .map((item) => item.toLowerCase())
-          .includes(tag.toLowerCase())
-      ),
-    })),
-  ]
-
   const endpointOptions: FilterOption[] = [
     {
       value: ENDPOINT_TYPES.ALL,
@@ -256,7 +222,14 @@ export function PricingSidebar(props: PricingSidebarProps) {
     <aside className={cn(props.className)}>
       <div className='mb-2.5 flex items-center justify-between gap-2'>
         <div>
-          <h2 className='text-foreground text-sm font-bold'>{t('Filter')}</h2>
+          <h2 className='text-foreground text-sm font-bold'>
+            {t('Filter')}
+            {props.activeCount > 0 && (
+              <span className='ml-1.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary'>
+                {props.activeCount}
+              </span>
+            )}
+          </h2>
           <p className='text-muted-foreground mt-1 text-xs'>
             {t('Refine models by provider, group, type, and tags.')}
           </p>
@@ -266,7 +239,7 @@ export function PricingSidebar(props: PricingSidebarProps) {
           variant='ghost'
           size='sm'
           onClick={props.onClearFilters}
-          disabled={!props.hasActiveFilters}
+          disabled={props.activeCount === 0}
           className='h-7 gap-1.5 px-2 text-xs'
         >
           <RotateCcw className='size-3.5' />
@@ -274,7 +247,7 @@ export function PricingSidebar(props: PricingSidebarProps) {
         </Button>
       </div>
 
-      {props.hasActiveFilters && (
+      {props.activeCount > 0 && (
         <Badge variant='secondary' className='mb-3'>
           {t('Filters active')}
         </Badge>
@@ -348,28 +321,18 @@ export function PricingSidebar(props: PricingSidebarProps) {
           onChange={props.onGroupChange}
         />
         <FilterSection
-          title={t('All Vendors')}
-          value={props.vendorFilter}
-          options={vendorOptions}
-          onChange={props.onVendorChange}
-        />
-        <FilterSection
-          title={t('Model Tags')}
-          value={props.tagFilter}
-          options={tagOptions}
-          onChange={props.onTagChange}
-        />
-        <FilterSection
           title={t('Pricing Type')}
           value={props.quotaTypeFilter}
           options={quotaOptions}
           onChange={props.onQuotaTypeChange}
+          defaultOpen={false}
         />
         <FilterSection
           title={t('Endpoint Type')}
           value={props.endpointTypeFilter}
           options={endpointOptions}
           onChange={props.onEndpointTypeChange}
+          defaultOpen={false}
         />
       </div>
     </aside>
