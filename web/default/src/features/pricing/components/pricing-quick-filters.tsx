@@ -76,7 +76,7 @@ export function QuickFilterPills(props: QuickFilterPillsProps) {
           onClick={() => props.onChange(pill.value)}
           className={cn(
             'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200',
-            'hover:border-primary/40 hover:bg-primary/5 hover:scale-105',
+            'hover:border-primary/40 hover:bg-primary/5 hover:-translate-y-px',
             'focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none',
             props.value === pill.value
               ? 'border-primary/40 bg-primary/10 text-primary dark:bg-primary/15'
