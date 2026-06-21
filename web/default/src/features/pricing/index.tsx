@@ -271,17 +271,19 @@ export function Pricing() {
 
           {/* Two-column layout */}
           <div className='flex gap-6'>
-            {/* Desktop left sidebar — sticky */}
+            {/* Desktop left sidebar — independently scrollable */}
             <aside className='hidden lg:block w-64 shrink-0'>
-              <div className='sticky top-[72px] space-y-4'>
-                {/* Modality filter (category pills) */}
-                <div className='rounded-xl border p-3'>
-                  <h3 className='text-sm font-semibold mb-2.5'>
-                    {t('Modality')}
-                  </h3>
-                  {modalityPills}
+              <div className='sticky top-[136px] max-h-[calc(100vh-152px)] overflow-y-auto rounded-xl border'>
+                <div className='flex flex-col gap-3 p-3'>
+                  {/* Modality filter (category pills) */}
+                  <div className='rounded-xl border p-3'>
+                    <h3 className='text-sm font-semibold mb-2.5'>
+                      {t('Modality')}
+                    </h3>
+                    {modalityPills}
+                  </div>
+                  {sidebarElement}
                 </div>
-                {sidebarElement}
               </div>
             </aside>
 
