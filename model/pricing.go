@@ -36,6 +36,13 @@ type Pricing struct {
 	BillingMode            string                  `json:"billing_mode,omitempty"`
 	BillingExpr            string                  `json:"billing_expr,omitempty"`
 	PricingVersion         string                  `json:"pricing_version,omitempty"`
+
+	// Model metadata (hardcoded, not from DB)
+	ContextLength    int      `json:"context_length,omitempty"`
+	MaxOutputTokens  int      `json:"max_output_tokens,omitempty"`
+	ReleaseDate      string   `json:"release_date,omitempty"`
+	InputModalities  []string `json:"input_modalities,omitempty"`
+	OutputModalities []string `json:"output_modalities,omitempty"`
 }
 
 type PricingVendor struct {
@@ -67,6 +74,105 @@ const (
 	pricingRedisKey = "cache:pricing"
 	pricingCacheTTL = 5 * time.Minute // 模型价格缓存 5 分钟
 )
+
+// modelMeta holds hardcoded model metadata for the pricing page.
+// Fields are backed by real model specs; update when adding new models.
+type modelMeta struct {
+	ContextLength    int
+	MaxOutputTokens  int
+	ReleaseDate      string   // YYYY-MM-DD
+	InputModalities  []string
+	OutputModalities []string
+}
+
+// modelMetadataMap maps model_name → hardcoded metadata.
+// Models NOT listed here will omit the fields (JSON omitempty).
+var modelMetadataMap = map[string]modelMeta{
+	// Claude 系列
+	"claude-opus-4-8": {
+		ContextLength:    1_000_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-05-22",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+	"claude-sonnet-4-6": {
+		ContextLength:    1_000_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-05-22",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+	"claude-haiku-4-5": {
+		ContextLength:    1_000_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-05-22",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+
+	// GPT 系列
+	"gpt-5.5": {
+		ContextLength:    256_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-08-15",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+	"gpt-5.4": {
+		ContextLength:    256_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-05-15",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+	"gpt-5.4-mini": {
+		ContextLength:    256_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-05-15",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+	"gpt-5.4-pro": {
+		ContextLength:    256_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-05-15",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+	"gpt-5.5-oc": {
+		ContextLength:    256_000,
+		MaxOutputTokens:  128_000,
+		ReleaseDate:      "2025-10-01",
+		InputModalities:  []string{"text", "image"},
+		OutputModalities: []string{"text"},
+	},
+
+	// DeepSeek 系列
+	"deepseek-chat": {
+		ContextLength:    128_000,
+		MaxOutputTokens:  32_000,
+		ReleaseDate:      "2024-12-26",
+		InputModalities:  []string{"text"},
+		OutputModalities: []string{"text"},
+	},
+	"deepseek-reasoner": {
+		ContextLength:    128_000,
+		MaxOutputTokens:  32_000,
+		ReleaseDate:      "2025-01-20",
+		InputModalities:  []string{"text"},
+		OutputModalities: []string{"text"},
+	},
+
+	// Codex
+	"codex-auto-review": {
+		ContextLength:    128_000,
+		MaxOutputTokens:  32_000,
+		ReleaseDate:      "2025-06-01",
+		InputModalities:  []string{"text"},
+		OutputModalities: []string{"text"},
+	},
+}
 
 // loadPricingFromRedis 尝试从 Redis 加载缓存的定价数据
 func loadPricingFromRedis() ([]Pricing, error) {
@@ -413,6 +519,16 @@ func updatePricing() {
 				pricing.BillingExpr = expr
 			}
 		}
+
+		// 注入硬编码的模型元数据（上下文长度、最大输出、上线日期、模态）
+		if meta, ok := modelMetadataMap[model]; ok {
+			pricing.ContextLength = meta.ContextLength
+			pricing.MaxOutputTokens = meta.MaxOutputTokens
+			pricing.ReleaseDate = meta.ReleaseDate
+			pricing.InputModalities = meta.InputModalities
+			pricing.OutputModalities = meta.OutputModalities
+		}
+
 		pricingMap = append(pricingMap, pricing)
 	}
 
