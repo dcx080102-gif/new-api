@@ -98,6 +98,20 @@ var defaultModelRatio = map[string]float64{
 	"gpt-5-mini-2025-08-07":            0.125,
 	"gpt-5-nano":                       0.025,
 	"gpt-5-nano-2025-08-07":            0.025,
+	// otter Link custom pricing
+	"gpt-5.4":                          1.0,
+	"gpt-5.4-mini":                     0.3,
+	"gpt-5.4-pro":                      0.34,
+	"gpt-5.4-nano":                     0.03,
+	"gpt-5.5":                          1.93,
+	"gpt-5.5-openai-compact":           0.68,
+	"codex-auto-review":                0.3,
+	// Claude dot-version aliases
+	"claude-haiku-4.5":                 0.38,
+	"claude-sonnet-4.5":                1.1,
+	"claude-sonnet-4.6":                1.1,
+	"claude-opus-4.6":                  1.78,
+	"claude-opus-4.8":                  1.78,
 	//"gpt-3.5-turbo-0301":           0.75, //deprecated
 	"gpt-3.5-turbo":          0.25,
 	"gpt-3.5-turbo-0613":     0.75,
