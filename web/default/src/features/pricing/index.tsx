@@ -289,7 +289,7 @@ export function Pricing() {
             <div className='flex-1 min-w-0'>
               {/* ── Unified search + quick filter bar (sticky) ── */}
               <div className='sticky top-[72px] z-20 -mx-2 px-2 pt-2 pb-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-                <div className='rounded-xl border bg-card p-3 shadow-sm'>
+                <div className='rounded-xl border bg-card p-3 shadow-sm overflow-visible'>
                   {/* Row 1: Search + count */}
                   <div className='flex items-center gap-3'>
                     <SearchBar
