@@ -23,7 +23,7 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools' // 调试浮标已关闭，需要时取消注释
 import { ThemeCustomizationProvider } from '@/context/theme-customization-provider'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { Toaster } from '@/components/ui/sonner'
@@ -76,9 +76,10 @@ function RootComponent() {
       <NavigationProgress />
       <Outlet />
       <Toaster closeButton duration={5000} position='top-center' richColors />
-      {import.meta.env.MODE === 'development' && (
+      {/* 左下角 TanStack Query 调试浮标已关闭（如需调试，取消下方注释并恢复顶部 import） */}
+      {/* {import.meta.env.MODE === 'development' && (
           <ReactQueryDevtools buttonPosition='bottom-left' />
-      )}
+      )} */}
     </ThemeCustomizationProvider>
   )
 }

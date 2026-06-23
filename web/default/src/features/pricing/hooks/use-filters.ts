@@ -27,6 +27,8 @@ import {
   MODEL_SERIES,
   PROTOCOLS,
   QUICK_FILTERS,
+  INPUT_MODALITIES,
+  OUTPUT_MODALITIES,
   DEFAULT_TOKEN_UNIT,
   VIEW_MODES,
   type ViewMode,
@@ -52,6 +54,8 @@ type FilterState = {
   contextLength?: number
   quickFilter?: string
   category?: Category
+  inputModality?: string
+  outputModality?: string
   tokenUnit?: TokenUnit
   view?: ViewMode
   rechargePrice?: boolean
@@ -96,6 +100,8 @@ export function useFilters(models: PricingModel[]) {
   const contextFilter = filterState.contextLength || 0
   const quickFilter = filterState.quickFilter || QUICK_FILTERS.ALL
   const categoryFilter: Category = filterState.category || CATEGORIES.ALL
+  const inputModalityFilter = filterState.inputModality || INPUT_MODALITIES.ALL
+  const outputModalityFilter = filterState.outputModality || OUTPUT_MODALITIES.ALL
   const tokenUnit: TokenUnit =
     filterState.tokenUnit === 'K' ? 'K' : DEFAULT_TOKEN_UNIT
   const viewMode = normalizeViewMode(filterState.view)
@@ -205,6 +211,8 @@ export function useFilters(models: PricingModel[]) {
       contextLength: contextFilter,
       quickFilter,
       sortBy,
+      inputModality: inputModalityFilter,
+      outputModality: outputModalityFilter,
     })
 
     // Apply category filter separately (not in filterAndSortModels to avoid breaking existing code)
@@ -225,6 +233,8 @@ export function useFilters(models: PricingModel[]) {
     quickFilter,
     categoryFilter,
     sortBy,
+    inputModalityFilter,
+    outputModalityFilter,
   ])
 
   const hasActiveFilters = useMemo(

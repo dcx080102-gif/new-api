@@ -255,7 +255,7 @@ export function Pricing() {
           <div className='flex gap-6'>
             {/* Desktop left sidebar — independently scrollable */}
             <aside className='hidden lg:block w-64 shrink-0'>
-              <div className='sticky top-[136px] max-h-[calc(100vh-152px)] overflow-y-auto rounded-xl border'>
+              <div className='sticky top-[88px] max-h-[calc(100vh-104px)] overflow-y-auto overscroll-contain rounded-xl border bg-card shadow-sm'>
                 <div className='flex flex-col gap-3 p-3'>
                   {/* Modality filter (category pills) */}
                   <div className='rounded-xl border p-3'>
@@ -271,27 +271,27 @@ export function Pricing() {
 
             {/* Right content area */}
             <div className='flex-1 min-w-0'>
-              {/* ── Unified search + quick filter bar (sticky, single row) ── */}
-              <div className='sticky top-[72px] z-20 -mx-2 px-2 pt-2 pb-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80'>
-                <div className='flex items-center gap-3 rounded-xl border bg-card p-2.5 shadow-sm'>
-                  <h1 className='text-foreground shrink-0 text-sm font-bold'>
-                    {t('Model Square')}
-                  </h1>
-                  <span className='text-muted-foreground/30'>·</span>
-                  <SearchBar
-                    value={searchInput}
-                    onChange={setSearchInput}
-                    onClear={clearSearch}
-                    placeholder={t('搜索模型名称、供应商、端点或标签...')}
-                    className='flex-1 max-w-[260px]'
-                  />
+              {/* ── 搜索 + 快速过滤栏（sticky，两行：搜索在上、标签在下） ── */}
+              <div className='sticky top-[72px] z-20 pt-2 pb-3'>
+                <div className='flex flex-col gap-2.5 rounded-xl bg-card p-2.5 shadow-sm'>
+                  {/* 第一行：搜索框（加长占满）+ 计数 */}
+                  <div className='flex items-center gap-3'>
+                    <SearchBar
+                      value={searchInput}
+                      onChange={setSearchInput}
+                      onClear={clearSearch}
+                      placeholder={t('搜索模型名称、供应商、端点或标签...')}
+                      className='flex-1'
+                    />
+                    <p className='text-muted-foreground shrink-0 text-xs whitespace-nowrap'>
+                      {t('{{count}} 个模型', { count: filteredModels.length })}
+                    </p>
+                  </div>
+                  {/* 第二行：快速标签（热门/优惠/免费/Claude Code/Codex/Gemini） */}
                   <QuickFilterPills
                     value={quickFilter}
                     onChange={setQuickFilter}
                   />
-                  <p className='text-muted-foreground shrink-0 text-xs whitespace-nowrap ml-auto'>
-                    {t('{{count}} 个模型', { count: filteredModels.length })}
-                  </p>
                 </div>
               </div>
 

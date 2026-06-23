@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next'
 import { Star, Sparkles, Command, Code } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QUICK_FILTERS } from '../constants'
+import { getLobeIcon } from '@/lib/lobe-icon'
 
 export interface QuickFilterPillsProps {
   value: string
@@ -57,14 +58,16 @@ export function QuickFilterPills(props: QuickFilterPillsProps) {
       label: t('Codex'),
       icon: <Code className='size-3.5' />,
     },
+    {
+      value: QUICK_FILTERS.GEMINI,
+      label: 'Gemini',
+      icon: getLobeIcon('Google', 14),
+    },
   ]
 
   return (
     <div
-      className={cn(
-        'flex items-center gap-2 flex-wrap',
-        props.className
-      )}
+      className={cn('flex items-center gap-2 flex-wrap', props.className)}
     >
       {pills.map((pill) => (
         <button
@@ -72,8 +75,8 @@ export function QuickFilterPills(props: QuickFilterPillsProps) {
           type='button'
           onClick={() => props.onChange(pill.value)}
           className={cn(
-            'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200',
-            'hover:border-primary/40 hover:bg-primary/5 hover:scale-105',
+            'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors duration-200',
+            'hover:border-primary/40 hover:bg-primary/5',
             'focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none',
             props.value === pill.value
               ? 'border-primary/40 bg-primary/10 text-primary dark:bg-primary/15'

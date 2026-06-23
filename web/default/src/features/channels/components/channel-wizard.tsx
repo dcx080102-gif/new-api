@@ -21,16 +21,14 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  ChevronRight,
   Loader2,
   Search,
   Server,
-  KeyRound,
   Settings,
   ListChecks,
   ClipboardCheck,
 } from 'lucide-react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { getLobeIcon } from '@/lib/lobe-icon'
@@ -64,7 +62,6 @@ import {
   getAllModels,
   getGroups,
 } from '../api'
-import { useChannelMutateForm } from '../hooks/use-channel-mutate-form'
 import { channelsQueryKeys, getChannelTypeIcon } from '../lib'
 import {
   CHANNEL_STATUS,
@@ -420,7 +417,7 @@ export function ChannelWizard({ open, onOpenChange }: ChannelWizardProps) {
                 <Label htmlFor='wiz-group'>{t('Groups')}</Label>
                 <Select
                   value={data.group[0] || 'default'}
-                  onValueChange={(val) => updateData({ group: [val] })}
+                  onValueChange={(val) => updateData({ group: val ? [val] : ['default'] })}
                 >
                   <SelectTrigger id='wiz-group'>
                     <SelectValue />

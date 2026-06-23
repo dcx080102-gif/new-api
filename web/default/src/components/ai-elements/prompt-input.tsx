@@ -1182,7 +1182,7 @@ export const PromptInputSpeechButton = ({
 
       speechRecognition.onerror = (event) => {
         // eslint-disable-next-line no-console
-        console.error('语音识别错误:', event.error, event.message)
+        console.error('语音识别错误:', event.error, (event as any).message)
         if (event.error === 'language-not-supported') {
           // eslint-disable-next-line no-console
           console.warn(

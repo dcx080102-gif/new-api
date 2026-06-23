@@ -22,7 +22,6 @@ import { Link } from '@tanstack/react-router'
 import {
   Activity,
   ArrowRight,
-  BookOpen,
   Box,
   Check,
   ChevronDown,
@@ -30,7 +29,6 @@ import {
   Circle,
   Copy,
   CreditCard,
-  FileText,
   KeyRound,
   ListChecks,
   RadioTower,
@@ -44,6 +42,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { getUserModels } from '@/lib/api'
+import { normalizeModelName } from '@/features/pricing/lib/model-helpers'
 import { MOTION_TRANSITION } from '@/lib/motion'
 import { ROLE } from '@/lib/roles'
 import { cn } from '@/lib/utils'
@@ -94,14 +93,6 @@ interface StartStep {
   to: DashboardActionPath
   icon: LucideIcon
   completed: boolean
-}
-
-interface QuickAction {
-  title: string
-  description: string
-  to: DashboardActionPath
-  icon: LucideIcon
-  adminOnly?: boolean
 }
 
 interface RequestExample {
@@ -414,48 +405,10 @@ function RequestPreview(props: {
   )
 }
 
-function QuickActionItem(props: { action: QuickAction }) {
-  const Icon = props.action.icon
 
-  return (
-    <Button
-      variant='outline'
-      className='h-auto justify-start rounded-xl px-3 py-3 text-left'
-      render={<Link to={props.action.to} />}
-    >
-      <span className='bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg'>
-        <Icon className='size-4' aria-hidden='true' />
-      </span>
-      <span className='flex min-w-0 flex-1 flex-col gap-0.5'>
-        <span className='truncate text-sm font-medium'>
-          {props.action.title}
-        </span>
-        <span className='text-muted-foreground line-clamp-2 text-xs leading-relaxed'>
-          {props.action.description}
-        </span>
-      </span>
-    </Button>
-  )
-}
-
-function CompactQuickAction(props: { action: QuickAction }) {
-  const Icon = props.action.icon
-
-  return (
-    <Button
-      variant='outline'
-      size='sm'
-      className='bg-background/70 h-8 min-w-24 gap-1.5 px-2.5'
-      render={<Link to={props.action.to} />}
-    >
-      <Icon data-icon='inline-start' />
-      <span>{props.action.title}</span>
-    </Button>
-  )
-}
 
 export function OverviewDashboard() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const user = useAuthStore((state) => state.auth.user)
   const { items: apiInfoItems } = useApiInfo()
   const {
@@ -521,42 +474,6 @@ export function OverviewDashboard() {
       },
     ],
     [preferredKey, remainQuota, requestCount, t, usedQuota]
-  )
-
-  const quickActions = useMemo<QuickAction[]>(
-    () => [
-      {
-        title: t('API Keys'),
-        description: t('Create a key for your app or service'),
-        to: '/keys',
-        icon: KeyRound,
-      },
-      {
-        title: t('Channels'),
-        description: t('Configure upstream providers and routing.'),
-        to: '/channels',
-        icon: RadioTower,
-        adminOnly: true,
-      },
-      {
-        title: t('Usage Logs'),
-        description: t('Inspect requests, errors, and billing details'),
-        to: '/usage-logs',
-        icon: FileText,
-      },
-      {
-        title: t('Pricing'),
-        description: t('Review model rates before scaling traffic'),
-        to: '/pricing',
-        icon: BookOpen,
-      },
-    ],
-    [t, i18n]
-  )
-
-  const visibleQuickActions = useMemo(
-    () => quickActions.filter((action) => !action.adminOnly || isAdmin),
-    [isAdmin, quickActions]
   )
 
   const heroSignals = useMemo<HeroSignal[]>(
@@ -689,7 +606,11 @@ export function OverviewDashboard() {
                       {t('Available Models')}
                     </span>
                     <span className='text-foreground text-lg font-semibold tabular-nums'>
-                      {modelsQuery.data?.length ?? '—'}
+                      {modelsQuery.data
+                        ? new Set(
+                            modelsQuery.data.map((m) => normalizeModelName(m))
+                          ).size
+                        : '—'}
                     </span>
                   </div>
                 </div>

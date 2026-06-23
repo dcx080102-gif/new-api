@@ -27,10 +27,14 @@ import {
   MODEL_SERIES,
   mapModelToSeries,
   PROTOCOLS,
+  INPUT_MODALITIES,
+  OUTPUT_MODALITIES,
   type Category,
+  type InputModality,
+  type OutputModality,
 } from '../constants'
 import type { PricingModel } from '../types'
-import { getModelContextLength, modelMatchesProtocol } from './model-metadata'
+import { getModelContextLength, modelMatchesProtocol, inferModelMetadata } from './model-metadata'
 import { getOfficialPrice } from './official-prices'
 import { normalizeModelName } from './model-helpers'
 
@@ -142,6 +146,36 @@ export function sortModels(
 }
 
 /**
+ * Filter models by input modality.
+ * Uses inferred input_modalities from model-metadata.
+ */
+export function filterByInputModality(
+  models: PricingModel[],
+  modality: InputModality
+): PricingModel[] {
+  if (modality === INPUT_MODALITIES.ALL) return models
+  return models.filter((m) => {
+    const meta = inferModelMetadata(m)
+    return meta.input_modalities.includes(modality)
+  })
+}
+
+/**
+ * Filter models by output modality.
+ * Uses inferred output_modalities from model-metadata.
+ */
+export function filterByOutputModality(
+  models: PricingModel[],
+  modality: OutputModality
+): PricingModel[] {
+  if (modality === OUTPUT_MODALITIES.ALL) return models
+  return models.filter((m) => {
+    const meta = inferModelMetadata(m)
+    return (meta.output_modalities as string[]).includes(modality)
+  })
+}
+
+/**
  * Apply all filters and sorting to models
  */
 export function filterAndSortModels(
@@ -158,10 +192,14 @@ export function filterAndSortModels(
     contextLength: number
     quickFilter: string
     sortBy: string
+    inputModality?: string
+    outputModality?: string
   }
 ): PricingModel[] {
   let result = filterBySearch(models, filters.search)
   result = filterByQuickFilter(result, filters.quickFilter)
+  result = filterByInputModality(result, (filters.inputModality || INPUT_MODALITIES.ALL) as InputModality)
+  result = filterByOutputModality(result, (filters.outputModality || OUTPUT_MODALITIES.ALL) as OutputModality)
   result = filterBySeries(result, filters.series)
   result = filterByVendor(result, filters.vendor)
   result = filterByGroup(result, filters.group)
@@ -328,6 +366,23 @@ export function filterByQuickFilter(
     return models.filter((m) => {
       const name = (m.model_name || '').toLowerCase()
       return name.includes('codex')
+    })
+  }
+
+  // FREE：免费模型（model_ratio 为 0 或极低）
+  if (quickFilter === 'free') {
+    return models.filter((m) => {
+      const mr = m.model_ratio ?? 0
+      const cr = m.completion_ratio ?? 0
+      return mr === 0 && cr === 0
+    })
+  }
+
+  // Gemini：匹配 Gemini 系列模型
+  if (quickFilter === 'gemini') {
+    return models.filter((m) => {
+      const name = (m.model_name || '').toLowerCase()
+      return name.includes('gemini')
     })
   }
 

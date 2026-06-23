@@ -63,7 +63,7 @@ export default defineConfig(({ envMode }) => {
     html: {
       template: './index.html',
       // Don't auto-inject /favicon.ico — we use /logo.png via index.html + nginx
-      favicon: false,
+      favicon: '',
     },
     server: {
       port: 5173,

@@ -158,6 +158,30 @@ export const CATEGORIES = {
 
 export type Category = (typeof CATEGORIES)[keyof typeof CATEGORIES]
 
+/** Input modality filter values */
+export const INPUT_MODALITIES = {
+  ALL: 'all',
+  TEXT: 'text',
+  IMAGE: 'image',
+  AUDIO: 'audio',
+  VIDEO: 'video',
+} as const
+
+export type InputModality =
+  (typeof INPUT_MODALITIES)[keyof typeof INPUT_MODALITIES]
+
+/** Output modality filter values */
+export const OUTPUT_MODALITIES = {
+  ALL: 'all',
+  TEXT: 'text',
+  IMAGE: 'image',
+  AUDIO: 'audio',
+  EMBEDDING: 'embedding',
+} as const
+
+export type OutputModality =
+  (typeof OUTPUT_MODALITIES)[keyof typeof OUTPUT_MODALITIES]
+
 /** Category labels */
 export function getCategoryLabels(t: TFunction): Record<Category, string> {
   return {
@@ -284,6 +308,8 @@ export const QUICK_FILTERS = {
   DISCOUNT: 'discount',
   CLAUDE_CODE: 'claude-code',
   CODEX: 'codex',
+  FREE: 'free',
+  GEMINI: 'gemini',
 } as const
 
 export type QuickFilter = (typeof QUICK_FILTERS)[keyof typeof QUICK_FILTERS]

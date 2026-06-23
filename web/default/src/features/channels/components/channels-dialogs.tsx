@@ -60,9 +60,6 @@ export function ChannelsDialogs() {
         open={open === 'batch-test-channels'}
         onOpenChange={(v) => !v && setOpen(null)}
         channels={batchTestChannels}
-        onComplete={() => {
-          // Refresh channel list to show updated response times
-        }}
       />
 
       {/* Balance Query Dialog */}

@@ -84,7 +84,7 @@ export function RedemptionsMutateDrawer({
   >(null)
   const [customDays, setCustomDays] = useState('')
 
-  const form = useForm<RedemptionFormValues>({
+  const form = useForm({
     resolver: zodResolver(getRedemptionFormSchema(t)),
     defaultValues: REDEMPTION_FORM_DEFAULT_VALUES,
   })
@@ -232,7 +232,7 @@ export function RedemptionsMutateDrawer({
                         placeholder={quotaPlaceholder}
                         onChange={(e) => {
                           const val = e.target.value
-                          field.onChange(val === '' ? '' : Number(val))
+                          field.onChange(val === '' ? 0 : Number(val))
                         }}
                       />
                     </FormControl>
@@ -393,7 +393,7 @@ export function RedemptionsMutateDrawer({
                           placeholder={t('Number of codes to create')}
                           onChange={(e) => {
                             const val = e.target.value
-                            field.onChange(val === '' ? '' : Number(val))
+                            field.onChange(val === '' ? undefined : Number(val))
                           }}
                         />
                       </FormControl>

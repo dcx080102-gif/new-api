@@ -70,3 +70,33 @@ export function normalizeModelName(name: string): string {
   }
   return name
 }
+
+/**
+ * 按模型名智能识别厂商品牌，返回 @lobehub/icons 的图标 key（优先彩色版）。
+ * 不依赖后端 vendor 数据，避免厂商配错导致图标错误（如 Claude 显示 OpenAI）。
+ * 识别不出时返回 null，由调用方回退到 vendor 图标或首字母。
+ */
+const BRAND_ICON_RULES: Array<[RegExp, string]> = [
+  [/claude/i, 'Claude.Color'],
+  [/gpt|chatgpt|davinci|\bo1\b|\bo3\b|\bo4\b|codex|dall-?e|whisper|sora/i, 'OpenAI'],
+  [/gemini|palm|bison|gemma/i, 'Gemini.Color'],
+  [/deepseek/i, 'DeepSeek.Color'],
+  [/qwen|qwq/i, 'Qwen.Color'],
+  [/grok/i, 'Grok'],
+  [/llama|meta-/i, 'Meta.Color'],
+  [/mistral|mixtral|codestral/i, 'Mistral.Color'],
+  [/glm|chatglm|zhipu/i, 'Zhipu.Color'],
+  [/moonshot|kimi/i, 'Moonshot'],
+  [/doubao|seed-/i, 'Doubao.Color'],
+  [/ernie|wenxin/i, 'Wenxin.Color'],
+  [/\byi-|01-ai/i, 'Yi.Color'],
+  [/cohere|command-/i, 'Cohere.Color'],
+]
+
+export function getModelBrandIconKey(modelName: string): string | null {
+  const name = modelName || ''
+  for (const [pattern, iconKey] of BRAND_ICON_RULES) {
+    if (pattern.test(name)) return iconKey
+  }
+  return null
+}

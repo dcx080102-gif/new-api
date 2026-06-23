@@ -254,7 +254,7 @@ export function PricingSidebar(props: PricingSidebarProps) {
       )}
 
       <div className='space-y-1'>
-        {/* NEW: Model Series */}
+        {/* Model Series */}
         <Collapsible
           defaultOpen
           className='border-border/70 border-b pb-3 last:border-b-0'
@@ -274,7 +274,7 @@ export function PricingSidebar(props: PricingSidebarProps) {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* NEW: API Protocol */}
+        {/* API Protocol */}
         <Collapsible
           defaultOpen
           className='border-border/70 border-b pb-3 last:border-b-0'
@@ -294,7 +294,51 @@ export function PricingSidebar(props: PricingSidebarProps) {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* NEW: Context Window Slider */}
+        {/* Upstream Channel (供应商类型) */}
+        <Collapsible
+          defaultOpen
+          className='border-border/70 border-b pb-3 last:border-b-0'
+        >
+          <CollapsibleTrigger className='group flex w-full items-center justify-between py-2.5 text-left'>
+            <span className='text-foreground text-sm font-semibold'>
+              {t('Upstream Channel')}
+            </span>
+            <ChevronDown className='text-muted-foreground size-4 transition-transform group-data-[panel-open]:rotate-180' />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className='flex flex-wrap gap-1.5'>
+              <FilterChip
+                option={{
+                  value: FILTER_ALL,
+                  label: t('All Channels'),
+                  count: props.models.length,
+                }}
+                active={props.vendorFilter === FILTER_ALL}
+                onClick={() => props.onVendorChange(FILTER_ALL)}
+              />
+              {props.vendors.map((vendor) => {
+                const count = countBy(
+                  props.models,
+                  (model) => model.vendor_name === vendor.name
+                )
+                return (
+                  <FilterChip
+                    key={vendor.id ?? vendor.name}
+                    option={{
+                      value: vendor.name,
+                      label: vendor.name,
+                      count,
+                    }}
+                    active={props.vendorFilter === vendor.name}
+                    onClick={() => props.onVendorChange(vendor.name)}
+                  />
+                )
+              })}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Context Window Slider */}
         <Collapsible
           defaultOpen
           className='border-border/70 border-b pb-3 last:border-b-0'
