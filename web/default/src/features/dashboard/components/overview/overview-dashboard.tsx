@@ -636,7 +636,7 @@ export function OverviewDashboard() {
                       {t('Service')}
                     </span>
                     <span className='text-foreground text-lg font-semibold tabular-nums'>
-                      {apiInfoItems.length > 0 ? t('Online') : t('Offline')}
+                      {t('Online')}
                     </span>
                   </div>
                 </div>
