@@ -21,6 +21,7 @@ import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { HeroTerminalDemo } from '../hero-terminal-demo'
+import { HERO_STATS } from '../../constants'
 
 interface HeroProps {
   className?: string
@@ -102,6 +103,25 @@ export function Hero(props: HeroProps) {
               </Button>
             </>
           )}
+        </div>
+      </div>
+
+      {/* Platform stats bar */}
+      <div className='landing-animate-fade-up mt-10 w-full max-w-2xl opacity-0' style={{ animationDelay: '220ms' }}>
+        <div className='border-border/40 bg-muted/10 mx-auto flex divide-x divide-border/30 overflow-hidden rounded-xl border'>
+          {HERO_STATS.map((stat, i) => (
+            <div
+              key={stat.label}
+              className='flex flex-1 flex-col items-center justify-center px-3 py-3.5 text-center transition-colors duration-300 hover:bg-muted/20 sm:px-4'
+            >
+              <span className='text-xl font-bold tracking-tight tabular-nums sm:text-2xl'>
+                {t(stat.value)}
+              </span>
+              <span className='text-muted-foreground mt-0.5 text-[11px] sm:text-xs'>
+                {t(stat.label)}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 

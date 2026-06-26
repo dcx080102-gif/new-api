@@ -373,6 +373,25 @@ For commercial licensing, please contact support@quantumnous.com
     will-change: transform;
   }
 
+  /* Horizontal marquee animation for brand wall */
+  @keyframes marquee-horizontal {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee-horizontal {
+    animation: marquee-horizontal 30s linear infinite;
+    will-change: transform;
+  }
+
+  .animate-marquee-horizontal:hover {
+    animation-play-state: paused;
+  }
+
   .animate-scroll-down {
     animation: scroll-up 20s linear infinite reverse;
     will-change: transform;
@@ -390,6 +409,7 @@ For commercial licensing, please contact support@quantumnous.com
   .animate-appear-zoom,
   .animate-scroll-up,
   .animate-scroll-down,
+  .animate-marquee-horizontal,
   [data-slot='table'] tbody tr {
     animation: none !important;
     opacity: 1;

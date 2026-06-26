@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DEFAULT_STATS } from '../../constants'
 
 interface CounterProps {
   end: number
@@ -97,12 +98,12 @@ interface StatItem {
 export function Stats(_props: StatsProps) {
   const { t } = useTranslation()
 
-  const stats: StatItem[] = [
-    { end: 50, suffix: '+', label: t('upstream services integrated') },
-    { end: 100, suffix: '+', label: t('model billing support') },
-    { end: 50, suffix: '+', label: t('compatible API routes') },
-    { end: 10, suffix: '+', label: t('scheduling controls') },
-  ]
+  const stats: StatItem[] = DEFAULT_STATS.map((s) => ({
+    end: parseFloat(s.value),
+    suffix: s.suffix,
+    label: t(s.description),
+    decimals: s.value.includes('.') ? 1 : 0,
+  }))
 
   return (
     <div className='border-border/40 bg-muted/10 relative z-10 border-y'>

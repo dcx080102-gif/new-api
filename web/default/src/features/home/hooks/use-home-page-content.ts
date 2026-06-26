@@ -35,6 +35,11 @@ export function useHomePageContent(): HomePageContentResult {
   useEffect(() => {
     let mounted = true
 
+    // Safety timeout: force isLoaded after 8s even if API hangs
+    const safetyTimer = setTimeout(() => {
+      if (mounted) setIsLoaded(true)
+    }, 8000)
+
     const loadContent = async () => {
       // Load from localStorage first for immediate display
       const cached = localStorage.getItem(STORAGE_KEY)
@@ -72,6 +77,7 @@ export function useHomePageContent(): HomePageContentResult {
 
     return () => {
       mounted = false
+      clearTimeout(safetyTimer)
     }
   }, [])
 

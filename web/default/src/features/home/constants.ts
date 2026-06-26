@@ -60,25 +60,163 @@ export const GATEWAY_FEATURES = [
 // Stats section - Default statistics
 export const DEFAULT_STATS = [
   {
-    value: '50',
+    value: '76',
     suffix: '+',
-    description: 'upstream services integrated',
+    description: 'available models',
+  },
+  {
+    value: '12',
+    suffix: '+',
+    description: 'providers connected',
   },
   {
     value: '100',
     suffix: '+',
-    description: 'model billing support',
-  },
-  {
-    value: '50',
-    suffix: '+',
     description: 'compatible API routes',
   },
   {
-    value: '10',
-    suffix: '+',
-    description: 'scheduling controls',
+    value: '99.9',
+    suffix: '%',
+    description: 'uptime guarantee',
   },
+] as const
+
+// Why otter Link section — advantage cards
+export const WHY_OTTER_CARDS = [
+  {
+    icon: 'Zap',
+    title: 'Millisecond Latency',
+    description: 'Hong Kong BGP nodes with mainland China direct connect under 150ms. No more overseas proxy lag.',
+  },
+  {
+    icon: 'Eye',
+    title: 'Transparent Pricing',
+    description: 'Upstream 1:1 top-up, zero hidden markup. Every model price is publicly verifiable in real time.',
+  },
+  {
+    icon: 'Shield',
+    title: 'Zero Data Retention',
+    description: 'Requests are never logged, trained on, or exported. Full HTTPS encryption for enterprise compliance.',
+  },
+  {
+    icon: 'Plug',
+    title: 'One-Line Migration',
+    description: 'OpenAI SDK compatible. Change one base_url and you are done — zero refactoring cost.',
+  },
+  {
+    icon: 'BarChart3',
+    title: 'Real-Time Billing',
+    description: 'T+0 billing sync. Every single credit is tracked and auditable in real time.',
+  },
+  {
+    icon: 'BadgeCheck',
+    title: 'Verified Model Authenticity',
+    description: 'Every upstream channel is individually verified — identity checks, output quality comparison, knowledge cutoff validation.',
+  },
+] as const
+
+// Model Capability section — capability cards
+export const MODEL_CAPABILITIES = [
+  {
+    icon: 'MessagesSquare',
+    title: 'Text & Chat',
+    models: 'GPT-5.5, Claude Opus 4.7, DeepSeek V4, Gemini 3.1, Qwen 3, Llama 4, Grok 4, Mistral Large',
+    count: '76+',
+  },
+  {
+    icon: 'Image',
+    title: 'Image Generation',
+    models: 'DALL·E 4, Midjourney V7, Stable Diffusion 3.5, FLUX.1 Pro, Imagen 3, Playground v3',
+    count: '15+',
+  },
+  {
+    icon: 'Mic',
+    title: 'Voice & Speech',
+    models: 'Whisper large-v3, ElevenLabs, Azure TTS, MiniMax TTS, OpenAI TTS, Fish Audio',
+    count: '12+',
+  },
+  {
+    icon: 'Video',
+    title: 'Video Generation',
+    models: 'Kling 2.0, Sora, Vidu, Runway Gen-4, Pika 2.0, Luma Dream Machine',
+    count: '8+',
+  },
+] as const
+
+// Use Cases section — scenario cards
+export const USE_CASES = [
+  {
+    emoji: '👨‍💻',
+    title: 'Claude Code / Codex Users',
+    description: 'The best companion for coding agents. Low latency, high availability, and battle-tested with Claude Code, Codex CLI, and Cursor.',
+  },
+  {
+    emoji: '🏢',
+    title: 'SaaS Product Integration',
+    description: 'Inject AI capabilities into your product fast. Smart customer support, document summarization, data analysis — ship within a week.',
+  },
+  {
+    emoji: '🚀',
+    title: 'Indie Developers',
+    description: 'No GPU cluster required. Pay-as-you-go, low entry barrier. From MVP to scale, costs grow with your business.',
+  },
+  {
+    emoji: '🎓',
+    title: 'AI Learning & Research',
+    description: 'Access global mainstream models at lower cost. Supports academic research, AI coursework, and scientific experiments.',
+  },
+] as const
+
+// FAQ section — Q&A pairs
+export const FAQ_ITEMS = [
+  {
+    q: "What's the difference between otter Link and official APIs?",
+    a: "With otter Link, you don't need an overseas credit card, don't need to deal with network restrictions, and don't need to register with multiple providers separately. One API key, one base_url, recharge via Alipay/WeChat — you get access to the world's best AI models. We handle all the infrastructure headaches for you.",
+  },
+  {
+    q: 'Are the models genuine? Will outputs be degraded?',
+    a: "Every upstream channel we connect goes through individual verification — model identity checks, output quality comparison, and knowledge cutoff validation. We commit to no model swapping, no output degradation, and no impersonation. See our documentation for the full verification methodology.",
+  },
+  {
+    q: 'Is my data safe? Do you store my requests?',
+    a: 'Full end-to-end HTTPS encryption. Requests are never logged, never used for training, and never leave our infrastructure boundary. We are a pure conduit — your data passes through, it does not stay.',
+  },
+  {
+    q: 'Why are your prices lower than official?',
+    a: "We reduce costs through enterprise bulk purchasing and channel optimization. Upstream is 1:1 top-up — we don't add markup on resale. Our profit comes from volume, not from padding the unit price.",
+  },
+  {
+    q: 'Will my balance expire?',
+    a: 'No. Your balance never expires. Top up as much or as little as you need, with no forced subscription.',
+  },
+  {
+    q: 'What payment methods do you support?',
+    a: 'We currently support WeChat Pay and Alipay. More payment methods are being added over time.',
+  },
+] as const
+
+// Hero section - Platform stats bar
+export const HERO_STATS = [
+  { value: '76+', label: 'available models' },
+  { value: '12', label: 'providers connected' },
+  { value: 'T+0', label: 'real-time billing' },
+  { value: '99.9%', label: 'uptime guarantee' },
+] as const
+
+// Brand wall - Model provider logos
+export const BRAND_LOGOS = [
+  'OpenAI',
+  'Claude',
+  'Gemini',
+  'DeepSeek',
+  'Qwen',
+  'Llama',
+  'Grok',
+  'Mistral',
+  'Kimi',
+  'MiniMax',
+  'GLM',
+  'Stable Diffusion',
 ] as const
 
 // Features section - Default features
@@ -145,3 +283,29 @@ export function getDefaultFeatures(t: TFunction) {
     description: t(feature.description),
   }))
 }
+
+// Footer — custom column links for the homepage
+export const FOOTER_COLUMNS = [
+  {
+    title: 'footer.home.models.title',
+    links: [
+      { text: 'footer.home.models.pricing', href: '/pricing' },
+      { text: 'footer.home.models.browse', href: '/rankings' },
+    ],
+  },
+  {
+    title: 'footer.home.resources.title',
+    links: [
+      { text: 'footer.home.resources.docs', href: '/docs' },
+      { text: 'footer.home.resources.faq', href: '/about' },
+    ],
+  },
+  {
+    title: 'footer.home.company.title',
+    links: [
+      { text: 'footer.home.company.about', href: '/about' },
+      { text: 'footer.home.company.referral', href: '/about' },
+      { text: 'footer.home.company.contact', href: '/about' },
+    ],
+  },
+] as const

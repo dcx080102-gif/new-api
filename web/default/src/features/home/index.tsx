@@ -16,19 +16,33 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
-import { CTA, Features, Hero, HowItWorks, Stats } from './components'
+import { CTA, Features, Hero, HowItWorks, Stats, BrandWall, WhyOtter, ModelCapabilities, UseCases, FAQ } from './components'
 import { useHomePageContent } from './hooks'
+import { FOOTER_COLUMNS } from './constants'
 
 export function Home() {
   const { t } = useTranslation()
   const { auth } = useAuthStore()
   const isAuthenticated = !!auth.user
   const { content, isLoaded, isUrl } = useHomePageContent()
+
+  const footerColumns = useMemo(
+    () =>
+      FOOTER_COLUMNS.map((col) => ({
+        title: t(col.title),
+        links: col.links.map((link) => ({
+          text: t(link.text),
+          href: link.href,
+        })),
+      })),
+    [t]
+  )
 
   if (!isLoaded) {
     return (
@@ -63,11 +77,16 @@ export function Home() {
   return (
     <PublicLayout showMainContainer={false}>
       <Hero isAuthenticated={isAuthenticated} />
+      <BrandWall />
+      <WhyOtter />
+      <ModelCapabilities />
       <Stats />
       <Features />
+      <UseCases />
       <HowItWorks />
+      <FAQ />
       <CTA isAuthenticated={isAuthenticated} />
-      <Footer />
+      <Footer columns={footerColumns} />
     </PublicLayout>
   )
 }
