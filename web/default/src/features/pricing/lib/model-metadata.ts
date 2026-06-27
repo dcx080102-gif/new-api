@@ -211,6 +211,7 @@ function inferOutputModalities(
 
   if (endpoints.some((e) => IMAGE_OUTPUT_ENDPOINTS.has(e))) set.add('image')
   if (endpoints.some((e) => VIDEO_OUTPUT_ENDPOINTS.has(e))) set.add('video')
+  if (nameMatches(name, VIDEO_NAME_PATTERNS)) set.add('video')
   if (endpoints.some((e) => EMBEDDING_ENDPOINTS.has(e))) set.add('text')
 
   if (

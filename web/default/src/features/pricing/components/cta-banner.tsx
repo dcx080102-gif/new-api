@@ -77,14 +77,8 @@ export function CtaBanner({ className }: { className?: string }) {
 
   if (!user) {
     variant = 'no-auth'
-  } else if (loadingKeys || hasKeys === null) {
-    // Still loading — don't flash the wrong banner
-    variant = 'hidden'
-  } else if (!hasKeys) {
-    variant = 'no-key'
-  } else if (quota <= LOW_QUOTA_THRESHOLD) {
-    variant = 'low-quota'
   } else {
+    // Logged-in users don't need the CTA banner
     variant = 'hidden'
   }
 

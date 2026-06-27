@@ -32,7 +32,7 @@ export function FAQ() {
   }
 
   return (
-    <section className='border-border/40 relative z-10 border-t px-6 py-24 md:py-32'>
+    <section className='border-border/40 relative z-10 border-t px-6 py-16 md:py-24'>
       <div className='mx-auto max-w-2xl'>
         <AnimateInView className='mb-16 text-center'>
           <p className='text-muted-foreground mb-3 text-xs font-medium tracking-widest uppercase'>

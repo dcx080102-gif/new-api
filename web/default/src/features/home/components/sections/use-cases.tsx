@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
+import { Terminal, Building2, Rocket, GraduationCap } from 'lucide-react'
 import { AnimateInView } from '@/components/animate-in-view'
 import { USE_CASES } from '../../constants'
 
@@ -24,7 +25,7 @@ export function UseCases() {
   const { t } = useTranslation()
 
   return (
-    <section className='relative z-10 px-6 py-24 md:py-32'>
+    <section className='relative z-10 px-6 py-20 md:py-28'>
       <div className='mx-auto max-w-6xl'>
         <AnimateInView className='mb-16 text-center md:mb-20'>
           <p className='text-muted-foreground mb-3 text-xs font-medium tracking-widest uppercase'>
@@ -51,8 +52,11 @@ export function UseCases() {
               animation='fade-up'
               className='border-border/40 bg-muted/5 hover:bg-muted/10 hover:border-border/60 group rounded-xl border p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm'
             >
-              <div className='mb-4 text-3xl' aria-hidden>
-                {uc.emoji}
+              <div className='mb-4 flex size-10 items-center justify-center rounded-lg border border-border/30 bg-muted/20 group-hover:border-primary/20 group-hover:bg-primary/5 transition-colors duration-300' aria-hidden>
+                {uc.icon === 'Terminal' && <Terminal className='size-5 text-muted-foreground group-hover:text-primary transition-colors duration-300' strokeWidth={1.5} />}
+                {uc.icon === 'Building2' && <Building2 className='size-5 text-muted-foreground group-hover:text-primary transition-colors duration-300' strokeWidth={1.5} />}
+                {uc.icon === 'Rocket' && <Rocket className='size-5 text-muted-foreground group-hover:text-primary transition-colors duration-300' strokeWidth={1.5} />}
+                {uc.icon === 'GraduationCap' && <GraduationCap className='size-5 text-muted-foreground group-hover:text-primary transition-colors duration-300' strokeWidth={1.5} />}
               </div>
               <h3 className='mb-2 text-sm font-semibold'>{t(uc.title)}</h3>
               <p className='text-muted-foreground text-xs leading-relaxed'>

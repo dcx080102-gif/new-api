@@ -175,15 +175,22 @@ export function useChatHandler({
   )
 
   // Send chat request (stream or non-stream based on config)
+  // Force non-streaming for video/image generation models
   const sendChat = useCallback(
     (messages: Message[]) => {
-      if (config.stream) {
+      const modelName = config.model?.toLowerCase() || ''
+      const isMediaModel = modelName.includes('video') || 
+        modelName.includes('imagine') || 
+        modelName.includes('image') ||
+        modelName.includes('generate')
+      
+      if (config.stream && !isMediaModel) {
         sendStreamingChat(messages)
       } else {
         sendNonStreamingChat(messages)
       }
     },
-    [config.stream, sendStreamingChat, sendNonStreamingChat]
+    [config.stream, config.model, sendStreamingChat, sendNonStreamingChat]
   )
 
   // Stop generation

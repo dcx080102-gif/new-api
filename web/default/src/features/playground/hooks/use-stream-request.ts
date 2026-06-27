@@ -36,16 +36,22 @@ export function useStreamRequest() {
       onComplete: () => void,
       onError: (error: string, errorCode?: string) => void
     ) => {
+      // 180s timeout for long-running requests (video generation etc.)
+      const abortController = new AbortController()
+      const timeoutId = setTimeout(() => abortController.abort(), 180_000)
+
       const source = new SSE(API_ENDPOINTS.CHAT_COMPLETIONS, {
         headers: getCommonHeaders(),
         method: 'POST',
         payload: JSON.stringify(payload),
+        fetchOptions: { signal: abortController.signal },
       })
 
       sseSourceRef.current = source
       isStreamCompleteRef.current = false
 
       const closeSource = () => {
+        clearTimeout(timeoutId)
         source.close()
         sseSourceRef.current = null
       }

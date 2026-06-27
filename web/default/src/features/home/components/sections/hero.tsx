@@ -36,12 +36,12 @@ export function Hero(props: HeroProps) {
       {/* Radial gradient background */}
       <div
         aria-hidden
-        className='pointer-events-none absolute inset-0 -z-10 opacity-25 dark:opacity-[0.12]'
+        className='pointer-events-none absolute inset-0 -z-10 opacity-[0.06] dark:opacity-[0.08]'
         style={{
           background: [
-            'radial-gradient(ellipse 60% 50% at 20% 20%, oklch(0.72 0.18 250 / 80%) 0%, transparent 70%)',
-            'radial-gradient(ellipse 50% 40% at 80% 15%, oklch(0.65 0.15 200 / 60%) 0%, transparent 70%)',
-            'radial-gradient(ellipse 40% 35% at 40% 80%, oklch(0.70 0.12 280 / 40%) 0%, transparent 70%)',
+            'radial-gradient(ellipse 60% 50% at 20% 20%, rgba(0,0,0,0.4) 0%, transparent 70%)',
+            'radial-gradient(ellipse 50% 40% at 80% 15%, rgba(255,255,255,0.15) 0%, transparent 70%)',
+            'radial-gradient(ellipse 40% 35% at 40% 80%, rgba(0,0,0,0.3) 0%, transparent 70%)',
           ].join(', '),
         }}
       />
@@ -90,7 +90,7 @@ export function Hero(props: HeroProps) {
                 className='group border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px] min-w-[180px]'
                 render={<Link to='/sign-up' />}
               >
-                {t('Get Started')}
+                {t('Free Sign Up')}
                 <ArrowRight className='ml-1 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5' />
               </Button>
               <Button
@@ -99,7 +99,7 @@ export function Hero(props: HeroProps) {
                 className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px]'
                 render={<Link to='/pricing' />}
               >
-                {t('View Pricing')}
+                {t('View 76+ Model Prices')}
               </Button>
             </>
           )}

@@ -271,7 +271,12 @@ export function filterByCategory(
 
   return models.filter((m) => {
     const endpoints = m.supported_endpoint_types || []
-    return endpoints.some((ep) => mapEndpointToCategory(ep) === category)
+    if (endpoints.some((ep) => mapEndpointToCategory(ep) === category)) return true
+    // Fallback: name-based matching for models whose endpoints don't reflect video/image
+    const name = m.model_name || ''
+    if (category === CATEGORIES.VIDEO && /video|sora|veo|kling|pika|grok.*imagine/i.test(name)) return true
+    if (category === CATEGORIES.IMAGE && /dall-e|imagen|midjourney|flux|stable.*diffusion/i.test(name)) return true
+    return false
   })
 }
 

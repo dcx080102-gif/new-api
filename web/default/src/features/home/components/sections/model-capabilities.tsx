@@ -33,7 +33,7 @@ export function ModelCapabilities() {
   const { t } = useTranslation()
 
   return (
-    <section className='border-border/40 relative z-10 border-t px-6 py-24 md:py-32'>
+    <section className='border-border/40 relative z-10 border-t px-6 py-20 md:py-28'>
       <div className='mx-auto max-w-6xl'>
         <AnimateInView className='mb-16 max-w-lg'>
           <p className='text-muted-foreground mb-3 text-xs font-medium tracking-widest uppercase'>
@@ -84,7 +84,7 @@ export function ModelCapabilities() {
                         to='/pricing'
                         className='text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11px] font-medium transition-colors'
                       >
-                        {t('View all')}
+                        {t('Browse all models')}
                         <ArrowRight className='size-3' />
                       </Link>
                     </div>

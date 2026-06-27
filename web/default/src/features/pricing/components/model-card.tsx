@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { DEFAULT_TOKEN_UNIT, MAX_TAGS_DISPLAY } from '../constants'
 import { isTokenBasedModel, normalizeModelName, getModelBrandIconKey } from '../lib/model-helpers'
-import { formatPrice } from '../lib/price'
+import { formatPrice, formatRequestPrice } from '../lib/price'
 import {
   inferModelMetadata,
   formatTokenCount,
@@ -330,10 +330,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           <span className='inline-flex items-baseline gap-1'>
             <span className='text-muted-foreground text-xs'>{t('Price')}</span>
             <span className='text-foreground font-mono font-semibold text-sm'>
-              {formatPrice(
+              {formatRequestPrice(
                 props.model,
-                'input',
-                tokenUnit,
                 showRechargePrice,
                 priceRate,
                 usdExchangeRate

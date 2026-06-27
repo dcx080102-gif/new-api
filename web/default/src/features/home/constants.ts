@@ -146,21 +146,25 @@ export const MODEL_CAPABILITIES = [
 // Use Cases section — scenario cards
 export const USE_CASES = [
   {
+    icon: 'Terminal',
     emoji: '👨‍💻',
     title: 'Claude Code / Codex Users',
     description: 'The best companion for coding agents. Low latency, high availability, and battle-tested with Claude Code, Codex CLI, and Cursor.',
   },
   {
+    icon: 'Building2',
     emoji: '🏢',
     title: 'SaaS Product Integration',
     description: 'Inject AI capabilities into your product fast. Smart customer support, document summarization, data analysis — ship within a week.',
   },
   {
+    icon: 'Rocket',
     emoji: '🚀',
     title: 'Indie Developers',
     description: 'No GPU cluster required. Pay-as-you-go, low entry barrier. From MVP to scale, costs grow with your business.',
   },
   {
+    icon: 'GraduationCap',
     emoji: '🎓',
     title: 'AI Learning & Research',
     description: 'Access global mainstream models at lower cost. Supports academic research, AI coursework, and scientific experiments.',

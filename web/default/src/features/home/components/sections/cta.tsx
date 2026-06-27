@@ -35,15 +35,15 @@ export function CTA(props: CTAProps) {
   }
 
   return (
-    <section className='relative z-10 overflow-hidden px-6 py-24 md:py-32'>
+    <section className='relative z-10 overflow-hidden px-6 py-20 md:py-28'>
       {/* Gradient mesh background */}
       <div
         aria-hidden
-        className='absolute inset-0 -z-10 opacity-20 dark:opacity-[0.08]'
+        className='absolute inset-0 -z-10 opacity-[0.06] dark:opacity-[0.06]'
         style={{
           background: [
-            'radial-gradient(ellipse 50% 50% at 30% 50%, oklch(0.7 0.15 250 / 70%) 0%, transparent 70%)',
-            'radial-gradient(ellipse 40% 40% at 70% 40%, oklch(0.65 0.12 200 / 50%) 0%, transparent 70%)',
+            'radial-gradient(ellipse 50% 50% at 30% 50%, rgba(0,0,0,0.3) 0%, transparent 70%)',
+            'radial-gradient(ellipse 40% 40% at 70% 40%, rgba(255,255,255,0.12) 0%, transparent 70%)',
           ].join(', '),
         }}
       />
@@ -71,7 +71,7 @@ export function CTA(props: CTAProps) {
             className='group border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px] min-w-[180px]'
             render={<Link to='/sign-up' />}
           >
-            {t('Get Started')}
+            {t('Free Sign Up')}
             <ArrowRight className='ml-1 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5' />
           </Button>
           <Button
@@ -80,7 +80,7 @@ export function CTA(props: CTAProps) {
             className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px]'
             render={<Link to='/pricing' />}
           >
-            {t('View Pricing')}
+            {t('View Model Prices')}
           </Button>
         </div>
       </AnimateInView>
