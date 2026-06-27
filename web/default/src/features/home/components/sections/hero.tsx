@@ -20,6 +20,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { AnimatedLogo } from '../animated-logo'
 import { HERO_STATS } from '../../constants'
 
 interface HeroProps {
@@ -51,6 +52,7 @@ export function Hero(props: HeroProps) {
       />
 
       <div className='flex max-w-3xl flex-col items-center text-center'>
+        <AnimatedLogo />
         <div
           className='landing-animate-fade-up mt-8 flex flex-col items-center gap-3 sm:flex-row opacity-0'
           style={{ animationDelay: '0ms' }}
