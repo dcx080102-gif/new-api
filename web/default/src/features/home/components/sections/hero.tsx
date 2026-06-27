@@ -20,7 +20,6 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { HeroTerminalDemo } from '../hero-terminal-demo'
 import { HERO_STATS } from '../../constants'
 
 interface HeroProps {
@@ -52,25 +51,9 @@ export function Hero(props: HeroProps) {
       />
 
       <div className='flex max-w-3xl flex-col items-center text-center'>
-        <h1
-          className='landing-animate-fade-up text-[clamp(2rem,5.5vw,3.5rem)] leading-[1.15] font-bold tracking-tight'
-          style={{ animationDelay: '0ms' }}
-        >
-          {t('Unified API Gateway for')}
-          <br />
-          <span className='bg-gradient-to-r from-blue-400 via-violet-400 to-purple-500 bg-clip-text text-transparent'>
-            {t('All Your AI Models')}
-          </span>
-        </h1>
-        <p
-          className='landing-animate-fade-up text-muted-foreground/80 mt-5 max-w-lg text-base leading-relaxed opacity-0 md:text-lg'
-          style={{ animationDelay: '80ms' }}
-        >
-          {t('Power AI applications, manage digital assets, connect the Future')}
-        </p>
         <div
           className='landing-animate-fade-up mt-8 flex flex-col items-center gap-3 sm:flex-row opacity-0'
-          style={{ animationDelay: '160ms' }}
+          style={{ animationDelay: '0ms' }}
         >
           {props.isAuthenticated ? (
             <Button
@@ -123,13 +106,6 @@ export function Hero(props: HeroProps) {
             </div>
           ))}
         </div>
-      </div>
-
-      <div
-        className='landing-animate-fade-up w-full opacity-0'
-        style={{ animationDelay: '300ms' }}
-      >
-        <HeroTerminalDemo />
       </div>
     </section>
   )
