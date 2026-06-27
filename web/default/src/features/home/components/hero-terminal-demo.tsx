@@ -503,7 +503,7 @@ function CodeLine(props: { children: ReactNode; indent?: number }) {
 
 function Command(props: { children: ReactNode }) {
   return (
-    <span className='font-medium text-violet-600 dark:text-violet-400'>
+    <span className='font-medium text-foreground/70'>
       {props.children}
     </span>
   )
@@ -511,7 +511,7 @@ function Command(props: { children: ReactNode }) {
 
 function Flag(props: { children: ReactNode }) {
   return (
-    <span className='text-violet-600 dark:text-violet-400'>{props.children}</span>
+    <span className='text-foreground/50'>{props.children}</span>
   )
 }
 
@@ -523,13 +523,13 @@ function Key(props: { children: ReactNode }) {
 
 function StringText(props: { children: ReactNode }) {
   return (
-    <span className='text-violet-500 dark:text-violet-300'>{props.children}</span>
+    <span className='text-emerald-600 dark:text-emerald-400'>{props.children}</span>
   )
 }
 
 function NumberText(props: { children: ReactNode }) {
   return (
-    <span className='font-medium text-violet-600 dark:text-violet-300'>
+    <span className='font-medium text-amber-600 dark:text-amber-400'>
       {props.children}
     </span>
   )
