@@ -16,19 +16,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Link } from '@tanstack/react-router'
-import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { AnimatedLogo } from '../animated-logo'
-import { HERO_STATS } from '../../constants'
 
 interface HeroProps {
   className?: string
   isAuthenticated?: boolean
 }
 
-export function Hero(props: HeroProps) {
+export function Hero(_props: HeroProps) {
   const { t } = useTranslation()
 
   return (
@@ -51,63 +46,20 @@ export function Hero(props: HeroProps) {
         className='absolute inset-0 -z-10 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,black_20%,transparent_100%)] bg-[size:4rem_4rem] opacity-[0.08]'
       />
 
-      <div className='flex max-w-3xl flex-col items-center text-center'>
-        <AnimatedLogo />
-        <div
-          className='landing-animate-fade-up mt-8 flex flex-col items-center gap-3 sm:flex-row opacity-0'
-          style={{ animationDelay: '0ms' }}
-        >
-          {props.isAuthenticated ? (
-            <Button
-              variant='outline'
-              size='lg'
-              className='group rounded-lg min-h-[44px] min-w-[180px]'
-              render={<Link to='/dashboard' />}
-            >
-              {t('Go to Dashboard')}
-              <ArrowRight className='ml-1 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5' />
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant='outline'
-                size='lg'
-                className='group border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px] min-w-[180px]'
-                render={<Link to='/sign-up' />}
-              >
-                {t('Free Sign Up')}
-                <ArrowRight className='ml-1 size-3.5 transition-transform duration-200 group-hover:translate-x-0.5' />
-              </Button>
-              <Button
-                variant='outline'
-                size='lg'
-                className='border-border/50 hover:border-border hover:bg-muted/50 rounded-lg min-h-[44px]'
-                render={<Link to='/pricing' />}
-              >
-                {t('View 76+ Model Prices')}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Platform stats bar */}
-      <div className='landing-animate-fade-up mt-10 w-full max-w-2xl opacity-0' style={{ animationDelay: '220ms' }}>
-        <div className='border-border/40 bg-muted/10 mx-auto flex divide-x divide-border/30 overflow-hidden rounded-xl border'>
-          {HERO_STATS.map((stat, i) => (
-            <div
-              key={stat.label}
-              className='flex flex-1 flex-col items-center justify-center px-3 py-3.5 text-center transition-colors duration-300 hover:bg-muted/20 sm:px-4'
-            >
-              <span className='text-xl font-bold tracking-tight tabular-nums sm:text-2xl'>
-                {t(stat.value)}
-              </span>
-              <span className='text-muted-foreground mt-0.5 text-[11px] sm:text-xs'>
-                {t(stat.label)}
-              </span>
-            </div>
-          ))}
-        </div>
+      {/* Heading */}
+      <div className='landing-animate-fade-up flex max-w-3xl flex-col items-center text-center opacity-0' style={{ animationDelay: '0ms' }}>
+        <h1 className='text-[clamp(1.8rem,5vw,3.2rem)] leading-[1.2] font-extrabold tracking-tight'>
+          <span className='text-foreground'>otter Link</span>
+          <span className='text-muted-foreground/40 mx-3 font-normal'>——</span>
+          <span className='bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent'>
+            {t('AI at Your Fingertips')}
+          </span>
+        </h1>
+        <p className='mt-3 text-sm font-medium tracking-wide text-muted-foreground/60 sm:text-base'>
+          <span>{t('Unified AI Model Aggregator')}</span>
+          <span className='text-muted-foreground/30 mx-2'>·</span>
+          <span>{t('OpenAI Compatible Relay')}</span>
+        </p>
       </div>
     </section>
   )
