@@ -69,6 +69,7 @@ var ModelList = []string{
 	"gpt-image-2",
 	"chatgpt-image-latest",
 	"image-2",
+	"grok-imagine-image-quality",
 	"whisper-1",
 	"tts-1", "tts-1-1106", "tts-1-hd", "tts-1-hd-1106",
 	"computer-use-preview", "computer-use-preview-2025-03-11",
