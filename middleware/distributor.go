@@ -38,6 +38,25 @@ func Distribute() func(c *gin.Context) {
 			abortWithOpenAiMessage(c, http.StatusBadRequest, i18n.T(c, i18n.MsgDistributorInvalidRequest, map[string]any{"Error": err.Error()}))
 			return
 		}
+		// 生图模型走聊天接口时，自动转为生图请求
+		if modelRequest != nil && common.IsImageGenerationModel(modelRequest.Model) &&
+			(strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions")) {
+			c.Request.URL.Path = "/v1/images/generations"
+			// 把聊天 messages 的最后一句话提取为 prompt，写入新请求体
+			if body, err := io.ReadAll(c.Request.Body); err == nil {
+				lastMsg := gjson.Get(string(body), "messages.@reverse.0.content").String()
+				if lastMsg == "" {
+					lastMsg = gjson.Get(string(body), "messages.0.content").String()
+				}
+				if lastMsg == "" {
+					lastMsg = "a beautiful landscape"
+				}
+				newBody := fmt.Sprintf(`{"model":"%s","prompt":"%s","n":1,"size":"1024x1024"}`,
+					modelRequest.Model, strings.ReplaceAll(lastMsg, `"`, `\"`))
+				c.Request.Body = io.NopCloser(strings.NewReader(newBody))
+				c.Request.ContentLength = int64(len(newBody))
+			}
+		}
 		if ok {
 			id, err := strconv.Atoi(channelId.(string))
 			if err != nil {
