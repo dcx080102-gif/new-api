@@ -139,6 +139,11 @@ func testChannel(channel *model.Channel, testUserID int, testModel string, endpo
 			requestPath = "/v1/images/generations"
 		}
 
+		// 图像生成模型（dall-e, image-2, imagen, flux 等）
+		if common.IsImageGenerationModel(testModel) {
+			requestPath = "/v1/images/generations"
+		}
+
 		// responses-only models
 		if strings.Contains(strings.ToLower(testModel), "codex") {
 			requestPath = "/v1/responses"
@@ -796,6 +801,16 @@ func buildTestRequest(model string, endpointType string, channel *model.Channel,
 			Model:  model,
 			Input:  json.RawMessage(`[{"role":"user","content":"hi"}]`),
 			Stream: lo.ToPtr(isStream),
+		}
+	}
+
+	// 图像生成模型（dall-e, image-2, imagen, flux 等）
+	if common.IsImageGenerationModel(model) {
+		return &dto.ImageRequest{
+			Model:  model,
+			Prompt: "a cute cat",
+			N:      lo.ToPtr(uint(1)),
+			Size:   "1024x1024",
 		}
 	}
 
