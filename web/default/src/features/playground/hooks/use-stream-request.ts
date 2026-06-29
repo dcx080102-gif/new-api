@@ -66,8 +66,9 @@ export function useStreamRequest() {
       source.addEventListener('message', (e: MessageEvent) => {
         if (e.data === '[DONE]') {
           isStreamCompleteRef.current = true
-          closeSource()
           onComplete()
+          // Delay close to ensure sse.js finishes processing
+          setTimeout(() => closeSource(), 100)
           return
         }
 
