@@ -67,6 +67,7 @@ var ModelList = []string{
 	"dall-e-2", "dall-e-3",
 	"gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5",
 	"chatgpt-image-latest",
+	"image-2",
 	"whisper-1",
 	"tts-1", "tts-1-1106", "tts-1-hd", "tts-1-hd-1106",
 	"computer-use-preview", "computer-use-preview-2025-03-11",
