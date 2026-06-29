@@ -43,10 +43,11 @@ func Distribute() func(c *gin.Context) {
 			(strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions")) {
 			c.Request.URL.Path = "/v1/images/generations"
 			// 把聊天 messages 的最后一句话提取为 prompt，写入新请求体
-			if body, err := io.ReadAll(c.Request.Body); err == nil {
-				lastMsg := gjson.Get(string(body), "messages.@reverse.0.content").String()
+			if storage, err := common.GetBodyStorage(c); err == nil {
+				bodyBytes, _ := storage.Bytes()
+				lastMsg := gjson.Get(string(bodyBytes), "messages.@reverse.0.content").String()
 				if lastMsg == "" {
-					lastMsg = gjson.Get(string(body), "messages.0.content").String()
+					lastMsg = gjson.Get(string(bodyBytes), "messages.0.content").String()
 				}
 				if lastMsg == "" {
 					lastMsg = "a beautiful landscape"
