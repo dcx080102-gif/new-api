@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 /* eslint-disable react-refresh/only-export-components */
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import {
@@ -25,6 +25,7 @@ import {
   ChevronDown,
   ChevronRight,
   ListOrdered,
+  RotateCw,
   Shuffle,
   SlidersHorizontal,
 } from 'lucide-react'
@@ -35,7 +36,7 @@ import {
   formatTimestampToDate,
   formatQuota as formatQuotaValue,
 } from '@/lib/format'
-import { truncateText } from '@/lib/utils'
+import { cn, truncateText } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -283,7 +284,7 @@ function WeightCell({ channel }: { channel: Channel }) {
 }
 
 /**
- * Balance cell component with click to update
+ * Balance cell component with inline edit + optional refresh
  */
 function BalanceCell({ channel }: { channel: Channel }) {
   const { t } = useTranslation()
@@ -291,10 +292,13 @@ function BalanceCell({ channel }: { channel: Channel }) {
   const isTagRow = isTagAggregateRow(channel)
   const balance = channel.balance || 0
   const usedQuota = channel.used_quota || 0
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
   const [codexUsageOpen, setCodexUsageOpen] = useState(false)
   const [codexUsageResponse, setCodexUsageResponse] =
     useState<CodexUsageDialogData | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const currencyLabel = getCurrencyLabel()
   const tokenSuffix = currencyLabel === 'Tokens' ? ' Tokens' : ''
   const withSuffix = (value: string) =>
@@ -304,6 +308,14 @@ function BalanceCell({ channel }: { channel: Channel }) {
   const remainingDisplay = withSuffix(formatBalance(balance))
   const usedLabel = `${t('Used:')} ${usedDisplay}`
   const remainingLabel = `${t('Remaining:')} ${remainingDisplay}`
+
+  // Can auto-query: official channels with known balance APIs
+  const canAutoQuery =
+    channel.type === 43 || // DeepSeek
+    channel.type === 11 || // SiliconFlow
+    channel.type === 15 || // Moonshot
+    channel.type === 33 || // OpenRouter
+    (channel.type === 1 && channel.base_url?.includes('api.openai.com'))
 
   // Tag row: only show cumulative used quota
   if (isTagRow) {
@@ -318,12 +330,43 @@ function BalanceCell({ channel }: { channel: Channel }) {
     )
   }
 
-  // Regular channel row: show used and remaining with click to update
   const variant = getBalanceVariant(balance)
 
-  const handleClickUpdate = async () => {
-    if (isUpdating) return
+  // Start inline edit
+  const handleStartEdit = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditValue(String(balance))
+    setIsEditing(true)
+    requestAnimationFrame(() => inputRef.current?.select())
+  }
 
+  // Save balance
+  const handleSaveBalance = () => {
+    setIsEditing(false)
+    const num = parseFloat(editValue)
+    if (isNaN(num) || num < 0) {
+      setEditValue(String(balance))
+      return
+    }
+    if (num !== balance) {
+      handleUpdateChannelField(channel.id, 'balance', num, queryClient)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSaveBalance()
+    } else if (e.key === 'Escape') {
+      setIsEditing(false)
+      setEditValue(String(balance))
+    }
+  }
+
+  // Auto-query balance from upstream
+  const handleRefreshBalance = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isUpdating) return
     setIsUpdating(true)
     if (channel.type === 57) {
       try {
@@ -342,7 +385,6 @@ function BalanceCell({ channel }: { channel: Channel }) {
       }
       return
     }
-
     await handleUpdateChannelBalance(channel.id, queryClient)
     setIsUpdating(false)
   }
@@ -350,6 +392,7 @@ function BalanceCell({ channel }: { channel: Channel }) {
   return (
     <TooltipProvider>
       <div className='flex items-center gap-1'>
+        {/* Used — read only */}
         <Tooltip>
           <TooltipTrigger
             render={
@@ -367,41 +410,84 @@ function BalanceCell({ channel }: { channel: Channel }) {
             <p>{usedLabel}</p>
           </TooltipContent>
         </Tooltip>
+
+        {/* Remaining — inline editable */}
         <Tooltip>
           <TooltipTrigger
             render={
-              <StatusBadge
-                label={
-                  isUpdating
-                    ? t('Updating...')
-                    : channel.type === 57
-                      ? t('Account Info')
-                      : remainingDisplay
-                }
-                variant={
-                  channel.type === 57
-                    ? 'info'
-                    : isUpdating
-                      ? 'neutral'
-                      : variant
-                }
-                size='sm'
-                copyable={false}
-                showDot={false}
-                className='cursor-pointer'
-                onClick={handleClickUpdate}
-              />
+              isEditing ? (
+                <input
+                  ref={inputRef}
+                  type='text'
+                  value={editValue}
+                  onChange={(e) => {
+                    const raw = e.target.value
+                    if (raw === '' || raw === '.') {
+                      setEditValue(raw)
+                      return
+                    }
+                    if (!/^\d*\.?\d*$/.test(raw)) return
+                    setEditValue(raw)
+                  }}
+                  onBlur={handleSaveBalance}
+                  onKeyDown={handleKeyDown}
+                  className='h-6 w-20 rounded border bg-background px-1.5 text-center font-mono text-xs outline-none ring-primary/30 focus:ring-1'
+                  autoFocus
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <StatusBadge
+                  label={
+                    isUpdating
+                      ? t('Updating...')
+                      : channel.type === 57
+                        ? t('Account Info')
+                        : remainingDisplay
+                  }
+                  variant={
+                    channel.type === 57
+                      ? 'info'
+                      : isUpdating
+                        ? 'neutral'
+                        : variant
+                  }
+                  size='sm'
+                  copyable={false}
+                  showDot={false}
+                  className='cursor-pointer'
+                  onClick={
+                    channel.type === 57 ? handleRefreshBalance : handleStartEdit
+                  }
+                />
+              )
             }
           />
           <TooltipContent>
-            <p>
-              {channel.type === 57
-                ? t('Click to view Codex usage')
-                : remainingLabel}
-            </p>
-            {channel.type !== 57 && <p>{t('Click to update balance')}</p>}
+            <p>{remainingLabel}</p>
+            {!isEditing && channel.type !== 57 && (
+              <p>{t('Click to edit balance')}</p>
+            )}
+            {canAutoQuery && channel.type !== 57 && (
+              <p>{t('Click refresh icon to query upstream')}</p>
+            )}
           </TooltipContent>
         </Tooltip>
+
+        {/* Refresh button for auto-query channels */}
+        {canAutoQuery && !isEditing && (
+          <Button
+            variant='ghost'
+            size='sm'
+            className='size-5 p-0'
+            disabled={isUpdating}
+            onClick={handleRefreshBalance}
+            aria-label={t('Query upstream balance')}
+          >
+            <RotateCw
+              className={cn('size-3', isUpdating && 'animate-spin')}
+            />
+          </Button>
+        )}
       </div>
 
       <CodexUsageDialog
