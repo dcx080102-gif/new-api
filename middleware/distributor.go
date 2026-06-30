@@ -58,6 +58,25 @@ func Distribute() func(c *gin.Context) {
 				c.Request.ContentLength = int64(len(newBody))
 			}
 		}
+		// 视频模型走聊天接口时，自动转为视频生成请求
+		if modelRequest != nil && common.IsVideoGenerationModel(modelRequest.Model) &&
+			(strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions")) {
+			c.Request.URL.Path = "/v1/video/generations"
+			if storage, err := common.GetBodyStorage(c); err == nil {
+				bodyBytes, _ := storage.Bytes()
+				lastMsg := gjson.Get(string(bodyBytes), "messages.@reverse.0.content").String()
+				if lastMsg == "" {
+					lastMsg = gjson.Get(string(bodyBytes), "messages.0.content").String()
+				}
+				if lastMsg == "" {
+					lastMsg = "a cute cat playing piano"
+				}
+				newBody := fmt.Sprintf(`{"model":"%s","prompt":"%s","n":1}`,
+					modelRequest.Model, strings.ReplaceAll(lastMsg, `"`, `\"`))
+				c.Request.Body = io.NopCloser(strings.NewReader(newBody))
+				c.Request.ContentLength = int64(len(newBody))
+			}
+		}
 		if ok {
 			id, err := strconv.Atoi(channelId.(string))
 			if err != nil {

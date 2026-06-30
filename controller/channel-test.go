@@ -144,6 +144,11 @@ func testChannel(channel *model.Channel, testUserID int, testModel string, endpo
 			requestPath = "/v1/images/generations"
 		}
 
+		// 视频生成模型（grok-video, sora, kling 等）
+		if common.IsVideoGenerationModel(testModel) {
+			requestPath = "/v1/video/generations"
+		}
+
 		// responses-only models
 		if strings.Contains(strings.ToLower(testModel), "codex") {
 			requestPath = "/v1/responses"
@@ -811,6 +816,14 @@ func buildTestRequest(model string, endpointType string, channel *model.Channel,
 			Prompt: "a cute cat",
 			N:      lo.ToPtr(uint(1)),
 			Size:   "1024x1024",
+		}
+	}
+
+	// 视频生成模型（grok-video, sora, kling 等）
+	if common.IsVideoGenerationModel(model) {
+		return &dto.VideoRequest{
+			Model:  model,
+			Prompt: "a cute cat playing piano",
 		}
 	}
 
