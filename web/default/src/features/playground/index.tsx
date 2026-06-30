@@ -210,6 +210,7 @@ export function Playground() {
       <div className='mx-auto w-full max-w-4xl'>
         <PlaygroundInput
           disabled={isGenerating}
+          enableSearch={config.enable_search}
           groups={groups}
           groupValue={config.group}
           isGenerating={isGenerating}
@@ -220,6 +221,9 @@ export function Playground() {
           onModelChange={(value) => updateConfig('model', value)}
           onStop={stopGeneration}
           onSubmit={handleSendMessage}
+          onToggleSearch={() =>
+            updateConfig('enable_search', !config.enable_search)
+          }
         />
       </div>
     </div>

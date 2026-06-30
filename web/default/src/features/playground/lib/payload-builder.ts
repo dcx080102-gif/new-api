@@ -63,5 +63,10 @@ export function buildChatCompletionPayload(
     }
   })
 
+  // Web search
+  if (config.enable_search) {
+    payload.web_search_options = { search_context_size: 'medium' }
+  }
+
   return payload
 }

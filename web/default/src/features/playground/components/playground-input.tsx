@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useRef, useState } from 'react'
+import { cn } from '@/lib/utils'
 import {
   PaperclipIcon,
   FileIcon,
@@ -65,6 +66,8 @@ interface PlaygroundInputProps {
   groups: GroupOption[]
   groupValue: string
   onGroupChange: (value: string) => void
+  enableSearch: boolean
+  onToggleSearch: () => void
 }
 
 const suggestions = [
@@ -109,6 +112,8 @@ export function PlaygroundInput({
   groups,
   groupValue,
   onGroupChange,
+  enableSearch,
+  onToggleSearch,
 }: PlaygroundInputProps) {
   const { t } = useTranslation()
   const [text, setText] = useState('')
@@ -386,9 +391,12 @@ export function PlaygroundInput({
             </DropdownMenu>
 
             <PromptInputButton
-              className='border font-medium'
+              className={cn(
+                'border font-medium',
+                enableSearch && 'bg-primary/10 border-primary/30 text-primary'
+              )}
               disabled={disabled}
-              onClick={() => toast.info(t('Search feature in development'))}
+              onClick={onToggleSearch}
               variant='outline'
             >
               <GlobeIcon size={16} />
