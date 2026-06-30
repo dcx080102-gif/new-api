@@ -374,7 +374,8 @@ func updateChannelBalance(channel *model.Channel) (float64, error) {
 	case constant.ChannelTypeAzure:
 		return 0, errors.New("尚未实现")
 	case constant.ChannelTypeCustom:
-		baseURL = channel.GetBaseURL()
+		// 自定义渠道不支持标准余额查询接口
+		return 0, errors.New("自定义渠道不支持自动查询余额，请手动前往上游查看")
 	//case common.ChannelTypeOpenAISB:
 	//	return updateChannelOpenAISBBalance(channel)
 	case constant.ChannelTypeAIProxy:
