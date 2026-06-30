@@ -136,7 +136,49 @@ export function useChatHandler({
 
       try {
         const response = await sendChatCompletion(payload)
-        const choice = response.choices?.[0]
+        
+        // 检测是否为生图响应（OpenAI 图片格式：{ data: [{ url: "..." }] }）
+        const responseData = response as Record<string, unknown>
+        if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
+          const imageData = responseData.data[0] as Record<string, string>
+          const imageUrl = imageData.url || imageData.b64_json || ''
+          if (imageUrl) {
+            const content = imageUrl.startsWith('data:') 
+              ? `![Generated Image](${imageUrl})`
+              : `![Generated Image](${imageUrl})\n\n[Open Image](${imageUrl})`
+            onMessageUpdate((prev) =>
+              updateLastAssistantMessage(prev, (message) => ({
+                ...finalizeMessage({
+                  ...message,
+                  versions: [{ ...message.versions[0], content }],
+                }),
+                status: MESSAGE_STATUS.COMPLETE,
+              }))
+            )
+            return
+          }
+        }
+        
+        // 检测是否为视频响应（task-based：{ task_id: "...", status: "..." }）
+        const respAny = responseData as Record<string, unknown>
+        if (respAny.task_id) {
+          const taskId = respAny.task_id as string
+          const taskStatus = (respAny.status as string) || 'processing'
+          const content = `🎬 Video generation submitted\n\nTask ID: ${taskId}\nStatus: ${taskStatus}\n\nPlease wait for processing to complete.`
+          onMessageUpdate((prev) =>
+            updateLastAssistantMessage(prev, (message) => ({
+              ...finalizeMessage({
+                ...message,
+                versions: [{ ...message.versions[0], content }],
+              }),
+              status: MESSAGE_STATUS.COMPLETE,
+            }))
+          )
+          return
+        }
+
+        // 标准聊天响应
+        const choice = (response as ChatCompletionResponse).choices?.[0]
         if (!choice) return
 
         onMessageUpdate((prev) =>
