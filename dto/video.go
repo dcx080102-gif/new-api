@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/QuantumNous/new-api/types"
+import (
+	"github.com/QuantumNous/new-api/types"
+	"github.com/gin-gonic/gin"
+)
 
 type VideoRequest struct {
 	Model          string         `json:"model,omitempty" example:"kling-v1"`                                                                                                                                    // Model/style ID
@@ -22,6 +25,14 @@ func (r *VideoRequest) GetTokenCountMeta() *types.TokenCountMeta {
 		CombineText: r.Prompt,
 		MaxTokens:   1584,
 	}
+}
+
+func (r *VideoRequest) IsStream(_ *gin.Context) bool {
+	return false
+}
+
+func (r *VideoRequest) SetModelName(modelName string) {
+	r.Model = modelName
 }
 
 // VideoResponse 视频生成提交任务后的响应
