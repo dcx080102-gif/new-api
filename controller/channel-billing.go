@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -365,6 +366,10 @@ func updateChannelBalance(channel *model.Channel) (float64, error) {
 	case constant.ChannelTypeOpenAI:
 		if channel.GetBaseURL() != "" {
 			baseURL = channel.GetBaseURL()
+		}
+		// 只对 OpenAI 官方 API 查询余额，中转站不支持 /v1/dashboard/billing/subscription
+		if !strings.Contains(baseURL, "api.openai.com") {
+			return 0, errors.New("该渠道为第三方中转站，不支持自动查询余额，请手动前往上游查看")
 		}
 	case constant.ChannelTypeAzure:
 		return 0, errors.New("尚未实现")
