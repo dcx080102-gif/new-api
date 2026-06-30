@@ -41,7 +41,13 @@ func Distribute() func(c *gin.Context) {
 		// 生图模型走聊天接口时，自动转为生图请求
 		if modelRequest != nil && common.IsImageGenerationModel(modelRequest.Model) &&
 			(strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions")) {
+			// 保存 playground 标记，路径重定向后会丢失
+			isPlayground := strings.HasPrefix(c.Request.URL.Path, "/pg/")
 			c.Request.URL.Path = "/v1/images/generations"
+			// 如果来自游乐园，设置标记
+			if isPlayground {
+				c.Set("is_playground", true)
+			}
 			// 把聊天 messages 的最后一句话提取为 prompt，写入新请求体
 			if storage, err := common.GetBodyStorage(c); err == nil {
 				bodyBytes, _ := storage.Bytes()
