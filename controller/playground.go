@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/model"
@@ -29,7 +30,13 @@ func Playground(c *gin.Context) {
 		return
 	}
 
-	relayInfo, err := relaycommon.GenRelayInfo(c, types.RelayFormatOpenAI, nil, nil)
+	relayFormat := types.RelayFormatOpenAI
+	// 如果 distributor 已重定向到生图路径，使用图片 relay format
+	if strings.HasPrefix(c.Request.URL.Path, "/v1/images/") {
+		relayFormat = types.RelayFormatOpenAIImage
+	}
+
+	relayInfo, err := relaycommon.GenRelayInfo(c, relayFormat, nil, nil)
 	if err != nil {
 		newAPIError = types.NewError(err, types.ErrorCodeInvalidRequest, types.ErrOptionWithSkipRetry())
 		return
@@ -52,5 +59,5 @@ func Playground(c *gin.Context) {
 	}
 	_ = middleware.SetupContextForToken(c, tempToken)
 
-	Relay(c, types.RelayFormatOpenAI)
+	Relay(c, relayFormat)
 }

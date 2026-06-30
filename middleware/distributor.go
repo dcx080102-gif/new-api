@@ -38,10 +38,16 @@ func Distribute() func(c *gin.Context) {
 			abortWithOpenAiMessage(c, http.StatusBadRequest, i18n.T(c, i18n.MsgDistributorInvalidRequest, map[string]any{"Error": err.Error()}))
 			return
 		}
-		// 生图模型走聊天接口时，保持聊天格式，让上游处理
+		// 生图模型走聊天接口时，自动转为生图请求
 		if modelRequest != nil && common.IsImageGenerationModel(modelRequest.Model) &&
 			(strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions")) {
-			// 不改变路径，保持聊天接口
+			// 保存 playground 标记
+			isPlayground := strings.HasPrefix(c.Request.URL.Path, "/pg/")
+			c.Request.URL.Path = "/v1/images/generations"
+			if isPlayground {
+				c.Set("is_playground", true)
+			}
+			// 把聊天 messages 的最后一句话提取为 prompt
 			if storage, err := common.GetBodyStorage(c); err == nil {
 				bodyBytes, _ := storage.Bytes()
 				lastMsg := gjson.Get(string(bodyBytes), "messages.@reverse.0.content").String()
@@ -51,8 +57,7 @@ func Distribute() func(c *gin.Context) {
 				if lastMsg == "" {
 					lastMsg = "a beautiful landscape"
 				}
-				// 构建标准聊天请求体，非流式（生图/视频无实时流）
-				newBody := fmt.Sprintf(`{"model":"%s","messages":[{"role":"user","content":"%s"}],"stream":false}`,
+				newBody := fmt.Sprintf(`{"model":"%s","prompt":"%s","n":1,"size":"1024x1024"}`,
 					modelRequest.Model, strings.ReplaceAll(lastMsg, `"`, `\"`))
 				c.Request.Body = io.NopCloser(strings.NewReader(newBody))
 				c.Request.ContentLength = int64(len(newBody))
