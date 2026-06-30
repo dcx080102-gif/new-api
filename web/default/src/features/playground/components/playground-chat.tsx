@@ -180,6 +180,14 @@ export function PlaygroundChat({
                                 ? parseThinkTags(version.content).visibleContent
                                 : version.content
 
+                              // Image attachments for user messages
+                              const imageAttachments =
+                                message.from === MESSAGE_ROLES.USER
+                                  ? message.attachments?.filter(
+                                      (a) => a.type === 'image'
+                                    )
+                                  : undefined
+
                               const actions = (
                                 <MessageActions
                                   message={message}
@@ -250,6 +258,22 @@ export function PlaygroundChat({
                                   ) : (
                                     showMessageContent && (
                                       <>
+                                        {/* Image previews for user messages */}
+                                        {imageAttachments &&
+                                          imageAttachments.length > 0 && (
+                                            <div className='mb-2 flex flex-wrap gap-2'>
+                                              {imageAttachments.map(
+                                                (att, attIdx) => (
+                                                  <img
+                                                    key={`${message.key}-img-${attIdx}`}
+                                                    src={att.url}
+                                                    alt={att.name}
+                                                    className='max-h-48 max-w-full rounded-lg border object-cover'
+                                                  />
+                                                )
+                                              )}
+                                            </div>
+                                          )}
                                         <MessageContent
                                           variant='flat'
                                           className={cn(

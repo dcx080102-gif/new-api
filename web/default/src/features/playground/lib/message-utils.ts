@@ -20,6 +20,7 @@ import { nanoid } from 'nanoid'
 import { MESSAGE_ROLES, MESSAGE_STATUS, ERROR_MESSAGES } from '../constants'
 import type {
   Message,
+  MessageAttachment,
   MessageVersion,
   ChatCompletionMessage,
   ContentPart,
@@ -59,11 +60,15 @@ export function updateCurrentVersionContent(
 /**
  * Create a user message
  */
-export function createUserMessage(content: string): Message {
+export function createUserMessage(
+  content: string,
+  attachments?: MessageAttachment[]
+): Message {
   return {
     key: nanoid(),
     from: MESSAGE_ROLES.USER,
     versions: [createMessageVersion(content)],
+    attachments: attachments?.length ? attachments : undefined,
   }
 }
 
@@ -131,9 +136,14 @@ export function getTextContent(content: string | ContentPart[]): string {
  */
 export function formatMessageForAPI(message: Message): ChatCompletionMessage {
   const currentVersion = getCurrentVersion(message)
+  const imageUrls =
+    message.attachments
+      ?.filter((a) => a.type === 'image')
+      .map((a) => a.url) ?? []
+
   return {
     role: message.from,
-    content: currentVersion.content,
+    content: buildMessageContent(currentVersion.content, imageUrls),
   }
 }
 

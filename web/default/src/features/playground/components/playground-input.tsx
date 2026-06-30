@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   PaperclipIcon,
   FileIcon,
@@ -31,6 +31,7 @@ import {
   NotepadTextIcon,
   CodeSquareIcon,
   GraduationCapIcon,
+  XIcon,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -50,10 +51,10 @@ import {
 } from '@/components/ai-elements/prompt-input'
 import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion'
 import { ModelGroupSelector } from '@/components/model-group-selector'
-import type { ModelOption, GroupOption } from '../types'
+import type { MessageAttachment, ModelOption, GroupOption } from '../types'
 
 interface PlaygroundInputProps {
-  onSubmit: (text: string) => void
+  onSubmit: (text: string, attachments?: MessageAttachment[]) => void
   onStop?: () => void
   disabled?: boolean
   isGenerating?: boolean
@@ -75,6 +76,27 @@ const suggestions = [
   { icon: null, text: 'More' },
 ]
 
+/** Convert a File to a base64 data URL */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+}
+
+/** Capture a MediaStream track as a base64 image */
+function captureFrame(video: HTMLVideoElement): string {
+  const canvas = document.createElement('canvas')
+  canvas.width = video.videoWidth || 640
+  canvas.height = video.videoHeight || 480
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return ''
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', 0.85)
+}
+
 export function PlaygroundInput({
   onSubmit,
   onStop,
@@ -90,6 +112,12 @@ export function PlaygroundInput({
 }: PlaygroundInputProps) {
   const { t } = useTranslation()
   const [text, setText] = useState('')
+  const [attachments, setAttachments] = useState<MessageAttachment[]>([])
+  const [showCamera, setShowCamera] = useState(false)
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const cameraVideoRef = useRef<HTMLVideoElement>(null)
 
   const isModelSelectDisabled =
     disabled || isModelLoading || models.length === 0
@@ -97,22 +125,217 @@ export function PlaygroundInput({
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text?.trim() || disabled) return
-    onSubmit(message.text)
+    if (attachments.length > 0) {
+      onSubmit(message.text, attachments)
+      setAttachments([])
+    } else {
+      onSubmit(message.text)
+    }
     setText('')
-  }
-
-  const handleFileAction = (action: string) => {
-    toast.info(t('Feature in development'), {
-      description: action,
-    })
   }
 
   const handleSuggestionClick = (suggestion: string) => {
     onSubmit(suggestion)
   }
 
+  // --- File upload ---
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files?.length) return
+    try {
+      const newAttachments: MessageAttachment[] = []
+      for (const file of Array.from(files)) {
+        const url = await fileToDataUrl(file)
+        newAttachments.push({
+          type: file.type.startsWith('image/') ? 'image' : 'file',
+          url,
+          name: file.name,
+          mimeType: file.type,
+        })
+      }
+      setAttachments((prev) => [...prev, ...newAttachments])
+      toast.success(t('{{count}} file(s) attached', { count: files.length }))
+    } catch {
+      toast.error(t('Failed to attach file'))
+    }
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+  }
+
+  const handleUploadFile = () => fileInputRef.current?.click()
+  const handleUploadPhoto = () => imageInputRef.current?.click()
+
+  // --- Screenshot ---
+  const handleScreenshot = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: 'never' } as MediaTrackConstraints,
+      })
+      const video = document.createElement('video')
+      video.srcObject = stream
+      await video.play()
+
+      // Wait a frame for the video to render
+      await new Promise((r) => setTimeout(r, 200))
+
+      const dataUrl = captureFrame(video)
+      stream.getTracks().forEach((t) => t.stop())
+
+      if (!dataUrl) {
+        toast.error(t('Failed to capture screenshot'))
+        return
+      }
+
+      setAttachments((prev) => [
+        ...prev,
+        {
+          type: 'image',
+          url: dataUrl,
+          name: `screenshot-${Date.now()}.jpg`,
+          mimeType: 'image/jpeg',
+        },
+      ])
+      toast.success(t('Screenshot captured'))
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return
+      toast.error(t('Screenshot cancelled or not supported'))
+    }
+  }
+
+  // --- Camera ---
+  const handleTakePhoto = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      })
+      setCameraStream(stream)
+      setShowCamera(true)
+
+      // Wait for video element to mount then play
+      requestAnimationFrame(async () => {
+        if (cameraVideoRef.current) {
+          cameraVideoRef.current.srcObject = stream
+          await cameraVideoRef.current.play()
+        }
+      })
+    } catch {
+      toast.error(t('Camera not available or permission denied'))
+    }
+  }
+
+  const handleCapturePhoto = () => {
+    if (!cameraVideoRef.current) return
+    const dataUrl = captureFrame(cameraVideoRef.current)
+    if (!dataUrl) return
+
+    setAttachments((prev) => [
+      ...prev,
+      {
+        type: 'image',
+        url: dataUrl,
+        name: `photo-${Date.now()}.jpg`,
+        mimeType: 'image/jpeg',
+      },
+    ])
+    handleCloseCamera()
+    toast.success(t('Photo captured'))
+  }
+
+  const handleCloseCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((t) => t.stop())
+      setCameraStream(null)
+    }
+    setShowCamera(false)
+  }
+
+  // --- Remove attachment ---
+  const handleRemoveAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index))
+  }
+
   return (
     <div className='grid shrink-0 gap-4 px-1 md:pb-4'>
+      {/* Hidden file inputs */}
+      <input
+        ref={fileInputRef}
+        type='file'
+        className='hidden'
+        multiple
+        accept='*/*'
+        onChange={handleFileChange}
+      />
+      <input
+        ref={imageInputRef}
+        type='file'
+        className='hidden'
+        multiple
+        accept='image/*'
+        onChange={handleFileChange}
+      />
+
+      {/* Camera modal */}
+      {showCamera && (
+        <div className='bg-background/95 fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 p-4 backdrop-blur'>
+          <video
+            ref={cameraVideoRef}
+            className='max-h-[70vh] max-w-full rounded-xl shadow-lg'
+            autoPlay
+            playsInline
+            muted
+          />
+          <div className='flex gap-3'>
+            <button
+              type='button'
+              onClick={handleCapturePhoto}
+              className='bg-foreground size-16 rounded-full shadow-lg hover:scale-105 transition-transform'
+              aria-label={t('Capture')}
+            />
+            <button
+              type='button'
+              onClick={handleCloseCamera}
+              className='bg-muted text-foreground flex size-10 items-center justify-center rounded-full shadow-lg'
+              aria-label={t('Close')}
+            >
+              <XIcon size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Attachment previews */}
+      {attachments.length > 0 && (
+        <div className='flex flex-wrap gap-2 px-1'>
+          {attachments.map((att, i) => (
+            <div
+              key={`${att.name}-${i}`}
+              className='bg-muted relative flex items-center gap-1.5 rounded-lg border px-2 py-1 pr-1 text-xs'
+            >
+              {att.type === 'image' ? (
+                <img
+                  src={att.url}
+                  alt={att.name}
+                  className='size-8 rounded object-cover'
+                />
+              ) : (
+                <FileIcon size={14} className='text-muted-foreground' />
+              )}
+              <span className='text-muted-foreground max-w-24 truncate'>
+                {att.name}
+              </span>
+              <button
+                type='button'
+                onClick={() => handleRemoveAttachment(i)}
+                className='text-muted-foreground hover:text-foreground ml-0.5 rounded p-0.5 transition-colors'
+                aria-label={t('Remove')}
+              >
+                <XIcon size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <PromptInput groupClassName='rounded-xl' onSubmit={handleSubmit}>
         <PromptInputTextarea
           autoComplete='off'
@@ -143,27 +366,19 @@ export function PlaygroundInput({
                 <span className='sr-only sm:hidden'>{t('Attach')}</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='start'>
-                <DropdownMenuItem
-                  onClick={() => handleFileAction('upload-file')}
-                >
+                <DropdownMenuItem onClick={handleUploadFile}>
                   <FileIcon className='mr-2' size={16} />
                   {t('Upload file')}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleFileAction('upload-photo')}
-                >
+                <DropdownMenuItem onClick={handleUploadPhoto}>
                   <ImageIcon className='mr-2' size={16} />
                   {t('Upload photo')}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleFileAction('take-screenshot')}
-                >
+                <DropdownMenuItem onClick={handleScreenshot}>
                   <ScreenShareIcon className='mr-2' size={16} />
                   {t('Take screenshot')}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleFileAction('take-photo')}
-                >
+                <DropdownMenuItem onClick={handleTakePhoto}>
                   <CameraIcon className='mr-2' size={16} />
                   {t('Take photo')}
                 </DropdownMenuItem>
