@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/QuantumNous/new-api/types"
+
 type VideoRequest struct {
 	Model          string         `json:"model,omitempty" example:"kling-v1"`                                                                                                                                    // Model/style ID
 	Prompt         string         `json:"prompt,omitempty" example:"宇航员站起身走了"`                                                                                                                                   // Text prompt
@@ -13,6 +15,13 @@ type VideoRequest struct {
 	ResponseFormat string         `json:"response_format,omitempty" example:"url"`                                                                                                                               // Response format
 	User           string         `json:"user,omitempty" example:"user-1234"`                                                                                                                                    // User identifier
 	Metadata       map[string]any `json:"metadata,omitempty"`                                                                                                                                                    // Vendor-specific/custom params (e.g. negative_prompt, style, quality_level, etc.)
+}
+
+func (r *VideoRequest) GetTokenCountMeta() *types.TokenCountMeta {
+	return &types.TokenCountMeta{
+		CombineText: r.Prompt,
+		MaxTokens:   1584,
+	}
 }
 
 // VideoResponse 视频生成提交任务后的响应
