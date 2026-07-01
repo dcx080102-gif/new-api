@@ -24,8 +24,10 @@ import { cn } from '@/lib/utils'
 import { useNotifications } from '@/hooks/use-notifications'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { useTopNavLinks } from '@/hooks/use-top-nav-links'
+import { AnnouncementDialog } from '@/components/announcement-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
 import { Dialog } from '@/components/dialog'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { NotificationPopover } from '@/components/notification-popover'
@@ -34,6 +36,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { defaultTopNavLinks } from '../config/top-nav.config'
 import type { TopNavLink } from '../types'
 import { HeaderLogo } from './header-logo'
+import { Megaphone } from 'lucide-react'
 
 const AUTH_PROMPT_SECONDS = 5
 
@@ -95,6 +98,11 @@ export function PublicHeader(props: PublicHeaderProps) {
   const isAuthenticated = !!user
   const displaySiteName = customSiteName || systemName
   const links = dynamicLinks.length > 0 ? dynamicLinks : navLinks
+
+  // Announcement dialog state
+  const [announcementDialogOpen, setAnnouncementDialogOpen] = useState(false)
+  const [announcementDefaultTab, setAnnouncementDefaultTab] =
+    useState<'notice' | 'announcements'>('announcements')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -262,6 +270,31 @@ export function PublicHeader(props: PublicHeaderProps) {
 
               {showLanguageSwitcher && <LanguageSwitcher />}
               {showThemeSwitch && <ThemeSwitch />}
+              {/* 系统公告按钮 — micuapi-style */}
+              {showNotifications && (
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='relative size-9'
+                  aria-label={t('System Announcements')}
+                  onClick={() => {
+                    setAnnouncementDefaultTab('announcements')
+                    setAnnouncementDialogOpen(true)
+                  }}
+                >
+                  <Megaphone className='size-[1.2rem]' />
+                  {notifications.unreadAnnouncementsCount > 0 ? (
+                    <Badge
+                      variant='destructive'
+                      className='absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center px-1 text-[10px] font-semibold tabular-nums'
+                    >
+                      {notifications.unreadAnnouncementsCount > 99
+                        ? '99+'
+                        : notifications.unreadAnnouncementsCount}
+                    </Badge>
+                  ) : null}
+                </Button>
+              )}
               {showNotifications && (
                 <NotificationPopover
                   open={notifications.popoverOpen}
@@ -441,6 +474,26 @@ export function PublicHeader(props: PublicHeaderProps) {
           })}
         </div>
       </Dialog>
+
+      {/* 系统公告 Dialog */}
+      <AnnouncementDialog
+        open={announcementDialogOpen}
+        onOpenChange={setAnnouncementDialogOpen}
+        defaultTab={announcementDefaultTab}
+        notice={notifications.notice}
+        announcements={
+          notifications.announcements as Array<{
+            type?: string
+            content?: string
+            extra?: string
+            publishDate?: string | Date
+            title?: string
+            link?: string
+          }>
+        }
+        loading={notifications.loading}
+        unreadCount={notifications.unreadCount}
+      />
     </>
   )
 }

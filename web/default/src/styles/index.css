@@ -121,6 +121,37 @@ For commercial licensing, please contact support@quantumnous.com
     animation: none !important;
     background: var(--skeleton-base) !important;
   }
+  .shine-text::after {
+    animation: none !important;
+  }
+}
+
+/* ── Shine text effect for announcements (micuapi-style gradient shimmer) ── */
+.shine-text::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    hsl(var(--foreground) / 0.06) 45%,
+    hsl(var(--foreground) / 0.10) 50%,
+    hsl(var(--foreground) / 0.06) 55%,
+    transparent 75%
+  );
+  background-size: 250% 100%;
+  animation: shine-slide 3s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+@keyframes shine-slide {
+  0% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: -50% 50%;
+  }
 }
 
 @utility container {
