@@ -4938,7 +4938,8 @@
     "透明计费": "透明计费",
     "👋 Good afternoon, {{name}}": "👋 下午好，{{name}}",
     "👋 Good evening, {{name}}": "👋 晚上好，{{name}}",
-    "👋 Good morning, {{name}}": "👋 早上好，{{name}}"
+    "👋 Good morning, {{name}}": "👋 早上好，{{name}}",
+    "👋 Good noon, {{name}}": "👋 中午好，{{name}}"
   },
   "一个 API，开启 AI 无限可能": "一个 API，开启 AI 无限可能",
   "关于": "关于"

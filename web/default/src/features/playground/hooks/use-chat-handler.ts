@@ -143,9 +143,7 @@ export function useChatHandler({
           const imageData = responseData.data[0] as Record<string, string>
           const imageUrl = imageData.url || imageData.b64_json || ''
           if (imageUrl) {
-            const content = imageUrl.startsWith('data:') 
-              ? `![Generated Image](${imageUrl})`
-              : `![Generated Image](${imageUrl})\n\n[Open Image](${imageUrl})`
+            const content = `🖼️ **Generated Image**\n\n${imageUrl}`
             onMessageUpdate((prev) =>
               updateLastAssistantMessage(prev, (message) => ({
                 ...finalizeMessage({

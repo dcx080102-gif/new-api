@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -38,16 +39,14 @@ func Distribute() func(c *gin.Context) {
 			abortWithOpenAiMessage(c, http.StatusBadRequest, i18n.T(c, i18n.MsgDistributorInvalidRequest, map[string]any{"Error": err.Error()}))
 			return
 		}
-		// 生图模型走聊天接口时，自动转为生图请求
+		// 生图模型：转专用图片接口
 		if modelRequest != nil && common.IsImageGenerationModel(modelRequest.Model) &&
 			(strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions")) {
-			// 保存 playground 标记
 			isPlayground := strings.HasPrefix(c.Request.URL.Path, "/pg/")
 			c.Request.URL.Path = "/v1/images/generations"
 			if isPlayground {
 				c.Set("is_playground", true)
 			}
-			// 把聊天 messages 的最后一句话提取为 prompt
 			if storage, err := common.GetBodyStorage(c); err == nil {
 				bodyBytes, _ := storage.Bytes()
 				lastMsg := gjson.Get(string(bodyBytes), "messages.@reverse.0.content").String()
@@ -59,11 +58,15 @@ func Distribute() func(c *gin.Context) {
 				}
 				newBody := fmt.Sprintf(`{"model":"%s","prompt":"%s","n":1,"size":"1024x1024"}`,
 					modelRequest.Model, strings.ReplaceAll(lastMsg, `"`, `\"`))
-				c.Request.Body = io.NopCloser(strings.NewReader(newBody))
-				c.Request.ContentLength = int64(len(newBody))
+				newBodyBytes := []byte(newBody)
+				c.Request.Body = io.NopCloser(bytes.NewReader(newBodyBytes))
+				c.Request.ContentLength = int64(len(newBodyBytes))
+				if newStorage, err := common.CreateBodyStorage(newBodyBytes); err == nil {
+					c.Set(common.KeyBodyStorage, newStorage)
+				}
 			}
 		}
-		// 视频模型走聊天接口时，保持聊天格式，让上游处理
+		// 视频模型：保持聊天格式
 		if modelRequest != nil && common.IsVideoGenerationModel(modelRequest.Model) &&
 			(strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions")) {
 			// 不改变路径，保持聊天接口
@@ -79,8 +82,13 @@ func Distribute() func(c *gin.Context) {
 				// 构建标准聊天请求体
 				newBody := fmt.Sprintf(`{"model":"%s","messages":[{"role":"user","content":"%s"}],"stream":false}`,
 					modelRequest.Model, strings.ReplaceAll(lastMsg, `"`, `\"`))
-				c.Request.Body = io.NopCloser(strings.NewReader(newBody))
-				c.Request.ContentLength = int64(len(newBody))
+				newBodyBytes := []byte(newBody)
+				c.Request.Body = io.NopCloser(bytes.NewReader(newBodyBytes))
+				c.Request.ContentLength = int64(len(newBodyBytes))
+				// 更新 body storage 缓存
+				if newStorage, err := common.CreateBodyStorage(newBodyBytes); err == nil {
+					c.Set(common.KeyBodyStorage, newStorage)
+				}
 			}
 		}
 		if ok {

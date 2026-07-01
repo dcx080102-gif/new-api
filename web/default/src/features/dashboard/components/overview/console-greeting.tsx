@@ -20,17 +20,19 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 
-type TimePeriod = 'morning' | 'afternoon' | 'evening'
+type TimePeriod = 'morning' | 'noon' | 'afternoon' | 'evening'
 
 function getTimePeriod(): TimePeriod {
   const hour = new Date().getHours()
   if (hour >= 5 && hour < 12) return 'morning'
-  if (hour >= 12 && hour < 18) return 'afternoon'
+  if (hour >= 12 && hour < 13) return 'noon'
+  if (hour >= 13 && hour < 18) return 'afternoon'
   return 'evening'
 }
 
 const GREETING_KEY: Record<TimePeriod, string> = {
   morning: '👋 Good morning, {{name}}',
+  noon: '👋 Good noon, {{name}}',
   afternoon: '👋 Good afternoon, {{name}}',
   evening: '👋 Good evening, {{name}}',
 }

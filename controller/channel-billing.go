@@ -392,8 +392,12 @@ func updateChannelBalance(channel *model.Channel) (float64, error) {
 		return updateChannelOpenRouterBalance(channel)
 	case constant.ChannelTypeMoonshot:
 		return updateChannelMoonshotBalance(channel)
+	case constant.ChannelTypeAli:
+		return 0, errors.New("阿里云百炼（千问）未提供余额查询API，请前往控制台手动查看: https://bailian.console.aliyun.com/")
+	case constant.ChannelTypeZhipu_v4:
+		return 0, errors.New("智谱AI未提供余额查询API，请前往控制台手动查看: https://open.bigmodel.cn/")
 	default:
-		return 0, errors.New("尚未实现")
+		return 0, errors.New("该渠道类型不支持自动查询余额")
 	}
 	url := fmt.Sprintf("%s/v1/dashboard/billing/subscription", baseURL)
 

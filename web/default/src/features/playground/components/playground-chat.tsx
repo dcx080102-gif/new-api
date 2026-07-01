@@ -176,9 +176,21 @@ export function PlaygroundChat({
                                 !!version.content
 
                               // Extract visible content (remove <think> tags for assistant messages)
-                              const displayContent = isAssistant
+                              const rawContent = isAssistant
                                 ? parseThinkTags(version.content).visibleContent
                                 : version.content
+
+                              // 提取内容中的图片 URL
+                              const imageUrlMatch = !isAssistant
+                                ? null
+                                : rawContent.match(
+                                    /https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp)(?:\?[^\s]*)?/i
+                                  )
+                              // 过滤掉 markdown 图片语法
+                              const displayContent = rawContent.replace(
+                                /!\[[^\]]*\]\([^)]+\)/g,
+                                imageUrlMatch ? '🖼️ [点击查看生成图片]' : ''
+                              )
 
                               // Image attachments for user messages
                               const imageAttachments =
@@ -258,6 +270,19 @@ export function PlaygroundChat({
                                   ) : (
                                     showMessageContent && (
                                       <>
+                                        {/* 图片 URL：显示为可点击链接 */}
+                                        {imageUrlMatch && imageUrlMatch[0] && (
+                                          <div className='mb-2'>
+                                            <a
+                                              href={imageUrlMatch[0]}
+                                              target='_blank'
+                                              rel='noopener noreferrer'
+                                              className='text-primary hover:underline break-all text-sm'
+                                            >
+                                              🖼️ {imageUrlMatch[0]}
+                                            </a>
+                                          </div>
+                                        )}
                                         {/* Image previews for user messages */}
                                         {imageAttachments &&
                                           imageAttachments.length > 0 && (
