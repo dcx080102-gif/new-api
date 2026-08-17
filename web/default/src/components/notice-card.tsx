@@ -72,10 +72,10 @@ export function NoticeCard() {
       {/* ── Action Buttons ── */}
       <div className='flex gap-2 flex-wrap mb-3.5'>
         <a
-          href='https://qun.qq.com/universal-share/share?ac=1&authKey=QRddABLmzbPdYstbtoJDhc7cXvB2hYaJsZoCT80qF9wy8hA0LvBrm0dIgONhgzHD&busi_data=eyJncm91cENvZGUiOiIxMDQ0NjI4NDE0IiwidG9rZW4iOiJRRDNJZFNhYzhkTThNcTQ0dVZTTTBKTlJweEpiUDBhWlVTRTR1dm9Za0k4bWVGd24vTEFWRk9SdHp1MlNmMzc5IiwidWluIjoiMjY0NTE1OTM0OCJ9&data=9zDqIUpHrPcd6tMEp04Li37lDrt4ZDcMaxGdJVPmvwOKgfhpYWcNXk70vXB9QBWyvzwBMhoNWo5MencP3vxxCw&svctype=4&tempid=h5_group_info'
+          href='https://qm.qq.com/q/1044628414'
           target='_blank'
           rel='noopener noreferrer'
-          className='flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-[#1296db] text-white rounded-md py-2.5 px-3.5 text-xs font-semibold no-underline hover:opacity-90 transition-opacity'
+          className='flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-foreground text-background rounded-md py-2.5 px-3.5 text-xs font-semibold no-underline hover:opacity-90 transition-opacity'
         >
           <MessageCircle className='size-3.5' />
           加入QQ群
