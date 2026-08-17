@@ -36,3 +36,4 @@ export {
   ModelDetailsDrawer,
 } from './model-details'
 export { PricingTable } from './pricing-table'
+export { BillingExplanation } from './billing-explanation'

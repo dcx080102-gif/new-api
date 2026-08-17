@@ -42,7 +42,7 @@ interface NotificationStore {
 
 function loadFromStorage(): Notification[] {
   try {
-    const stored = localStorage.getItem('dvl_notifications_v2')
+    const stored = localStorage.getItem('dvl_notifications_v3')
     if (stored) {
       const parsed = JSON.parse(stored)
       if (Array.isArray(parsed) && parsed.length > 0) return parsed
@@ -61,34 +61,42 @@ function getDefaultNotifications(): Notification[] {
   return [
     {
       id: '1',
-      title: 'Model Price Update',
-      message: 'GPT-4o price adjusted to ¥0.015/1K tokens, Claude 3.5 Sonnet reduced to ¥0.012/1K tokens',
-      type: 'price',
+      title: '🎉 GLM-4.7-Flash 永久免费',
+      message: '智谱官方免费模型已接入，创建 API Key 即可调用，零成本体验大模型。查看模型广场了解更多。',
+      type: 'announcement',
       timestamp: now - 3600000,
       read: false,
     },
     {
       id: '2',
-      title: 'System Update Announcement',
-      message: 'Platform upgraded to v2.0, added batch operations and optimized response speed',
-      type: 'update',
-      timestamp: now - 86400000,
+      title: '🚀 快速上手',
+      message: 'Base URL: https://otterl.com/v1，兼容 OpenAI SDK，改一行代码即可接入。支持 GPT、Claude、DeepSeek、GLM、Qwen 等模型。',
+      type: 'announcement',
+      timestamp: now - 7200000,
       read: false,
     },
     {
       id: '3',
-      title: 'New Models Available',
-      message: 'DeepSeek-V3 and Gemini 2.0 Flash are now available, welcome to try',
+      title: '💰 透明定价',
+      message: '国产模型（DeepSeek/GLM/Qwen）官方价 +5% 透明毛利，GPT/Claude 走低成本渠道。每款模型价格实时公开可查。',
       type: 'announcement',
-      timestamp: now - 172800000,
-      read: true,
+      timestamp: now - 10800000,
+      read: false,
+    },
+    {
+      id: '4',
+      title: '📢 新站上线',
+      message: 'otter Link 正式运营！如有问题或建议，欢迎联系客服反馈。',
+      type: 'announcement',
+      timestamp: now - 14400000,
+      read: false,
     },
   ]
 }
 
 function saveToStorage(notifications: Notification[]) {
   try {
-    localStorage.setItem('dvl_notifications_v2', JSON.stringify(notifications))
+    localStorage.setItem('dvl_notifications_v3', JSON.stringify(notifications))
   } catch {
     // localStorage may be unavailable
   }

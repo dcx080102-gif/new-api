@@ -227,6 +227,7 @@ export const MODEL_SERIES = {
   GEMINI: 'gemini',
   DEEPSEEK: 'deepseek',
   QWEN: 'qwen',
+  GLM: 'glm',
 } as const
 
 export type ModelSeries = (typeof MODEL_SERIES)[keyof typeof MODEL_SERIES]
@@ -241,6 +242,7 @@ export function getModelSeriesLabels(
     [MODEL_SERIES.GEMINI]: 'Gemini',
     [MODEL_SERIES.DEEPSEEK]: 'DeepSeek',
     [MODEL_SERIES.QWEN]: 'Qwen',
+    [MODEL_SERIES.GLM]: 'GLM',
   }
 }
 
@@ -255,6 +257,7 @@ export function mapModelToSeries(modelName: string): ModelSeries | null {
   if (lower.includes('gemini')) return MODEL_SERIES.GEMINI
   if (lower.includes('deepseek')) return MODEL_SERIES.DEEPSEEK
   if (lower.includes('qwen')) return MODEL_SERIES.QWEN
+  if (lower.includes('glm') || lower.includes('chatglm') || lower.includes('cogview') || lower.includes('cogvideo')) return MODEL_SERIES.GLM
   return null
 }
 
@@ -265,6 +268,7 @@ export const MODEL_SERIES_ICONS: Record<string, string> = {
   [MODEL_SERIES.GEMINI]: 'Google',
   [MODEL_SERIES.DEEPSEEK]: 'DeepSeek',
   [MODEL_SERIES.QWEN]: 'Qwen',
+  [MODEL_SERIES.GLM]: 'Zhipu',
 }
 
 // ----------------------------------------------------------------------------
@@ -310,6 +314,7 @@ export const QUICK_FILTERS = {
   CODEX: 'codex',
   FREE: 'free',
   GEMINI: 'gemini',
+  GLM: 'glm',
 } as const
 
 export type QuickFilter = (typeof QUICK_FILTERS)[keyof typeof QUICK_FILTERS]

@@ -42,6 +42,8 @@ function countBySeries(
         return count + (name.includes('deepseek') ? 1 : 0)
       case MODEL_SERIES.QWEN:
         return count + (name.includes('qwen') ? 1 : 0)
+      case MODEL_SERIES.GLM:
+        return count + (name.includes('glm') || name.includes('chatglm') || name.includes('cogview') || name.includes('cogvideo') ? 1 : 0)
       default:
         return count
     }
@@ -97,6 +99,12 @@ export function ModelSeriesFilter(props: ModelSeriesFilterProps) {
       label: 'Qwen',
       iconKey: MODEL_SERIES_ICONS[MODEL_SERIES.QWEN],
       count: countBySeries(props.models, MODEL_SERIES.QWEN),
+    },
+    {
+      value: MODEL_SERIES.GLM,
+      label: 'GLM',
+      iconKey: MODEL_SERIES_ICONS[MODEL_SERIES.GLM],
+      count: countBySeries(props.models, MODEL_SERIES.GLM),
     },
   ]
 

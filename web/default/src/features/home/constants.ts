@@ -60,19 +60,19 @@ export const GATEWAY_FEATURES = [
 // Stats section - Default statistics
 export const DEFAULT_STATS = [
   {
-    value: '76',
+    value: '30',
     suffix: '+',
     description: 'available models',
   },
   {
-    value: '12',
+    value: '7',
     suffix: '+',
     description: 'providers connected',
   },
   {
-    value: '100',
+    value: '3',
     suffix: '+',
-    description: 'compatible API routes',
+    description: 'API protocols',
   },
   {
     value: '99.9',
@@ -120,26 +120,26 @@ export const MODEL_CAPABILITIES = [
   {
     icon: 'MessagesSquare',
     title: 'Text & Chat',
-    models: 'GPT-5.5, Claude Opus 4.7, DeepSeek V4, Gemini 3.1, Qwen 3, Llama 4, Grok 4, Mistral Large',
-    count: '76+',
+    models: 'GPT-5.5, Claude Opus 4.8, DeepSeek V4, GLM-5.2, Qwen-Max, Gemini 2.5 Pro',
+    count: '25+',
   },
   {
     icon: 'Image',
     title: 'Image Generation',
-    models: 'DALL·E 4, Midjourney V7, Stable Diffusion 3.5, FLUX.1 Pro, Imagen 3, Playground v3',
-    count: '15+',
+    models: 'grok-imagine-image-quality — more coming soon',
+    count: '1+',
   },
   {
     icon: 'Mic',
     title: 'Voice & Speech',
-    models: 'Whisper large-v3, ElevenLabs, Azure TTS, MiniMax TTS, OpenAI TTS, Fish Audio',
-    count: '12+',
+    models: 'Coming soon — Whisper, TTS, and more',
+    count: 'soon',
   },
   {
     icon: 'Video',
     title: 'Video Generation',
-    models: 'Kling 2.0, Sora, Vidu, Runway Gen-4, Pika 2.0, Luma Dream Machine',
-    count: '8+',
+    models: 'grok-imagine-video-preview — more coming soon',
+    count: '1+',
   },
 ] as const
 
@@ -187,7 +187,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: 'Why are your prices lower than official?',
-    a: "We reduce costs through enterprise bulk purchasing and channel optimization. Upstream is 1:1 top-up — we don't add markup on resale. Our profit comes from volume, not from padding the unit price.",
+    a: "For proxy models (GPT, Claude, Gemini), we source through cost-effective upstream channels. For official API models (DeepSeek, GLM, Qwen), we apply a minimal 5% margin on top of the official price. Detailed pricing is always publicly visible on our pricing page — no hidden fees.",
   },
   {
     q: 'Will my balance expire?',
@@ -201,8 +201,8 @@ export const FAQ_ITEMS = [
 
 // Hero section - Platform stats bar
 export const HERO_STATS = [
-  { value: '76+', label: 'available models' },
-  { value: '12', label: 'providers connected' },
+  { value: '30+', label: 'available models' },
+  { value: '7', label: 'providers connected' },
   { value: 'T+0', label: 'real-time billing' },
   { value: '99.9%', label: 'uptime guarantee' },
 ] as const
@@ -214,13 +214,8 @@ export const BRAND_LOGOS = [
   'Gemini',
   'DeepSeek',
   'Qwen',
-  'Llama',
-  'Grok',
-  'Mistral',
-  'Kimi',
-  'MiniMax',
   'GLM',
-  'Stable Diffusion',
+  'Grok',
 ] as const
 
 // Features section - Default features

@@ -374,12 +374,13 @@ export function filterByQuickFilter(
     })
   }
 
-  // FREE：免费模型（model_ratio 为 0 或极低）
+  // FREE：免费模型（model_ratio 为 0 且非按次计费）
   if (quickFilter === 'free') {
     return models.filter((m) => {
       const mr = m.model_ratio ?? 0
       const cr = m.completion_ratio ?? 0
-      return mr === 0 && cr === 0
+      // 排除按次计费模型 (quota_type=1)，它们通过 ModelPrice 定价
+      return mr === 0 && cr === 0 && m.quota_type !== 1
     })
   }
 
@@ -388,6 +389,14 @@ export function filterByQuickFilter(
     return models.filter((m) => {
       const name = (m.model_name || '').toLowerCase()
       return name.includes('gemini')
+    })
+  }
+
+  // GLM / 智谱：匹配 GLM 系列模型
+  if (quickFilter === 'glm') {
+    return models.filter((m) => {
+      const name = (m.model_name || '').toLowerCase()
+      return name.includes('glm') || name.includes('chatglm') || name.includes('cogview') || name.includes('cogvideo')
     })
   }
 

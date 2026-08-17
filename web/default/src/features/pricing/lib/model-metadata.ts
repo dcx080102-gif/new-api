@@ -107,6 +107,14 @@ const MODEL_KNOWLEDGE_CUTOFFS: Record<string, string> = {
   'claude-sonnet-4-6': '2025-06',
   'claude-haiku-4-5': '2025-02',
   'codex-auto-review': '2025-06',
+  'glm-5.2': '2025-12',
+  'glm-5-turbo': '2025-10',
+  'glm-5': '2025-06',
+  'glm-4.7': '2025-04',
+  'glm-4.7-flash': '2025-04',
+  'glm-4.5-air': '2024-12',
+  'glm-z1-flash': '2025-04',
+  'glm-4.6v-flash': '2025-04',
 }
 
 const PARAM_BUCKETS = [
@@ -303,6 +311,15 @@ function inferContextAndOutputs(
   }
   if (/gemini.*-2|gemini.*pro|gemini.*flash/.test(lower)) {
     return { context: 1_000_000, maxOutput: 8_192 }
+  }
+  if (/glm-5/.test(lower)) {
+    return { context: 1_000_000, maxOutput: 32_768 }
+  }
+  if (/glm-4\.7|glm-z1/.test(lower)) {
+    return { context: 200_000, maxOutput: 16_384 }
+  }
+  if (/glm-4\.5|glm-4-flash|glm-4\.6v/.test(lower)) {
+    return { context: 128_000, maxOutput: 8_192 }
   }
   if (/gpt-3\.5|claude-2/.test(lower)) {
     return { context: 16_384, maxOutput: 4_096 }

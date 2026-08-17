@@ -24,19 +24,18 @@ import { cn } from '@/lib/utils'
 import { useNotifications } from '@/hooks/use-notifications'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { useTopNavLinks } from '@/hooks/use-top-nav-links'
-import { AnnouncementDialog } from '@/components/announcement-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Dialog } from '@/components/dialog'
+import { AnnouncementDialog, isAnnouncementDismissedToday } from '@/components/announcement-dialog'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { NotificationPopover } from '@/components/notification-popover'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { defaultTopNavLinks } from '../config/top-nav.config'
 import type { TopNavLink } from '../types'
 import { HeaderLogo } from './header-logo'
-import { Megaphone } from 'lucide-react'
+import { Bell } from 'lucide-react'
 
 const AUTH_PROMPT_SECONDS = 5
 
@@ -99,10 +98,8 @@ export function PublicHeader(props: PublicHeaderProps) {
   const displaySiteName = customSiteName || systemName
   const links = dynamicLinks.length > 0 ? dynamicLinks : navLinks
 
-  // Announcement dialog state
-  const [announcementDialogOpen, setAnnouncementDialogOpen] = useState(false)
-  const [announcementDefaultTab, setAnnouncementDefaultTab] =
-    useState<'notice' | 'announcements'>('announcements')
+  // Announcement dialog state (triggered by bell button)
+  const [announcementOpen, setAnnouncementOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -136,6 +133,14 @@ export function PublicHeader(props: PublicHeaderProps) {
       window.clearTimeout(timeoutId)
     }
   }, [authPromptTarget, navigate])
+
+  // 自动弹出系统公告（如果今天还没关闭过）
+  useEffect(() => {
+    if (!isAnnouncementDismissedToday() && !notifications.loading) {
+      const timer = setTimeout(() => setAnnouncementOpen(true), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [notifications.loading])
 
   const closeAuthPrompt = useCallback(() => {
     setAuthPromptTarget(null)
@@ -270,42 +275,26 @@ export function PublicHeader(props: PublicHeaderProps) {
 
               {showLanguageSwitcher && <LanguageSwitcher />}
               {showThemeSwitch && <ThemeSwitch />}
-              {/* 系统公告按钮 — micuapi-style */}
               {showNotifications && (
                 <Button
                   variant='ghost'
                   size='icon'
                   className='relative size-9'
-                  aria-label={t('System Announcements')}
-                  onClick={() => {
-                    setAnnouncementDefaultTab('announcements')
-                    setAnnouncementDialogOpen(true)
-                  }}
+                  aria-label={t('Notifications')}
+                  onClick={() => setAnnouncementOpen(true)}
                 >
-                  <Megaphone className='size-[1.2rem]' />
-                  {notifications.unreadAnnouncementsCount > 0 ? (
+                  <Bell className='size-[1.2rem]' />
+                  {notifications.unreadCount > 0 ? (
                     <Badge
                       variant='destructive'
                       className='absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center px-1 text-[10px] font-semibold tabular-nums'
                     >
-                      {notifications.unreadAnnouncementsCount > 99
+                      {notifications.unreadCount > 99
                         ? '99+'
-                        : notifications.unreadAnnouncementsCount}
+                        : notifications.unreadCount}
                     </Badge>
                   ) : null}
                 </Button>
-              )}
-              {showNotifications && (
-                <NotificationPopover
-                  open={notifications.popoverOpen}
-                  onOpenChange={notifications.setPopoverOpen}
-                  unreadCount={notifications.unreadCount}
-                  activeTab={notifications.activeTab}
-                  onTabChange={notifications.setActiveTab}
-                  notice={notifications.notice}
-                  announcements={notifications.announcements}
-                  loading={notifications.loading}
-                />
               )}
 
               {showAuthButtons && (
@@ -330,6 +319,26 @@ export function PublicHeader(props: PublicHeaderProps) {
 
             {/* Mobile: compact actions + hamburger */}
             <div className='flex items-center gap-2 sm:hidden'>
+              {/* 铃铛按钮 — 移动端 */}  
+              <Button
+                variant='ghost'
+                size='icon'
+                className='relative size-9'
+                aria-label={t('Notifications')}
+                onClick={() => setAnnouncementOpen(true)}
+              >
+                <Bell className='size-[1.2rem]' />
+                {notifications.unreadCount > 0 ? (
+                  <Badge
+                    variant='destructive'
+                    className='absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center px-1 text-[10px] font-semibold tabular-nums'
+                  >
+                    {notifications.unreadCount > 99
+                      ? '99+'
+                      : notifications.unreadCount}
+                  </Badge>
+                ) : null}
+              </Button>
               {showThemeSwitch && <ThemeSwitch />}
               {showAuthButtons && !loading && isAuthenticated && (
                 <ProfileDropdown />
@@ -475,11 +484,10 @@ export function PublicHeader(props: PublicHeaderProps) {
         </div>
       </Dialog>
 
-      {/* 系统公告 Dialog */}
+      {/* 公告 Dialog — 铃铛点击打开 */}
       <AnnouncementDialog
-        open={announcementDialogOpen}
-        onOpenChange={setAnnouncementDialogOpen}
-        defaultTab={announcementDefaultTab}
+        open={announcementOpen}
+        onOpenChange={setAnnouncementOpen}
         notice={notifications.notice}
         announcements={
           notifications.announcements as Array<{

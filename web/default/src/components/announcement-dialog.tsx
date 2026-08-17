@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useState } from 'react'
 import type { TFunction } from 'i18next'
 import { Bell, Megaphone } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -32,9 +33,10 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 import { Markdown } from '@/components/ui/markdown'
+import { NoticeCard } from '@/components/notice-card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // ============================================================================
 // Types
@@ -191,18 +193,9 @@ function NoticeContent({
     )
   }
 
-  if (!notice) {
-    return (
-      <EmptyState
-        icon={<Bell />}
-        title={t('No announcements at this time')}
-      />
-    )
-  }
-
   return (
-    <ScrollArea className='h-80 pr-3'>
-      <Markdown>{notice}</Markdown>
+    <ScrollArea className='h-[70vh] pr-3'>
+      <NoticeCard />
     </ScrollArea>
   )
 }
@@ -240,7 +233,7 @@ function AnnouncementsContent({
   }
 
   return (
-    <ScrollArea className='h-80 pr-3'>
+    <ScrollArea className='h-[70vh] pr-3'>
       {/* Timeline container */}
       <div className='relative pl-6'>
         {/* Vertical line */}
@@ -353,6 +346,7 @@ function EmptyState({
 
 export function AnnouncementDialog(props: AnnouncementDialogProps) {
   const { t } = useTranslation()
+  const [activeTab, setActiveTab] = useState(props.defaultTab || 'announcements')
 
   return (
     <Dialog
@@ -361,9 +355,25 @@ export function AnnouncementDialog(props: AnnouncementDialogProps) {
       title={
         <div className='flex items-center justify-between w-full'>
           <span>{t('System Announcements')}</span>
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as 'notice' | 'announcements')}
+            className='-my-1'
+          >
+            <TabsList className='h-8'>
+              <TabsTrigger value='notice' className='gap-1.5 h-7 text-xs'>
+                <Bell className='size-3.5' />
+                {t('Notice')}
+              </TabsTrigger>
+              <TabsTrigger value='announcements' className='gap-1.5 h-7 text-xs'>
+                <Megaphone className='size-3.5' />
+                {t('System Announcements')}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       }
-      contentClassName='sm:max-w-xl'
+      contentClassName='sm:max-w-[920px]'
       contentHeight='auto'
       showCloseButton={false}
       footer={
@@ -387,36 +397,21 @@ export function AnnouncementDialog(props: AnnouncementDialogProps) {
         </div>
       }
     >
-      <Tabs
-        defaultValue={props.defaultTab || 'announcements'}
-      >
-        <TabsList className='grid w-full grid-cols-2'>
-          <TabsTrigger value='notice' className='gap-1.5'>
-            <Bell className='size-3.5' />
-            {t('Notice')}
-          </TabsTrigger>
-          <TabsTrigger value='announcements' className='gap-1.5'>
-            <Megaphone className='size-3.5' />
-            {t('System Announcements')}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value='notice' className='mt-3'>
+      <div className='h-[70vh]'>
+        {activeTab === 'notice' ? (
           <NoticeContent
             notice={props.notice}
             loading={props.loading}
             t={t}
           />
-        </TabsContent>
-
-        <TabsContent value='announcements' className='mt-3'>
+        ) : (
           <AnnouncementsContent
             announcements={props.announcements}
             loading={props.loading}
             t={t}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </Dialog>
   )
 }

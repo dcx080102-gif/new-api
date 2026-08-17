@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com>
 */
 import { useTranslation } from 'react-i18next'
-import { Star, Sparkles, Command, Code } from 'lucide-react'
+import { Star, Sparkles, Command, Code, Gift } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QUICK_FILTERS } from '../constants'
 import { getLobeIcon } from '@/lib/lobe-icon'
@@ -49,6 +49,11 @@ export function QuickFilterPills(props: QuickFilterPillsProps) {
       icon: <Sparkles className='size-3.5' />,
     },
     {
+      value: QUICK_FILTERS.FREE,
+      label: t('Free'),
+      icon: <Gift className='size-3.5' />,
+    },
+    {
       value: QUICK_FILTERS.CLAUDE_CODE,
       label: t('Claude Code'),
       icon: <Command className='size-3.5' />,
@@ -62,6 +67,11 @@ export function QuickFilterPills(props: QuickFilterPillsProps) {
       value: QUICK_FILTERS.GEMINI,
       label: 'Gemini',
       icon: getLobeIcon('Google', 14),
+    },
+    {
+      value: QUICK_FILTERS.GLM,
+      label: 'GLM',
+      icon: getLobeIcon('Zhipu', 14),
     },
   ]
 

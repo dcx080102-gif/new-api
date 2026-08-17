@@ -38,6 +38,7 @@ import {
   ModelDetailsDrawer,
   PricingSidebar,
   QuickFilterPills,
+  BillingExplanation,
 } from './components'
 import { CATEGORIES, EXCLUDED_GROUPS, getCategoryLabels } from './constants'
 import type { Category } from './constants'
@@ -317,6 +318,8 @@ export function Pricing() {
                   showRechargePrice={showRechargePrice}
                 />
               )}
+
+              <BillingExplanation className='mt-6' />
 
               <CtaBanner className='mt-6 sm:mt-8' />
             </div>
