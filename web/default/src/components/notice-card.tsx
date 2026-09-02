@@ -57,7 +57,7 @@ export function NoticeCard() {
       {/* ── Header ── */}
       <div className='flex items-center justify-between pb-3 mb-3 border-b'>
         <div className='flex items-center gap-2.5'>
-          <span className='text-[9px] font-bold tracking-[3px] text-white bg-foreground px-2.5 py-1 rounded-full'>
+          <span className='text-[9px] font-bold tracking-[3px] text-background bg-foreground px-2.5 py-1 rounded-full'>
             otter
           </span>
           <span className='text-base font-extrabold tracking-tight'>
@@ -75,7 +75,7 @@ export function NoticeCard() {
           href='https://qm.qq.com/q/1044628414'
           target='_blank'
           rel='noopener noreferrer'
-          className='flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-foreground text-background rounded-md py-2.5 px-3.5 text-xs font-semibold no-underline hover:opacity-90 transition-opacity'
+          className='flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-[#1296db] text-white rounded-md py-2.5 px-3.5 text-xs font-semibold no-underline hover:opacity-90 transition-opacity'
         >
           <MessageCircle className='size-3.5' />
           加入QQ群
