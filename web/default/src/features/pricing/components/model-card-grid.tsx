@@ -21,24 +21,32 @@ import type { PricingModel, TokenUnit } from '../types'
 import { ModelCard } from './model-card'
 
 // ----------------------------------------------------------------------------
-// GPT 档位分组（otter Link 定制）：按收费倍率把 GPT 系列模型分为三档，
+// 档位分组（otter Link 定制）：GPT 按收费倍率分三档，Claude 按产品线分三档，
 // 每档标题后标注收费倍率。倍率从模型数据动态读取，修改定价后自动跟随。
 // ----------------------------------------------------------------------------
 
-interface GptTierDef {
+type TierFamily = 'gpt' | 'claude'
+
+interface ModelTierDef {
+  family: TierFamily
   ratio: number
   label: string
   emoji: string
 }
 
-const GPT_TIER_DEFS: GptTierDef[] = [
-  { ratio: 0.55, label: '旗舰档', emoji: '🏆' },
-  { ratio: 0.3425, label: '主力档', emoji: '💪' },
-  { ratio: 0.25, label: '轻量档', emoji: '🪶' },
+const TIER_DEFS: ModelTierDef[] = [
+  { family: 'gpt', ratio: 0.55, label: '旗舰档', emoji: '🏆' },
+  { family: 'gpt', ratio: 0.3425, label: '主力档', emoji: '💪' },
+  { family: 'gpt', ratio: 0.25, label: '轻量档', emoji: '🪶' },
+  { family: 'claude', ratio: 1.6, label: 'Opus 档', emoji: '🥇' },
+  { family: 'claude', ratio: 0.96, label: 'Sonnet 档', emoji: '🥈' },
+  { family: 'claude', ratio: 0.32, label: 'Haiku 档', emoji: '🥉' },
 ]
 
-function isGptFamily(modelName: string): boolean {
-  return /^(gpt|codex)/i.test(modelName)
+function getTierFamily(modelName: string): TierFamily | null {
+  if (/^(gpt|codex)/i.test(modelName)) return 'gpt'
+  if (/^claude/i.test(modelName)) return 'claude'
+  return null
 }
 
 export interface ModelCardGridProps {
@@ -69,18 +77,19 @@ export function ModelCardGrid(props: ModelCardGridProps) {
     />
   )
 
-  // 按档位分组：GPT 系列 + 倍率命中档位 → 分组；其余 → 保持原样
-  const tierModels: PricingModel[][] = GPT_TIER_DEFS.map(() => [])
+  // 按档位分组：系列 + 倍率命中档位 → 分组；其余 → 保持原样
+  const tierModels: PricingModel[][] = TIER_DEFS.map(() => [])
   const otherModels: PricingModel[] = []
 
   for (const model of props.models) {
     const name = model.model_name || ''
-    if (!isGptFamily(name)) {
+    const family = getTierFamily(name)
+    if (!family) {
       otherModels.push(model)
       continue
     }
-    const tierIndex = GPT_TIER_DEFS.findIndex(
-      (def) => def.ratio === model.model_ratio
+    const tierIndex = TIER_DEFS.findIndex(
+      (def) => def.family === family && def.ratio === model.model_ratio
     )
     if (tierIndex >= 0) {
       tierModels[tierIndex].push(model)
@@ -93,13 +102,13 @@ export function ModelCardGrid(props: ModelCardGridProps) {
 
   return (
     <div className='flex flex-col gap-4'>
-      {GPT_TIER_DEFS.map((def, index) => {
+      {TIER_DEFS.map((def, index) => {
         const list = tierModels[index]
         if (list.length === 0) {
           return null
         }
         return (
-          <section key={def.label} className='flex flex-col gap-3'>
+          <section key={`${def.family}-${def.label}`} className='flex flex-col gap-3'>
             {/* 档位标题 + 收费倍率 */}
             <div className='flex items-center gap-2.5 pt-1'>
               <h3 className='shrink-0 text-sm font-bold tracking-tight'>
