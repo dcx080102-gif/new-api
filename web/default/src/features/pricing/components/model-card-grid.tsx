@@ -21,41 +21,28 @@ import type { PricingModel, TokenUnit } from '../types'
 import { ModelCard } from './model-card'
 
 // ----------------------------------------------------------------------------
-// 档位分组（otter Link 定制）：GPT 按收费倍率分三档；Claude 按产品线前缀分档。
-// 档位标题后标注收费倍率（组内倍率统一时显示数字，混合时显示"按模型计价"）。
+// 厂商分组（otter Link 定制）：Claude / GPT / DeepSeek / GLM / 千问 五组，
+// 每组标题后标注该组模型的收费倍率（去重，免费模型显示"免费"）。
 // 倍率从模型数据动态读取，修改定价后自动跟随。
 // ----------------------------------------------------------------------------
 
-type TierFamily = 'gpt' | 'claude'
-
-interface ModelTierDef {
-  family: TierFamily
-  /** GPT 用：与 model_ratio 精确匹配 */
-  ratio?: number
-  /** Claude 用：模型名前缀匹配 */
-  prefix?: string
+interface VendorGroupDef {
+  /** 模型名前缀匹配 */
+  prefix: RegExp
   label: string
   emoji: string
 }
 
-const TIER_DEFS: ModelTierDef[] = [
-  { family: 'gpt', ratio: 0.55, label: '旗舰档', emoji: '🏆' },
-  { family: 'gpt', ratio: 0.3425, label: '主力档', emoji: '💪' },
-  { family: 'gpt', ratio: 0.25, label: '轻量档', emoji: '🪶' },
-  { family: 'claude', prefix: 'claude-opus', label: 'Opus 档', emoji: '🥇' },
-  { family: 'claude', prefix: 'claude-sonnet', label: 'Sonnet 档', emoji: '🥈' },
-  { family: 'claude', prefix: 'claude-haiku', label: 'Haiku 档', emoji: '🥉' },
-  { family: 'claude', prefix: 'claude-fable', label: 'Fable 档', emoji: '✨' },
+const VENDOR_GROUPS: VendorGroupDef[] = [
+  { prefix: /^claude/i, label: 'Claude', emoji: '🟠' },
+  { prefix: /^(gpt|codex)/i, label: 'GPT', emoji: '🟢' },
+  { prefix: /^deepseek/i, label: 'DeepSeek', emoji: '🐋' },
+  { prefix: /^(glm|chatglm|cogview|cogvideo)/i, label: 'GLM', emoji: '🔷' },
+  { prefix: /^qwen/i, label: '千问', emoji: '🌊' },
 ]
 
-function getTierFamily(modelName: string): TierFamily | null {
-  if (/^(gpt|codex)/i.test(modelName)) return 'gpt'
-  if (/^claude/i.test(modelName)) return 'claude'
-  return null
-}
-
 function formatRatioLabel(ratio: number): string {
-  return `${ratio}`
+  return ratio === 0 ? '免费' : `${ratio}x`
 }
 
 export interface ModelCardGridProps {
@@ -86,62 +73,51 @@ export function ModelCardGrid(props: ModelCardGridProps) {
     />
   )
 
-  // 按档位分组：系列 + 匹配规则命中 → 分组；其余 → 保持原样
-  const tierModels: PricingModel[][] = TIER_DEFS.map(() => [])
+  // 按厂商分组
+  const groupModels: PricingModel[][] = VENDOR_GROUPS.map(() => [])
   const otherModels: PricingModel[] = []
 
   for (const model of props.models) {
     const name = model.model_name || ''
-    const family = getTierFamily(name)
-    if (!family) {
-      otherModels.push(model)
-      continue
-    }
-    const tierIndex = TIER_DEFS.findIndex((def) => {
-      if (def.family !== family) return false
-      if (family === 'claude') {
-        return def.prefix ? name.toLowerCase().startsWith(def.prefix) : false
-      }
-      return def.ratio !== undefined && def.ratio === model.model_ratio
-    })
-    if (tierIndex >= 0) {
-      tierModels[tierIndex].push(model)
+    const groupIndex = VENDOR_GROUPS.findIndex((g) => g.prefix.test(name))
+    if (groupIndex >= 0) {
+      groupModels[groupIndex].push(model)
     } else {
       otherModels.push(model)
     }
   }
 
-  const hasTierGroups = tierModels.some((list) => list.length > 0)
+  const hasGroups = groupModels.some((list) => list.length > 0)
 
   return (
     <div className='flex flex-col gap-4'>
-      {TIER_DEFS.map((def, index) => {
-        const list = tierModels[index]
+      {VENDOR_GROUPS.map((def, index) => {
+        const list = groupModels[index]
         if (list.length === 0) {
           return null
         }
-        // 组内倍率统一 → 显示数字；混合 → 按模型计价
-        const ratios = new Set(list.map((m) => m.model_ratio))
-        const ratioLabel =
-          ratios.size === 1 ? `${formatRatioLabel(list[0].model_ratio)}x` : '按模型计价'
+        // 组内倍率去重并排序（大→小，免费排最后）
+        const ratios = [...new Set(list.map((m) => m.model_ratio ?? 0))]
+        ratios.sort((a, b) => (b === 0 ? -1 : a === 0 ? 1 : b - a))
+        const ratioLabel = ratios.map(formatRatioLabel).join(' / ')
         return (
-          <section key={`${def.family}-${def.label}`} className='flex flex-col gap-3'>
-            {/* 档位标题 + 收费倍率 */}
-            <div className='flex items-center gap-2.5 pt-1'>
+          <section key={def.label} className='flex flex-col gap-3'>
+            {/* 分组标题 + 收费倍率 */}
+            <div className='flex flex-wrap items-center gap-2.5 pt-1'>
               <h3 className='shrink-0 text-sm font-bold tracking-tight'>
                 {def.emoji} {def.label}
               </h3>
               <span className='shrink-0 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary dark:bg-primary/15'>
-                收费倍率 {ratioLabel}
+                倍率 {ratioLabel}
               </span>
-              <span className='bg-border h-px flex-1' aria-hidden='true' />
+              <span className='bg-border h-px min-w-8 flex-1' aria-hidden='true' />
             </div>
             {list.map(renderCard)}
           </section>
         )
       })}
 
-      {hasTierGroups && otherModels.length > 0 ? (
+      {hasGroups && otherModels.length > 0 ? (
         <div className='flex items-center gap-2.5 pt-1'>
           <h3 className='shrink-0 text-sm font-bold tracking-tight'>
             🌐 其他模型
