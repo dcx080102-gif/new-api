@@ -126,8 +126,8 @@ export const MODEL_CAPABILITIES = [
   {
     icon: 'Image',
     title: 'Image Generation',
-    models: 'grok-imagine-image-quality — more coming soon',
-    count: '1+',
+    models: '生图模型筹备中，将在后续上线',
+    count: 'soon',
   },
   {
     icon: 'Mic',
@@ -138,8 +138,8 @@ export const MODEL_CAPABILITIES = [
   {
     icon: 'Video',
     title: 'Video Generation',
-    models: 'grok-imagine-video-preview — more coming soon',
-    count: '1+',
+    models: '视频模型筹备中，将在后续上线',
+    count: 'soon',
   },
 ] as const
 
