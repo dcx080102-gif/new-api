@@ -31,6 +31,8 @@ import {
 // 裁剪参数：最多回传最近 30 条消息；图片附件只保留最近 3 条用户消息的
 const MAX_HISTORY_MESSAGES = 30
 const MAX_IMAGE_USER_MESSAGES = 3
+// 单条消息文本超过该字符数视为垃圾（旧对话里的 base64 图片），自动省略
+const MAX_CONTENT_CHARS = 12000
 
 /**
  * Build API request payload from messages and config
@@ -64,6 +66,19 @@ export function buildChatCompletionPayload(
     processedMessages[i] = {
       ...apiMessage,
       content: getTextContent(apiMessage.content),
+    }
+  }
+  // 3. 超长文本（旧对话里存下的 base64 图片等）用占位符替换，避免撑爆上下文
+  for (let i = 0; i < processedMessages.length; i++) {
+    const apiMessage = processedMessages[i]
+    if (
+      typeof apiMessage.content === 'string' &&
+      apiMessage.content.length > MAX_CONTENT_CHARS
+    ) {
+      processedMessages[i] = {
+        ...apiMessage,
+        content: `[Previous message content omitted (${apiMessage.content.length} characters)]`,
+      }
     }
   }
 
