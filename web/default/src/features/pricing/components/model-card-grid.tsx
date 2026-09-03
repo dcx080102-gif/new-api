@@ -34,6 +34,7 @@ interface VendorGroupDef {
 }
 
 const VENDOR_GROUPS: VendorGroupDef[] = [
+  { prefix: /^(gpt-image|gemini-[\w.-]*-image)/i, label: '图形模型', emoji: '🎨' },
   { prefix: /^claude/i, label: 'Claude', emoji: '🟠' },
   { prefix: /^(gpt|codex)/i, label: 'GPT', emoji: '🟢' },
   { prefix: /^deepseek/i, label: 'DeepSeek', emoji: '🐋' },
@@ -96,8 +97,9 @@ export function ModelCardGrid(props: ModelCardGridProps) {
         if (list.length === 0) {
           return null
         }
-        // 组内倍率去重并排序（大→小，免费排最后）
+        // 组内倍率去重并排序（大→小，免费排最后）；全部按次计费时改显示"按次计费"
         const ratios = [...new Set(list.map((m) => m.model_ratio ?? 0))]
+        const allPerCall = list.every((m) => (m.model_ratio ?? 0) === 0)
         ratios.sort((a, b) => (b === 0 ? -1 : a === 0 ? 1 : b - a))
         const ratioLabel = ratios.map(formatRatioLabel).join(' / ')
         return (
@@ -108,7 +110,7 @@ export function ModelCardGrid(props: ModelCardGridProps) {
                 {def.emoji} {def.label}
               </h3>
               <span className='shrink-0 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary dark:bg-primary/15'>
-                倍率 {ratioLabel}
+                {allPerCall ? '按次计费' : `倍率 ${ratioLabel}`}
               </span>
               <span className='bg-border h-px min-w-8 flex-1' aria-hidden='true' />
             </div>
