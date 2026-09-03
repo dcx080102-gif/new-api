@@ -27,7 +27,13 @@ import {
   processStreamingContent,
   finalizeMessage,
 } from '../lib'
-import type { Message, PlaygroundConfig, ParameterEnabled } from '../types'
+import type {
+  ChatCompletionResponse,
+  Message,
+  MessageAttachment,
+  PlaygroundConfig,
+  ParameterEnabled,
+} from '../types'
 import { useStreamRequest } from './use-stream-request'
 
 interface UseChatHandlerOptions {
@@ -138,12 +144,26 @@ export function useChatHandler({
         const response = await sendChatCompletion(payload)
         
         // 检测是否为生图响应（OpenAI 图片格式：{ data: [{ url: "..." }] }）
-        const responseData = response as Record<string, unknown>
+        const responseData = response as unknown as Record<string, unknown>
         if (responseData.data && Array.isArray(responseData.data) && responseData.data.length > 0) {
           const imageData = responseData.data[0] as Record<string, string>
-          const imageUrl = imageData.url || imageData.b64_json || ''
-          if (imageUrl) {
-            const content = `🖼️ **Generated Image**\n\n${imageUrl}`
+          const imageUrl = imageData.url || ''
+          const imageB64 = imageData.b64_json || ''
+          if (imageUrl || imageB64) {
+            // 真实 URL 才留在消息文本里（体积小）；base64 只存展示附件，绝不塞回后续请求
+            const content = imageUrl
+              ? `🖼️ **Generated Image**\n\n${imageUrl}`
+              : `🖼️ **Generated Image**`
+            const displayAttachments: MessageAttachment[] = imageB64
+              ? [
+                  {
+                    type: 'image',
+                    url: `data:image/png;base64,${imageB64}`,
+                    name: 'generated-image.png',
+                    mimeType: 'image/png',
+                  },
+                ]
+              : []
             onMessageUpdate((prev) =>
               updateLastAssistantMessage(prev, (message) => ({
                 ...finalizeMessage({
@@ -151,6 +171,9 @@ export function useChatHandler({
                   versions: [{ ...message.versions[0], content }],
                 }),
                 status: MESSAGE_STATUS.COMPLETE,
+                attachments: displayAttachments.length
+                  ? displayAttachments
+                  : message.attachments,
               }))
             )
             return

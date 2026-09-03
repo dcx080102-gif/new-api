@@ -136,10 +136,13 @@ export function getTextContent(content: string | ContentPart[]): string {
  */
 export function formatMessageForAPI(message: Message): ChatCompletionMessage {
   const currentVersion = getCurrentVersion(message)
+  // 只有用户消息的图片附件需要发给模型；助手消息的附件（生图结果）仅用于界面展示，不回传
   const imageUrls =
-    message.attachments
-      ?.filter((a) => a.type === 'image')
-      .map((a) => a.url) ?? []
+    message.from === 'user'
+      ? message.attachments
+          ?.filter((a) => a.type === 'image')
+          .map((a) => a.url) ?? []
+      : []
 
   return {
     role: message.from,

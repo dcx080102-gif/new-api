@@ -79,7 +79,11 @@ const suggestions = [
   { icon: null, text: 'More' },
 ]
 
-/** Convert a File to a base64 data URL */
+// 图片压缩参数：长边最大 1568px，JPEG 质量 0.85（防止 base64 塞爆对话历史/请求体）
+const MAX_IMAGE_DIMENSION = 1568
+const JPEG_QUALITY = 0.85
+
+/** Convert a File to a base64 data URL（非图片文件用，原样读取） */
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -89,15 +93,52 @@ function fileToDataUrl(file: File): Promise<string> {
   })
 }
 
-/** Capture a MediaStream track as a base64 image */
-function captureFrame(video: HTMLVideoElement): string {
+/** 把图片按长边缩放后导出（白底 JPEG，避免透明区域发黑） */
+function compressImageSource(img: HTMLImageElement): string {
+  const scale = Math.min(
+    1,
+    MAX_IMAGE_DIMENSION / Math.max(img.width, img.height)
+  )
+  const targetWidth = Math.max(1, Math.round(img.width * scale))
+  const targetHeight = Math.max(1, Math.round(img.height * scale))
   const canvas = document.createElement('canvas')
-  canvas.width = video.videoWidth || 640
-  canvas.height = video.videoHeight || 480
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return img.src
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, targetWidth, targetHeight)
+  ctx.drawImage(img, 0, 0, targetWidth, targetHeight)
+  return canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+}
+
+/** 读取图片 File 并压缩为 base64 data URL */
+function compressImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => resolve(compressImageSource(img))
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = reader.result as string
+    }
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+}
+
+/** Capture a MediaStream track as a compressed base64 image */
+function captureFrame(video: HTMLVideoElement): string {
+  const videoWidth = video.videoWidth || 640
+  const videoHeight = video.videoHeight || 480
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(videoWidth, videoHeight))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(videoWidth * scale))
+  canvas.height = Math.max(1, Math.round(videoHeight * scale))
   const ctx = canvas.getContext('2d')
   if (!ctx) return ''
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-  return canvas.toDataURL('image/jpeg', 0.85)
+  return canvas.toDataURL('image/jpeg', JPEG_QUALITY)
 }
 
 export function PlaygroundInput({
@@ -150,7 +191,12 @@ export function PlaygroundInput({
     try {
       const newAttachments: MessageAttachment[] = []
       for (const file of Array.from(files)) {
-        const url = await fileToDataUrl(file)
+        // 图片压缩后再转 base64（GIF 动图原样保留），非图片文件原样读取
+        const isImage = file.type.startsWith('image/')
+        const url =
+          isImage && file.type !== 'image/gif'
+            ? await compressImageFile(file)
+            : await fileToDataUrl(file)
         newAttachments.push({
           type: file.type.startsWith('image/') ? 'image' : 'file',
           url,

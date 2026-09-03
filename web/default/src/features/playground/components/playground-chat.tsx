@@ -192,13 +192,11 @@ export function PlaygroundChat({
                                 imageUrlMatch ? '🖼️ [点击查看生成图片]' : ''
                               )
 
-                              // Image attachments for user messages
+                              // Image attachments (user uploads + assistant generated images)
                               const imageAttachments =
-                                message.from === MESSAGE_ROLES.USER
-                                  ? message.attachments?.filter(
-                                      (a) => a.type === 'image'
-                                    )
-                                  : undefined
+                                message.attachments?.filter(
+                                  (a) => a.type === 'image'
+                                )
 
                               const actions = (
                                 <MessageActions

@@ -22,7 +22,15 @@ import type {
   PlaygroundConfig,
   ParameterEnabled,
 } from '../types'
-import { formatMessageForAPI, isValidMessage } from './message-utils'
+import {
+  formatMessageForAPI,
+  getTextContent,
+  isValidMessage,
+} from './message-utils'
+
+// 裁剪参数：最多回传最近 30 条消息；图片附件只保留最近 3 条用户消息的
+const MAX_HISTORY_MESSAGES = 30
+const MAX_IMAGE_USER_MESSAGES = 3
 
 /**
  * Build API request payload from messages and config
@@ -33,9 +41,31 @@ export function buildChatCompletionPayload(
   parameterEnabled: ParameterEnabled
 ): ChatCompletionRequest {
   // Filter and format valid messages
-  const processedMessages = messages
+  let processedMessages = messages
     .filter(isValidMessage)
     .map(formatMessageForAPI)
+
+  // 旧消息自动裁剪：防止请求体（尤其 base64 图片）无限膨胀撑爆上下文
+  // 1. 只保留最近 MAX_HISTORY_MESSAGES 条消息
+  if (processedMessages.length > MAX_HISTORY_MESSAGES) {
+    processedMessages = processedMessages.slice(-MAX_HISTORY_MESSAGES)
+  }
+  // 2. 图片只保留最近 MAX_IMAGE_USER_MESSAGES 条用户消息的，更早的剥掉图片（保留文字）
+  let imageBudget = MAX_IMAGE_USER_MESSAGES
+  for (let i = processedMessages.length - 1; i >= 0; i--) {
+    const apiMessage = processedMessages[i]
+    if (apiMessage.role !== 'user' || typeof apiMessage.content === 'string') {
+      continue
+    }
+    if (imageBudget > 0) {
+      imageBudget -= 1
+      continue
+    }
+    processedMessages[i] = {
+      ...apiMessage,
+      content: getTextContent(apiMessage.content),
+    }
+  }
 
   const payload: ChatCompletionRequest = {
     model: config.model,
