@@ -93,7 +93,7 @@ export function SignUpForm({
       email: '',
       password: '',
       confirmPassword: '',
-      aff_code: '',
+      aff_code: getAffiliateCode(),
     },
   })
 
@@ -141,6 +141,7 @@ export function SignUpForm({
     const aff = new URLSearchParams(window.location.search).get('aff')?.trim()
     if (aff) {
       saveAffiliateCode(aff)
+      form.setValue('aff_code', aff)
     }
   }, [])
 
@@ -287,6 +288,13 @@ export function SignUpForm({
           name='aff_code'
           render={({ field }) => (
             <FormItem>
+              {field.value ? (
+                <p className='text-xs font-medium text-emerald-600 dark:text-emerald-400'>
+                  {t('Invited by a friend (code: {{code}})', {
+                    code: field.value,
+                  })}
+                </p>
+              ) : null}
               <FormLabel>{t('Invite code (optional)')}</FormLabel>
               <FormControl>
                 <Input

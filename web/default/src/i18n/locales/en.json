@@ -4938,7 +4938,8 @@
     "👋 Good afternoon, {{name}}": "👋 Good afternoon, {{name}}",
     "👋 Good evening, {{name}}": "👋 Good evening, {{name}}",
     "👋 Good morning, {{name}}": "👋 Good morning, {{name}}",
-    "👋 Good noon, {{name}}": "👋 Good noon, {{name}}"
+    "👋 Good noon, {{name}}": "👋 Good noon, {{name}}",
+    "Invited by a friend (code: {{code}})": "Invited by a friend (code: {{code}})"
   },
   "一个 API，开启 AI 无限可能": "One API, Unlock Infinite AI Possibilities",
   "关于": "About"

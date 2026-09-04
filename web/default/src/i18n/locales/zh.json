@@ -4939,7 +4939,8 @@
     "👋 Good afternoon, {{name}}": "👋 下午好，{{name}}",
     "👋 Good evening, {{name}}": "👋 晚上好，{{name}}",
     "👋 Good morning, {{name}}": "👋 早上好，{{name}}",
-    "👋 Good noon, {{name}}": "👋 中午好，{{name}}"
+    "👋 Good noon, {{name}}": "👋 中午好，{{name}}",
+    "Invited by a friend (code: {{code}})": "已通过好友邀请进入（邀请码：{{code}}）"
   },
   "一个 API，开启 AI 无限可能": "一个 API，开启 AI 无限可能",
   "关于": "关于"
