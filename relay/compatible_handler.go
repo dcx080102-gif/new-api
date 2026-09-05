@@ -56,16 +56,33 @@ type bufferedChatResponse struct {
 func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
 	var resp bufferedChatResponse
 	if err := common.Unmarshal(buffer.Bytes(), &resp); err != nil || len(resp.Choices) == 0 {
-		// 解析失败：原样回传
-		w.Header().Set("Content-Type", "application/json")
+		// 解析失败：按 SSE 单块回传，保持流式模式（避免 Content-Length 一次性写完被浏览器判定异常）
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(buffer.Bytes())
+		_, _ = fmt.Fprint(w, ": connected\n\n")
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+		_, _ = fmt.Fprintf(w, "data: %s\n\n", buffer.Bytes())
+		_, _ = fmt.Fprint(w, "data: [DONE]\n\n")
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
 		return
 	}
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.WriteHeader(http.StatusOK)
+	// 关键：先写一行注释并 Flush，强制进入 chunked 流式传输模式。
+	// 若一次性写完（Content-Length + 立即关连接），浏览器 XHR 会判定响应不完整
+	// 触发 error(status=0)，数据被丢弃——必须与原生流一样分块刷出。
+	_, _ = fmt.Fprint(w, ": connected\n\n")
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
 
 	choice := resp.Choices[0]
 	contentRunes := []rune(choice.Message.Content)
@@ -93,6 +110,9 @@ func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
 		}
 		b, _ := common.Marshal(chunk)
 		_, _ = fmt.Fprintf(w, "data: %s\n\n", b)
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
 	}
 	finishReason := choice.FinishReason
 	if finishReason == nil {
