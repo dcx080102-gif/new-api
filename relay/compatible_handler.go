@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
@@ -60,6 +61,7 @@ func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("X-Accel-Buffering", "no")
 		w.WriteHeader(http.StatusOK)
 		_, _ = fmt.Fprint(w, ": connected\n\n")
 		if f, ok := w.(http.Flusher); ok {
@@ -70,15 +72,18 @@ func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
 		if f, ok := w.(http.Flusher); ok {
 			f.Flush()
 		}
+		time.Sleep(500 * time.Millisecond)
 		return
 	}
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
+	// 关键 1：告诉 nginx 不要缓冲本响应，原样以 chunked 分块透传
+	// （否则 nginx 会把小响应缓冲后改写成 Content-Length 一次性发送，
+	//   浏览器端会因关闭竞态把完整数据判定为不完整响应 → XHR error(status=0)）
+	w.Header().Set("X-Accel-Buffering", "no")
 	w.WriteHeader(http.StatusOK)
-	// 关键：先写一行注释并 Flush，强制进入 chunked 流式传输模式。
-	// 若一次性写完（Content-Length + 立即关连接），浏览器 XHR 会判定响应不完整
-	// 触发 error(status=0)，数据被丢弃——必须与原生流一样分块刷出。
+	// 关键 2：先写一行注释并 Flush，强制进入 chunked 流式传输模式
 	_, _ = fmt.Fprint(w, ": connected\n\n")
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
@@ -132,6 +137,9 @@ func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
 	if f, ok := w.(http.Flusher); ok {
 		f.Flush()
 	}
+	// 关键 3：写完最后一块后短暂保持连接再返回，让各层代理（nginx/Caddy/CF）
+	// 完整转交最后一个分块，避免立即关闭连接被浏览器判定为响应中断
+	time.Sleep(500 * time.Millisecond)
 }
 
 func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types.NewAPIError) {
