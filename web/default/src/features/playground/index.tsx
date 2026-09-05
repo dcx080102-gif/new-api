@@ -21,6 +21,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { getUserModels, getUserGroups } from './api'
+import { Button } from '@/components/ui/button'
 import { PlaygroundChat } from './components/playground-chat'
 import { PlaygroundInput } from './components/playground-input'
 import { usePlaygroundState, useChatHandler } from './hooks'
@@ -36,6 +37,7 @@ export function Playground() {
     models,
     groups,
     updateMessages,
+    clearMessages,
     setModels,
     setGroups,
     updateConfig,
@@ -188,8 +190,29 @@ export function Playground() {
     updateMessages(newMessages)
   }
 
+  const handleNewChat = () => {
+    stopGeneration()
+    clearMessages()
+    setEditingMessageKey(null)
+  }
+
   return (
     <div className='relative flex size-full flex-col overflow-hidden'>
+      {/* 顶部工具条：新对话按钮 */}
+      <div className='mx-auto flex w-full max-w-4xl items-center justify-between px-4 pt-3'>
+        <h2 className='text-sm font-medium text-muted-foreground'>
+          {t('Playground')}
+        </h2>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={handleNewChat}
+          disabled={messages.length === 0}
+          title={t('New chat')}
+        >
+          {t('New chat')}
+        </Button>
+      </div>
       {/* Full-width scroll container: scrolling works even over side whitespace */}
       <div className='flex flex-1 flex-col overflow-hidden'>
         <PlaygroundChat
