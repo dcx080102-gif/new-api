@@ -127,15 +127,6 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 		return types.NewError(fmt.Errorf("failed to copy request to GeneralOpenAIRequest: %w", err), types.ErrorCodeInvalidRequest, types.ErrOptionWithSkipRetry())
 	}
 
-	// otter Link 补丁：上游 gpt-6-astra 流式接口不稳定（空流/部分节点未同步新模型），
-	// 强制用非流式请求上游，再把完整响应包装成 SSE delta 格式返回给客户端
-	forceAstraBufferStream := info.RelayMode == relayconstant.RelayModeChatCompletions &&
-		info.OriginModelName == "gpt-6-astra" &&
-		lo.FromPtrOr(request.Stream, false)
-	if forceAstraBufferStream {
-		request.Stream = lo.ToPtr(false)
-	}
-
 	if request.WebSearchOptions != nil {
 		c.Set("chat_completion_web_search_context_size", request.WebSearchOptions.SearchContextSize)
 	}
@@ -342,13 +333,7 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 		}
 	}
 
-	var usage any
-	var newApiErr *types.NewAPIError
-	if forceAstraBufferStream {
-		usage, newApiErr = relayAstraBufferedStream(c, info, httpResp)
-	} else {
-		usage, newApiErr = adaptor.DoResponse(c, httpResp, info)
-	}
+	usage, newApiErr := adaptor.DoResponse(c, httpResp, info)
 	if newApiErr != nil {
 		// reset status code 重置状态码
 		service.ResetStatusCode(newApiErr, statusCodeMappingStr)
@@ -367,73 +352,4 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 		service.PostTextConsumeQuota(c, info, usage.(*dto.Usage), nil)
 	}
 	return nil
-}
-
-// relayAstraBufferedStream 是 otter Link 的模型级补丁：上游 gpt-6-astra 的流式接口不稳定
-// （间歇性返回空流，部分上游节点报"模型不支持"），而非流式接口稳定。
-// 这里把上游的完整非流式 JSON 响应读出来，包装成单条 SSE delta 块 + [DONE] 返回，
-// 让游乐园和所有流式客户端都能正常显示结果。
-func relayAstraBufferedStream(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response) (any, *types.NewAPIError) {
-	if resp == nil || resp.Body == nil {
-		return nil, types.NewOpenAIError(fmt.Errorf("invalid response"), types.ErrorCodeBadResponse, http.StatusInternalServerError)
-	}
-	defer service.CloseResponseBodyGracefully(resp)
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, types.NewOpenAIError(err, types.ErrorCodeReadResponseBodyFailed, http.StatusInternalServerError)
-	}
-
-	var completion struct {
-		Id      string `json:"id"`
-		Created int64  `json:"created"`
-		Choices []struct {
-			Message struct {
-				Content interface{} `json:"content"`
-			} `json:"message"`
-			FinishReason string `json:"finish_reason"`
-		} `json:"choices"`
-		Usage dto.Usage `json:"usage"`
-	}
-	if err := common.Unmarshal(data, &completion); err != nil {
-		return nil, types.NewOpenAIError(err, types.ErrorCodeBadResponseBody, http.StatusInternalServerError)
-	}
-
-	content := ""
-	finishReason := "stop"
-	if len(completion.Choices) > 0 {
-		if s, ok := completion.Choices[0].Message.Content.(string); ok {
-			content = s
-		}
-		if completion.Choices[0].FinishReason != "" {
-			finishReason = completion.Choices[0].FinishReason
-		}
-	}
-
-	chunk := map[string]interface{}{
-		"id":      completion.Id,
-		"object":  "chat.completion.chunk",
-		"created": completion.Created,
-		"model":   info.UpstreamModelName,
-		"choices": []map[string]interface{}{
-			{
-				"index": 0,
-				"delta": map[string]interface{}{
-					"role":    "assistant",
-					"content": content,
-				},
-				"finish_reason": finishReason,
-			},
-		},
-	}
-	chunkData, err := common.Marshal(chunk)
-	if err != nil {
-		return nil, types.NewOpenAIError(err, types.ErrorCodeJsonMarshalFailed, http.StatusInternalServerError)
-	}
-
-	c.Writer.WriteString("data: " + string(chunkData) + "\n\n")
-	c.Writer.WriteString("data: [DONE]\n\n")
-	c.Writer.Flush()
-
-	return &completion.Usage, nil
 }
