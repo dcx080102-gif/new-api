@@ -340,6 +340,11 @@ func shouldRetry(c *gin.Context, openaiErr *types.NewAPIError, retryTimes int) b
 	if _, ok := c.Get("specific_channel_id"); ok {
 		return false
 	}
+	// otter Link 补丁：gpt-6-astra 上游部分节点未同步新模型，返回 400 "not supported (E43000)"，
+	// 属于临时性上游错误，重试即可大概率命中正常节点
+	if strings.Contains(openaiErr.Error(), "not supported (E43000)") {
+		return true
+	}
 	code := openaiErr.StatusCode
 	if code >= 200 && code < 300 {
 		return false
