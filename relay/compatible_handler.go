@@ -1,6 +1,7 @@
 package relay
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,6 +22,97 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+// —— 上游流式 bug 兜底：gpt-6-astra 的流式接口返回空 choices（上游问题），
+// 这里强制转成非流式拉取，拿到完整响应后包装成 SSE 流回给客户端，
+// 游乐园和第三方客户端均无感知。
+type captureWriter struct {
+	gin.ResponseWriter
+	buffer *bytes.Buffer
+	status int
+}
+
+func (w *captureWriter) Write(p []byte) (int, error)  { return w.buffer.Write(p) }
+func (w *captureWriter) WriteString(s string) (int, error) { return w.buffer.WriteString(s) }
+func (w *captureWriter) WriteHeader(code int)         { w.status = code }
+func (w *captureWriter) Status() int                  { return w.status }
+func (w *captureWriter) Size() int                    { return w.buffer.Len() }
+func (w *captureWriter) Written() bool                { return w.status != 0 }
+func (w *captureWriter) Flush()                       {}
+
+type bufferedChatResponse struct {
+	ID      string `json:"id"`
+	Created int64  `json:"created"`
+	Model   string `json:"model"`
+	Choices []struct {
+		Message struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"message"`
+		FinishReason *string `json:"finish_reason"`
+	} `json:"choices"`
+}
+
+func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
+	var resp bufferedChatResponse
+	if err := common.Unmarshal(buffer.Bytes(), &resp); err != nil || len(resp.Choices) == 0 {
+		// 解析失败：原样回传
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(buffer.Bytes())
+		return
+	}
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.WriteHeader(http.StatusOK)
+
+	choice := resp.Choices[0]
+	contentRunes := []rune(choice.Message.Content)
+	const chunkSize = 16
+	first := true
+	for i := 0; i < len(contentRunes) || first; i += chunkSize {
+		end := i + chunkSize
+		if end > len(contentRunes) {
+			end = len(contentRunes)
+		}
+		delta := map[string]any{}
+		if first {
+			delta["role"] = "assistant"
+			first = false
+		}
+		if i < len(contentRunes) {
+			delta["content"] = string(contentRunes[i:end])
+		}
+		chunk := map[string]any{
+			"id":      "chatcmpl-" + resp.ID,
+			"object":  "chat.completion.chunk",
+			"created": resp.Created,
+			"model":   resp.Model,
+			"choices": []map[string]any{{"index": 0, "delta": delta, "finish_reason": nil}},
+		}
+		b, _ := common.Marshal(chunk)
+		_, _ = fmt.Fprintf(w, "data: %s\n\n", b)
+	}
+	finishReason := choice.FinishReason
+	if finishReason == nil {
+		stop := "stop"
+		finishReason = &stop
+	}
+	finChunk := map[string]any{
+		"id":      "chatcmpl-" + resp.ID,
+		"object":  "chat.completion.chunk",
+		"created": resp.Created,
+		"model":   resp.Model,
+		"choices": []map[string]any{{"index": 0, "delta": map[string]any{}, "finish_reason": finishReason}},
+	}
+	bf, _ := common.Marshal(finChunk)
+	_, _ = fmt.Fprintf(w, "data: %s\n\n", bf)
+	_, _ = fmt.Fprint(w, "data: [DONE]\n\n")
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+}
 
 func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types.NewAPIError) {
 	info.InitChannelMeta(c)
@@ -94,6 +186,15 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 
 	var requestBody io.Reader
 
+	// gpt-6-astra 上游流式有 bug（返回空 choices）——强制转非流式，稍后包装回 SSE
+	forceBufferStream := false
+	if strings.EqualFold(info.OriginModelName, "gpt-6-astra") && lo.FromPtrOr(request.Stream, false) {
+		forceBufferStream = true
+		request.Stream = lo.ToPtr(false)
+		request.StreamOptions = nil
+		info.IsStream = false
+	}
+
 	if passThroughGlobal || info.ChannelSetting.PassThroughBodyEnabled {
 		storage, err := common.GetBodyStorage(c)
 		if err != nil {
@@ -104,7 +205,21 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 				logger.LogDebug(c, "requestBody: %s", debugBytes)
 			}
 		}
-		requestBody = common.ReaderOnly(storage)
+		if forceBufferStream {
+			// 透传模式下原样透传客户端 body，需要把 stream 字段改写为 false
+			if rawBytes, bErr := storage.Bytes(); bErr == nil {
+				var rawMap map[string]any
+				if common.Unmarshal(rawBytes, &rawMap) == nil {
+					rawMap["stream"] = false
+					if newBytes, mErr := common.Marshal(rawMap); mErr == nil {
+						requestBody = bytes.NewReader(newBytes)
+					}
+				}
+			}
+		}
+		if requestBody == nil {
+			requestBody = common.ReaderOnly(storage)
+		}
 	} else {
 		convertedRequest, err := adaptor.ConvertOpenAIRequest(c, info, request)
 		if err != nil {
@@ -186,6 +301,20 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 	}
 
 	var httpResp *http.Response
+	succeeded := false
+	var origWriter gin.ResponseWriter
+	var capW *captureWriter
+	if forceBufferStream {
+		origWriter = c.Writer
+		capW = &captureWriter{ResponseWriter: origWriter, buffer: &bytes.Buffer{}}
+		c.Writer = capW
+		defer func() {
+			c.Writer = origWriter
+			if succeeded {
+				emitBufferedAsSSE(origWriter, capW.buffer)
+			}
+		}()
+	}
 	resp, err := adaptor.DoRequest(c, info, requestBody)
 	if err != nil {
 		return types.NewOpenAIError(err, types.ErrorCodeDoRequestFailed, http.StatusInternalServerError)
@@ -209,6 +338,9 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 		// reset status code 重置状态码
 		service.ResetStatusCode(newApiErr, statusCodeMappingStr)
 		return newApiErr
+	}
+	if forceBufferStream {
+		succeeded = true
 	}
 
 	var containAudioTokens = usage.(*dto.Usage).CompletionTokenDetails.AudioTokens > 0 || usage.(*dto.Usage).PromptTokensDetails.AudioTokens > 0
