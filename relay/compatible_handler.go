@@ -61,6 +61,7 @@ func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Transfer-Encoding", "chunked")
 		w.Header().Set("X-Accel-Buffering", "no")
 		w.WriteHeader(http.StatusOK)
 		_, _ = fmt.Fprint(w, ": connected\n\n")
@@ -78,9 +79,10 @@ func emitBufferedAsSSE(w gin.ResponseWriter, buffer *bytes.Buffer) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
+	// 强制 chunked 分块传输（gin 默认会在响应一次性写完时自动算 Content-Length，
+	// 浏览器 XHR 对这类"写完即关"的响应会误判为中断 → error(status=0) 丢弃全部数据）
+	w.Header().Set("Transfer-Encoding", "chunked")
 	// 关键 1：告诉 nginx 不要缓冲本响应，原样以 chunked 分块透传
-	// （否则 nginx 会把小响应缓冲后改写成 Content-Length 一次性发送，
-	//   浏览器端会因关闭竞态把完整数据判定为不完整响应 → XHR error(status=0)）
 	w.Header().Set("X-Accel-Buffering", "no")
 	w.WriteHeader(http.StatusOK)
 	// 关键 2：先写一行注释并 Flush，强制进入 chunked 流式传输模式
