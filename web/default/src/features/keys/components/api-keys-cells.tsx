@@ -16,10 +16,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { Check, Copy, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
 import { copyToClipboard } from '@/lib/copy-to-clipboard'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +34,7 @@ import {
 import { StatusBadge } from '@/components/status-badge'
 import { type ApiKey } from '../types'
 import { useApiKeys } from './api-keys-provider'
+import { KeyRotateConfirmDialog } from './dialogs/key-rotate-confirm-dialog'
 
 export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
   const { t } = useTranslation()
@@ -46,34 +46,61 @@ export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
     markKeyCopied,
   } = useApiKeys()
   const [popoverOpen, setPopoverOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const confirmedRef = useRef<Record<number, boolean>>({})
+  const pendingActionRef = useRef<(() => void) | null>(null)
 
   const isLoading = !!loadingKeys[apiKey.id]
   const resolvedFullKey = resolvedKeys[apiKey.id]
   const isCopied = copiedKeyId === apiKey.id
   const maskedKey = `sk-${apiKey.key}`
 
-  const handlePopoverOpen = useCallback(
-    (open: boolean) => {
-      setPopoverOpen(open)
-      if (open && !resolvedFullKey) {
-        resolveRealKey(apiKey.id)
+  const requestReveal = useCallback(
+    (action: () => void) => {
+      if (resolvedFullKey || confirmedRef.current[apiKey.id]) {
+        action()
+        return
       }
+      pendingActionRef.current = action
+      setConfirmOpen(true)
     },
-    [resolvedFullKey, resolveRealKey, apiKey.id]
+    [resolvedFullKey, apiKey.id]
   )
 
-  const handleCopy = useCallback(async () => {
-    const realKey = resolvedFullKey
-    if (!realKey) {
-      void resolveRealKey(apiKey.id)
-      toast.info(t('API key is loading, please try again in a moment'))
+  const handlePopoverOpen = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        setPopoverOpen(false)
+        return
+      }
+      if (resolvedFullKey) {
+        setPopoverOpen(true)
+        return
+      }
+      requestReveal(() => {
+        void resolveRealKey(apiKey.id)
+        setPopoverOpen(true)
+      })
+    },
+    [resolvedFullKey, requestReveal, resolveRealKey, apiKey.id]
+  )
+
+  const handleCopy = useCallback(() => {
+    if (resolvedFullKey) {
+      void copyToClipboard(resolvedFullKey).then((ok) => {
+        if (ok) markKeyCopied(apiKey.id)
+      })
       return
     }
-    if (realKey) {
-      const ok = await copyToClipboard(realKey)
-      if (ok) markKeyCopied(apiKey.id)
-    }
-  }, [resolvedFullKey, resolveRealKey, apiKey.id, markKeyCopied, t])
+    requestReveal(() => {
+      void resolveRealKey(apiKey.id).then((realKey) => {
+        if (!realKey) return
+        void copyToClipboard(realKey).then((ok) => {
+          if (ok) markKeyCopied(apiKey.id)
+        })
+      })
+    })
+  }, [resolvedFullKey, requestReveal, resolveRealKey, apiKey.id, markKeyCopied])
 
   return (
     <div className='flex max-w-full min-w-0 items-center'>
@@ -111,6 +138,13 @@ export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
                 className='bg-muted/50 w-full min-w-[280px] rounded-md border px-3 py-2 font-mono text-xs outline-none'
               />
             )}
+            {resolvedFullKey && (
+              <p className='text-destructive/80 text-xs leading-relaxed'>
+                {t(
+                  'This key was regenerated. The old key stopped working immediately. Please update the key in any tools that are already connected.'
+                )}
+              </p>
+            )}
           </div>
         </PopoverContent>
       </Popover>
@@ -122,12 +156,6 @@ export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
               size='icon'
               className='size-7 shrink-0'
               onClick={handleCopy}
-              onFocus={() => {
-                if (!resolvedFullKey) void resolveRealKey(apiKey.id)
-              }}
-              onPointerEnter={() => {
-                if (!resolvedFullKey) void resolveRealKey(apiKey.id)
-              }}
               disabled={isLoading}
             />
           }
@@ -148,6 +176,21 @@ export function ApiKeyCell({ apiKey }: { apiKey: ApiKey }) {
               : t('Copy API key')}
         </TooltipContent>
       </Tooltip>
+      <KeyRotateConfirmDialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmOpen(false)
+            pendingActionRef.current = null
+          }
+        }}
+        onConfirm={() => {
+          setConfirmOpen(false)
+          confirmedRef.current[apiKey.id] = true
+          pendingActionRef.current?.()
+          pendingActionRef.current = null
+        }}
+      />
     </div>
   )
 }

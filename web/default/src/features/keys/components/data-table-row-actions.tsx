@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { type Row } from '@tanstack/react-table'
 import {
   Trash2,
@@ -57,6 +57,7 @@ import { updateApiKeyStatus } from '../api'
 import { API_KEY_STATUS, ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants'
 import { apiKeySchema } from '../types'
 import { useApiKeys } from './api-keys-provider'
+import { KeyRotateConfirmDialog } from './dialogs/key-rotate-confirm-dialog'
 
 function getServerAddress(): string {
   try {
@@ -95,31 +96,35 @@ export function DataTableRowActions<TData>({
     setResolvedKey,
     resolveRealKey,
     resolvedKeys,
-    loadingKeys,
   } = useApiKeys()
   const isEnabled = apiKey.status === API_KEY_STATUS.ENABLED
   const { chatPresets, serverAddress } = useChatPresets()
   const [isTogglingStatus, setIsTogglingStatus] = useState(false)
   const resolvedRealKey = resolvedKeys[apiKey.id]
-  const isRealKeyLoading = Boolean(loadingKeys[apiKey.id])
 
   const hasChatPresets = chatPresets.length > 0
 
-  const handleMenuOpenChange = useCallback(
-    (open: boolean) => {
-      if (open && !resolvedRealKey && !isRealKeyLoading) {
-        void resolveRealKey(apiKey.id)
-      }
-    },
-    [apiKey.id, isRealKeyLoading, resolvedRealKey, resolveRealKey]
-  )
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const confirmedRef = useRef<Record<number, boolean>>({})
+  const pendingActionRef = useRef<((key: string) => void) | null>(null)
 
-  const getCachedRealKey = useCallback(() => {
-    if (resolvedRealKey) return resolvedRealKey
-    void resolveRealKey(apiKey.id)
-    toast.info(t('API key is loading, please try again in a moment'))
-    return null
-  }, [apiKey.id, resolvedRealKey, resolveRealKey, t])
+  const requestKeyCopy = useCallback(
+    (action: (key: string) => void) => {
+      if (resolvedRealKey) {
+        action(resolvedRealKey)
+        return
+      }
+      if (confirmedRef.current[apiKey.id]) {
+        void resolveRealKey(apiKey.id).then((key) => {
+          if (key) action(key)
+        })
+        return
+      }
+      pendingActionRef.current = action
+      setConfirmOpen(true)
+    },
+    [resolvedRealKey, apiKey.id, resolveRealKey]
+  )
 
   const handleOpenChatPreset = useCallback(
     async (preset: ChatPreset) => {
@@ -221,7 +226,7 @@ export function DataTableRowActions<TData>({
         </TooltipContent>
       </Tooltip>
 
-      <DropdownMenu modal={false} onOpenChange={handleMenuOpenChange}>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger
           render={
             <Button
@@ -235,11 +240,11 @@ export function DataTableRowActions<TData>({
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-[200px]'>
           <DropdownMenuItem
-            onClick={async () => {
-              const realKey = getCachedRealKey()
-              if (!realKey) return
-              const ok = await copyToClipboard(realKey)
-              if (ok) toast.success(t('Copied'))
+            onClick={() => {
+              requestKeyCopy(async (realKey) => {
+                const ok = await copyToClipboard(realKey)
+                if (ok) toast.success(t('Copied'))
+              })
             }}
           >
             {t('Copy Key')}
@@ -248,15 +253,15 @@ export function DataTableRowActions<TData>({
             </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={async () => {
-              const realKey = getCachedRealKey()
-              if (!realKey) return
-              const connStr = encodeConnectionString(
-                realKey,
-                getServerAddress()
-              )
-              const ok = await copyToClipboard(connStr)
-              if (ok) toast.success(t('Copied'))
+            onClick={() => {
+              requestKeyCopy(async (realKey) => {
+                const connStr = encodeConnectionString(
+                  realKey,
+                  getServerAddress()
+                )
+                const ok = await copyToClipboard(connStr)
+                if (ok) toast.success(t('Copied'))
+              })
             }}
           >
             {t('Copy Connection Info')}
@@ -325,6 +330,24 @@ export function DataTableRowActions<TData>({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <KeyRotateConfirmDialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmOpen(false)
+            pendingActionRef.current = null
+          }
+        }}
+        onConfirm={() => {
+          setConfirmOpen(false)
+          confirmedRef.current[apiKey.id] = true
+          const action = pendingActionRef.current
+          pendingActionRef.current = null
+          void resolveRealKey(apiKey.id).then((key) => {
+            if (key && action) action(key)
+          })
+        }}
+      />
     </div>
   )
 }
