@@ -533,6 +533,20 @@ export function UserAuthForm({
                 {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
                 {t('Sign in')}
               </Button>
+
+              {/* Register Button */}
+              {!status?.self_use_mode_enabled &&
+                status?.register_enabled !== false && (
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='mt-2 w-full justify-center gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
+                    render={<Link to='/sign-up' />}
+                    aria-label={t('Sign up')}
+                  >
+                    {t('Sign up')}
+                  </Button>
+                )}
             </>
           )}
 

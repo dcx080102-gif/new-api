@@ -18,14 +18,16 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useCallback } from 'react'
 import { toast } from 'sonner'
-import { sendChatCompletion } from '../api'
-import { MESSAGE_STATUS, ERROR_MESSAGES } from '../constants'
+import { sendChatCompletion, sendImageGeneration } from '../api'
+import { MESSAGE_STATUS, ERROR_MESSAGES, API_ENDPOINTS } from '../constants'
 import {
   buildChatCompletionPayload,
   updateAssistantMessageWithError,
   updateLastAssistantMessage,
   processStreamingContent,
   finalizeMessage,
+  getCurrentVersion,
+  isValidMessage,
 } from '../lib'
 import type {
   ChatCompletionResponse,
@@ -237,11 +239,108 @@ export function useChatHandler({
     [config, parameterEnabled, onMessageUpdate, handleStreamError]
   )
 
+  // Send image generation request (gpt-image / dall-e 等走生图端点的模型)
+  // 带图片附件走 edits（图转图），否则走 generations（文生图）
+  const sendImageRequest = useCallback(
+    async (messages: Message[]) => {
+      const lastUserMessage = [...messages]
+        .reverse()
+        .find((m) => m.from === 'user' && isValidMessage(m))
+      const promptText = lastUserMessage
+        ? getCurrentVersion(lastUserMessage).content
+        : ''
+      const imageAttachments =
+        lastUserMessage?.attachments?.filter((a) => a.type === 'image') ?? []
+      const hasImage = imageAttachments.length > 0
+
+      const payload = {
+        model: config.model,
+        group: config.group,
+        prompt: promptText.trim() || 'generate an image',
+        n: 1,
+        ...(hasImage ? { image: imageAttachments.map((a) => a.url) } : {}),
+      }
+
+      try {
+        const response = await sendImageGeneration(
+          hasImage
+            ? API_ENDPOINTS.IMAGE_EDITS
+            : API_ENDPOINTS.IMAGE_GENERATIONS,
+          payload
+        )
+        const imageData = response.data?.[0] as
+          | Record<string, string>
+          | undefined
+        const imageUrl = imageData?.url || ''
+        const imageB64 = imageData?.b64_json || ''
+
+        // 真实 URL 留在消息文本里（体积小）；base64 只存展示附件
+        const content = imageUrl
+          ? `🖼️ **Generated Image**\n\n${imageUrl}`
+          : `🖼️ **Generated Image**`
+
+        const displayAttachments: MessageAttachment[] = imageB64
+          ? [
+              {
+                type: 'image',
+                url: `data:image/png;base64,${imageB64}`,
+                name: 'generated-image.png',
+                mimeType: 'image/png',
+              },
+            ]
+          : []
+
+        onMessageUpdate((prev) =>
+          updateLastAssistantMessage(prev, (message) => ({
+            ...finalizeMessage({
+              ...message,
+              versions: [{ ...message.versions[0], content }],
+            }),
+            status: MESSAGE_STATUS.COMPLETE,
+            attachments: displayAttachments.length
+              ? displayAttachments
+              : message.attachments,
+          }))
+        )
+      } catch (error: unknown) {
+        const err = error as {
+          response?: {
+            data?: { message?: string; error?: { code?: string } }
+          }
+          message?: string
+        }
+        handleStreamError(
+          err?.response?.data?.message ||
+            err?.message ||
+            ERROR_MESSAGES.API_REQUEST_ERROR,
+          err?.response?.data?.error?.code || undefined
+        )
+      }
+    },
+    [config.model, config.group, onMessageUpdate, handleStreamError]
+  )
+
   // Send chat request (stream or non-stream based on config)
   // Force non-streaming for video/image generation models
   const sendChat = useCallback(
     (messages: Message[]) => {
       const modelName = config.model?.toLowerCase() || ''
+      // 生图端点模型：上游只在 /images/* 路由下提供这些模型，
+      // 走 chat 会 404 "image route not found"
+      const isImageEndpointModel =
+        modelName.includes('gpt-image') ||
+        modelName.includes('dall-e') ||
+        modelName.includes('dall') ||
+        modelName.includes('flux') ||
+        modelName.includes('sdxl') ||
+        modelName.includes('imagen') ||
+        modelName.includes('midjourney')
+
+      if (isImageEndpointModel) {
+        sendImageRequest(messages)
+        return
+      }
+
       const isMediaModel = modelName.includes('video') || 
         modelName.includes('imagine') || 
         modelName.includes('image') ||
@@ -253,7 +352,7 @@ export function useChatHandler({
         sendNonStreamingChat(messages)
       }
     },
-    [config.stream, config.model, sendStreamingChat, sendNonStreamingChat]
+    [config.stream, config.model, sendStreamingChat, sendNonStreamingChat, sendImageRequest]
   )
 
   // Stop generation

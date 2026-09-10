@@ -38,6 +38,40 @@ export async function sendChatCompletion(
 }
 
 /**
+ * Image generation request payload (OpenAI image API shape)
+ */
+export interface ImageGenerationRequest {
+  model: string
+  group?: string
+  prompt: string
+  n?: number
+  size?: string
+  /** 图转图（edits）时传入的源图 data URL 列表 */
+  image?: string[]
+}
+
+export interface ImageGenerationResponse {
+  created?: number
+  data?: Array<{
+    url?: string
+    b64_json?: string
+  }>
+}
+
+/**
+ * Send image generation request (generations or edits endpoint)
+ */
+export async function sendImageGeneration(
+  endpoint: string,
+  payload: ImageGenerationRequest
+): Promise<ImageGenerationResponse> {
+  const res = await api.post(endpoint, payload, {
+    skipErrorHandler: true,
+  } as Record<string, unknown>)
+  return res.data
+}
+
+/**
  * Get user available models
  */
 export async function getUserModels(): Promise<ModelOption[]> {
