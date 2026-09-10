@@ -32,7 +32,7 @@ func Playground(c *gin.Context) {
 
 	relayFormat := types.RelayFormatOpenAI
 	// 如果 distributor 已重定向到生图路径，使用图片 relay format
-	if strings.HasPrefix(c.Request.URL.Path, "/v1/images/") {
+	if strings.HasPrefix(c.Request.URL.Path, "/v1/images/") || strings.HasPrefix(c.Request.URL.Path, "/pg/images/") {
 		relayFormat = types.RelayFormatOpenAIImage
 	}
 
