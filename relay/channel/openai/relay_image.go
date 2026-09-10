@@ -39,6 +39,9 @@ func OpenaiImageHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.
 		return nil, types.WithOpenAIError(*oaiError, resp.StatusCode)
 	}
 
+	// 写回前把上游图片 CDN 域名替换成我们的反代域名（otterl.com/i/），不暴露上游
+	responseBody = helper.RewriteImageURLs(responseBody)
+
 	// 写入新的 response body
 	service.IOCopyBytesGracefully(c, resp, responseBody)
 

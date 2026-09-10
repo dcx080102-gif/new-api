@@ -286,6 +286,9 @@ func OpenaiHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respo
 		responseBody = geminiRespStr
 	}
 
+	// 写回前把上游图片 CDN 域名替换成我们的反代域名（otterl.com/i/），不暴露上游
+	responseBody = helper.RewriteImageURLs(responseBody)
+
 	service.IOCopyBytesGracefully(c, resp, responseBody)
 
 	return &simpleResponse.Usage, nil
