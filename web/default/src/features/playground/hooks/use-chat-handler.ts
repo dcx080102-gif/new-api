@@ -251,7 +251,16 @@ export function useChatHandler({
         : ''
       const imageAttachments =
         lastUserMessage?.attachments?.filter((a) => a.type === 'image') ?? []
-      const hasImage = imageAttachments.length > 0
+      // 上游 4k超分 不支持图转图（edits 端点 100% 报 400），强制走文生图
+      const isUpscaleModel =
+        config.model?.toLowerCase().includes('4k超分') || false
+      const hasImage = imageAttachments.length > 0 && !isUpscaleModel
+
+      if (isUpscaleModel && imageAttachments.length > 0) {
+        toast.info(
+          '4k超分模型暂不支持上传图片，已按文字描述直接生成 4K 图片'
+        )
+      }
 
       const payload = {
         model: config.model,
