@@ -21,9 +21,8 @@ import type { PricingModel, TokenUnit } from '../types'
 import { ModelCard } from './model-card'
 
 // ----------------------------------------------------------------------------
-// 厂商分组（otter Link 定制）：Claude / GPT / DeepSeek / GLM / 千问 五组，
-// 每组标题后标注该组模型的收费倍率（去重，免费模型显示"免费"）。
-// 倍率从模型数据动态读取，修改定价后自动跟随。
+// 厂商分组（otter Link 定制）：Claude / GPT / DeepSeek / GLM / 千问 五组。
+// （2026-09-11：分组标题旁的"倍率"徽章已移除，与上游 Drag 展示对齐）
 // ----------------------------------------------------------------------------
 
 interface VendorGroupDef {
@@ -41,10 +40,6 @@ const VENDOR_GROUPS: VendorGroupDef[] = [
   { prefix: /^(glm|chatglm|cogview|cogvideo)/i, label: 'GLM', emoji: '🔷' },
   { prefix: /^qwen/i, label: '千问', emoji: '🌊' },
 ]
-
-function formatRatioLabel(ratio: number): string {
-  return ratio === 0 ? '免费' : `${ratio}x`
-}
 
 export interface ModelCardGridProps {
   models: PricingModel[]
@@ -97,21 +92,13 @@ export function ModelCardGrid(props: ModelCardGridProps) {
         if (list.length === 0) {
           return null
         }
-        // 组内倍率去重并排序（大→小，免费排最后）；全部按次计费时改显示"按次计费"
-        const ratios = [...new Set(list.map((m) => m.model_ratio ?? 0))]
-        const allPerCall = list.every((m) => (m.model_ratio ?? 0) === 0)
-        ratios.sort((a, b) => (b === 0 ? -1 : a === 0 ? 1 : b - a))
-        const ratioLabel = ratios.map(formatRatioLabel).join(' / ')
+        // 分组标题（倍率徽章已移除，仅保留标题与分隔线）
         return (
           <section key={def.label} className='flex flex-col gap-3'>
-            {/* 分组标题 + 收费倍率 */}
             <div className='flex flex-wrap items-center gap-2.5 pt-1'>
               <h3 className='shrink-0 text-sm font-bold tracking-tight'>
                 {def.emoji} {def.label}
               </h3>
-              <span className='shrink-0 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary dark:bg-primary/15'>
-                {allPerCall ? '按次计费' : `倍率 ${ratioLabel}`}
-              </span>
               <span className='bg-border h-px min-w-8 flex-1' aria-hidden='true' />
             </div>
             {list.map(renderCard)}
