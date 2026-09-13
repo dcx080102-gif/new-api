@@ -31,7 +31,6 @@ import {
 } from './components/usage-logs-provider'
 import { UsageLogsTable } from './components/usage-logs-table'
 import { UsageCharts } from './components/usage-charts'
-import { StatusCollapsible } from '@/features/status'
 import {
   isUsageLogsSectionId,
   USAGE_LOGS_DEFAULT_SECTION,
@@ -133,7 +132,6 @@ function UsageLogsContent() {
             <div className='min-h-0 flex-1'>
               <UsageLogsTable logCategory={activeCategory} />
             </div>
-            <StatusCollapsible />
           </div>
         </SectionPageLayout.Content>
       </SectionPageLayout>

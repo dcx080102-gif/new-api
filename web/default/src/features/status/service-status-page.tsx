@@ -17,27 +17,20 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
-import { PublicLayout } from '@/components/layout'
-import { PageTransition } from '@/components/page-transition'
+import { SectionPageLayout } from '@/components/layout'
 import { StatusPanel } from './status-panel'
 
-export function Status() {
+// 控制台内「服务状态」页面（侧边栏 常规 → 服务状态）
+export function ServiceStatusPage() {
   const { t } = useTranslation()
   return (
-    <PublicLayout showMainContainer={false}>
-      <PageTransition className='relative mx-auto w-full max-w-[1100px] px-4 pt-14 pb-10 sm:px-6 sm:pt-16'>
-        <div className='mb-8'>
-          <h1 className='text-2xl font-bold tracking-tight sm:text-3xl'>
-            {t('Service Status')}
-          </h1>
-          <p className='text-muted-foreground mt-2 max-w-2xl text-sm leading-relaxed'>
-            {t(
-              'Availability is computed from both active probes (a short message sent every 15 minutes) and real customer traffic. This page is public and refreshes every minute.'
-            )}
-          </p>
-        </div>
+    <SectionPageLayout>
+      <SectionPageLayout.Title>
+        {t('Service Status')}
+      </SectionPageLayout.Title>
+      <SectionPageLayout.Content>
         <StatusPanel />
-      </PageTransition>
-    </PublicLayout>
+      </SectionPageLayout.Content>
+    </SectionPageLayout>
   )
 }

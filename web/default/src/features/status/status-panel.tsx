@@ -16,9 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Activity, ChevronDown, Clock, Gauge, Loader2, Radar, WifiOff } from 'lucide-react'
+import { Activity, Clock, Gauge, Loader2, Radar, WifiOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   dayBarColor,
@@ -124,7 +123,7 @@ function MonitorCard(props: {
   )
 }
 
-// 面板主体（公开页与控制台内嵌共用）
+// 面板主体（公开页与控制台页共用）
 export function StatusPanel(props: { showSummary?: boolean }) {
   const { t } = useTranslation()
   const query = useUptimeHistoryQuery()
@@ -213,56 +212,3 @@ export function StatusPanel(props: { showSummary?: boolean }) {
   )
 }
 
-// 控制台内嵌版：默认收起为一条汇总栏，点击展开完整面板
-export function StatusCollapsible() {
-  const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const query = useUptimeHistoryQuery()
-  const groups = query.data?.data?.groups ?? []
-  const overall = useUptimeOverall(groups)
-
-  return (
-    <div className='border-border/60 rounded-xl border bg-background/60'>
-      <button
-        type='button'
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label={open ? t('Hide model availability') : t('Show model availability')}
-        className='flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:outline-none'
-      >
-        <span className='flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm'>
-          <span className='flex items-center gap-1.5 font-medium'>
-            <Radar className='size-4 text-primary' aria-hidden='true' />
-            {t('Model Availability')}
-          </span>
-          <span className='text-muted-foreground text-xs'>
-            {t('7-Day Availability')}{' '}
-            <span className={cn('font-semibold tabular-nums', uptimeColor(overall.uptime7d))}>
-              {formatUptime(overall.uptime7d)}
-            </span>
-          </span>
-          <span className='text-muted-foreground text-xs'>
-            {t('Total Samples')} <span className='font-semibold'>{overall.samples}</span>
-          </span>
-          <span className='text-muted-foreground text-xs'>
-            {t('Avg. Latency')}{' '}
-            <span className='font-semibold'>{formatLatency(overall.avgLatency)}</span>
-          </span>
-          <span className='text-muted-foreground text-xs'>
-            {t('Last Check')}{' '}
-            <span className='font-semibold'>{formatAgo(overall.lastCheck, t)}</span>
-          </span>
-        </span>
-        <ChevronDown
-          className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')}
-          aria-hidden='true'
-        />
-      </button>
-      {open && (
-        <div className='max-h-[480px] overflow-y-auto border-t p-4'>
-          <StatusPanel showSummary={false} />
-        </div>
-      )}
-    </div>
-  )
-}
