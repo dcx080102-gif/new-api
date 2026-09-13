@@ -82,6 +82,13 @@ function LegalLinks(props: { leadingSeparator?: boolean }) {
   const { t } = useTranslation()
   const { status } = useStatus()
   const items: { key: string; label: string; href: string }[] = []
+  if (status?.uptime_kuma_enabled) {
+    items.push({
+      key: 'status',
+      label: t('Service Status'),
+      href: '/status',
+    })
+  }
   if (status?.user_agreement_enabled) {
     items.push({
       key: 'user-agreement',

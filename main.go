@@ -289,6 +289,9 @@ func InitResources() error {
 	// Initialize options, should after model.InitDB()
 	model.InitOptionMap()
 
+	// 启动 Uptime 采集器（从 Uptime Kuma 累积探测记录，支撑公开 /status 页）
+	service.StartUptimeCollector()
+
 	// 清理旧的磁盘缓存文件
 	common.CleanupOldCacheFiles()
 
