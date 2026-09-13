@@ -69,11 +69,16 @@ const (
 func formatUserLogs(logs []*Log, startIdx int) {
 	for i := range logs {
 		logs[i].ChannelName = ""
+		logs[i].ChannelId = 0
 		var otherMap map[string]interface{}
 		otherMap, _ = common.StrToMap(logs[i].Other)
 		if otherMap != nil {
 			// Remove admin-only debug fields.
 			delete(otherMap, "admin_info")
+			// Remove upstream channel identity — customers must not see supplier internals.
+			delete(otherMap, "channel_id")
+			delete(otherMap, "channel_name")
+			delete(otherMap, "channel_type")
 			// delete(otherMap, "reject_reason")
 			delete(otherMap, "stream_status")
 		}
