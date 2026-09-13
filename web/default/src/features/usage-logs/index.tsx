@@ -111,12 +111,12 @@ function UsageLogsContent() {
 
   return (
     <>
-      <SectionPageLayout fixedContent>
+      <SectionPageLayout>
         <SectionPageLayout.Title>
           {t(pageMeta.titleKey)}
         </SectionPageLayout.Title>
         <SectionPageLayout.Content>
-          <div className='flex h-full min-h-0 flex-col gap-4'>
+          <div className='flex flex-col gap-4'>
             {showTaskSwitcher && (
               <Tabs value={activeCategory} onValueChange={handleSectionChange}>
                 <TabsList className='max-w-full flex-wrap justify-start group-data-horizontal/tabs:h-auto'>
@@ -129,7 +129,7 @@ function UsageLogsContent() {
               </Tabs>
             )}
             {activeCategory === 'common' && <UsageCharts />}
-            <div className='min-h-0 flex-1'>
+            <div>
               <UsageLogsTable logCategory={activeCategory} />
             </div>
           </div>
