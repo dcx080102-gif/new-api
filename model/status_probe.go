@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"gorm.io/gorm/clause"
+
+	"github.com/QuantumNous/new-api/common"
 )
 
 // StatusProbeRecord 保存 Uptime Kuma 心跳的原始记录，用于自算可用率。
@@ -83,4 +85,34 @@ func GetStatusProbeLastBeats(since time.Time) ([]StatusProbeLastBeat, error) {
 func GetStatusProbeCollectorStats() (latestBeat time.Time, err error) {
 	err = DB.Model(&StatusProbeRecord{}).Select("MAX(beat_time)").Scan(&latestBeat).Error
 	return
+}
+
+// StatusProbeDaily 某监控项某天的聚合结果。
+type StatusProbeDaily struct {
+	MonitorName string `json:"monitor_name"`
+	Day         string `json:"day"` // YYYY-MM-DD
+	Up          int64  `json:"up"`
+	Total       int64  `json:"total"`
+}
+
+// GetStatusProbeDailyAggregates 返回时间窗口内按监控项、按天聚合的探测结果（用于 30 天可用率条）。
+// 按天分组 SQL 跨库写法不同，用 common 的数据库标志分支。
+func GetStatusProbeDailyAggregates(since time.Time) ([]StatusProbeDaily, error) {
+	var dayExpr string
+	switch {
+	case common.UsingPostgreSQL:
+		dayExpr = "to_char(date_trunc('day', beat_time), 'YYYY-MM-DD')"
+	case common.UsingMySQL:
+		dayExpr = "DATE_FORMAT(beat_time, '%Y-%m-%d')"
+	default: // SQLite
+		dayExpr = "strftime('%Y-%m-%d', beat_time)"
+	}
+	var rows []StatusProbeDaily
+	err := DB.Model(&StatusProbeRecord{}).
+		Select("monitor_name, "+dayExpr+" AS day, SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS up, COUNT(*) AS total").
+		Where("beat_time >= ?", since).
+		Group("monitor_name, day").
+		Order("day ASC").
+		Scan(&rows).Error
+	return rows, err
 }

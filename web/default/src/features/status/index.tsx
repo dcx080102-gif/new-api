@@ -19,12 +19,12 @@ For commercial licensing, please contact support@quantumnous.com
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Activity, Clock, Gauge, Loader2, WifiOff } from 'lucide-react'
+import { Activity, Clock, Gauge, Loader2, Radar, WifiOff } from 'lucide-react'
 import { PublicLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
 import { getUptimeHistory } from './api'
-import type { UptimeHistoryMonitor } from './api'
+import type { UptimeHistoryDaily, UptimeHistoryMonitor } from './api'
 
 const SITE_GROUP_NAME = '网站可用性'
 
@@ -34,6 +34,7 @@ function formatUptime(value: number): string {
 }
 
 function formatLatency(ms: number): string {
+  if (ms < 0) return '—'
   if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`
   return `${Math.round(ms)}ms`
 }
@@ -60,7 +61,46 @@ function uptimeColor(value: number): string {
   return 'text-red-500'
 }
 
-function MonitorRow(props: { monitor: UptimeHistoryMonitor; t: (key: string, options?: Record<string, unknown>) => string }) {
+function dayBarColor(day: UptimeHistoryDaily): string {
+  if (day.total === 0) return 'bg-muted-foreground/20'
+  const pct = (day.up * 100) / day.total
+  if (pct >= 99) return 'bg-emerald-500/80'
+  if (pct >= 90) return 'bg-amber-500/80'
+  return 'bg-red-500/80'
+}
+
+// 近 30 天每日可用率条（Kener 风格）
+function DailyBars(props: { daily: UptimeHistoryDaily[] }) {
+  const { t } = useTranslation()
+  const cells = props.daily.slice(-30)
+  if (cells.length === 0) {
+    return (
+      <span className='text-muted-foreground/60 text-[11px]'>
+        {t('Collecting daily data...')}
+      </span>
+    )
+  }
+  return (
+    <div
+      className='flex items-end gap-[2px]'
+      role='img'
+      aria-label={t('Daily availability over the last 30 days')}
+    >
+      {cells.map((day) => (
+        <span
+          key={day.day}
+          title={`${day.day}: ${day.up}/${day.total}`}
+          className={cn('h-3.5 w-[5px] rounded-[2px]', dayBarColor(day))}
+        />
+      ))}
+    </div>
+  )
+}
+
+function MonitorCard(props: {
+  monitor: UptimeHistoryMonitor
+  t: (key: string, options?: Record<string, unknown>) => string
+}) {
   const m = props.monitor
   const statusDot =
     m.status === 1
@@ -68,47 +108,57 @@ function MonitorRow(props: { monitor: UptimeHistoryMonitor; t: (key: string, opt
       : m.status === 0
         ? 'bg-red-500'
         : 'bg-muted-foreground/40'
+  const statusText =
+    m.status === 1
+      ? props.t('Up')
+      : m.status === 0
+        ? props.t('Down')
+        : props.t('No data')
+
   return (
-    <div className='border-border/60 flex flex-col gap-2 rounded-xl border bg-background/60 px-4 py-3 transition-colors hover:border-border sm:flex-row sm:items-center sm:justify-between'>
-      <div className='flex min-w-0 items-center gap-3'>
-        <span
-          className={cn('size-2.5 shrink-0 rounded-full', statusDot)}
-          aria-hidden='true'
-        />
-        <span className='truncate font-mono text-sm font-medium'>{m.name}</span>
-        <span className='text-muted-foreground shrink-0 text-xs'>
-          {m.status === 1
-            ? props.t('Up')
-            : m.status === 0
-              ? props.t('Down')
-              : props.t('No data')}
-        </span>
+    <div className='border-border/60 rounded-xl border bg-background/60 p-4 transition-colors hover:border-border'>
+      <div className='flex flex-wrap items-center justify-between gap-x-4 gap-y-2'>
+        <div className='flex min-w-0 items-center gap-2.5'>
+          <span className={cn('size-2.5 shrink-0 rounded-full', statusDot)} aria-hidden='true' />
+          <span className='truncate font-mono text-sm font-medium'>{m.name}</span>
+          <span className='text-muted-foreground shrink-0 text-xs'>{statusText}</span>
+        </div>
+        <div className='flex flex-wrap items-center gap-x-5 gap-y-1 text-xs'>
+          <span className='text-muted-foreground'>
+            {props.t('7-Day')}{' '}
+            <span className={cn('text-sm font-semibold tabular-nums', uptimeColor(m.uptime_7d))}>
+              {formatUptime(m.uptime_7d)}
+            </span>
+          </span>
+          <span className='text-muted-foreground'>
+            24h{' '}
+            <span className={cn('text-sm font-semibold tabular-nums', uptimeColor(m.uptime))}>
+              {formatUptime(m.uptime)}
+            </span>
+          </span>
+          <span className='text-muted-foreground'>
+            {props.t('Avg. Latency')}{' '}
+            <span className='font-semibold tabular-nums'>{formatLatency(m.avg_latency_ms)}</span>
+          </span>
+          <span className='text-muted-foreground'>
+            {props.t('Last Check')}{' '}
+            <span className='font-semibold'>{formatAgo(m.last_check, props.t)}</span>
+          </span>
+        </div>
       </div>
-      <div className='flex flex-wrap items-center gap-x-5 gap-y-1 text-xs sm:justify-end'>
-        <span className='text-muted-foreground'>
-          {props.t('7-Day')}{' '}
-          <span className={cn('font-semibold', uptimeColor(m.uptime_7d))}>
-            {formatUptime(m.uptime_7d)}
-          </span>
-        </span>
-        <span className='text-muted-foreground'>
-          24h{' '}
-          <span className={cn('font-semibold', uptimeColor(m.uptime))}>
-            {formatUptime(m.uptime)}
-          </span>
-        </span>
-        <span className='text-muted-foreground'>
-          {props.t('Samples')} <span className='font-semibold'>{m.samples}</span>
-        </span>
-        <span className='text-muted-foreground'>
-          {props.t('Avg. Latency')}{' '}
-          <span className='font-semibold'>
-            {m.samples > 0 ? formatLatency(m.avg_latency_ms) : '—'}
-          </span>
-        </span>
-        <span className='text-muted-foreground'>
-          {props.t('Last Check')}{' '}
-          <span className='font-semibold'>{formatAgo(m.last_check, props.t)}</span>
+
+      <div className='mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5'>
+        <div className='flex items-center gap-3 text-[11px]'>
+          <DailyBars daily={m.daily} />
+        </div>
+        <span className='text-muted-foreground/70 text-[11px]'>
+          <Radar className='mr-1 inline size-3' aria-hidden='true' />
+          {props.t('Active probes')} {m.probe_samples}
+          <span className='mx-1.5' aria-hidden='true'>·</span>
+          <Activity className='mr-1 inline size-3' aria-hidden='true' />
+          {props.t('Live traffic')} {m.log_samples}
+          <span className='mx-1.5' aria-hidden='true'>·</span>
+          {props.t('Samples')} {m.samples}
         </span>
       </div>
     </div>
@@ -139,8 +189,10 @@ export function Status() {
         if (m.samples <= 0) continue
         ups += Math.round((m.uptime_7d * m.samples) / 100)
         samples += m.samples
-        latencySum += m.avg_latency_ms
-        latencyCount += 1
+        if (m.avg_latency_ms >= 0) {
+          latencySum += m.avg_latency_ms
+          latencyCount += 1
+        }
         if (m.last_check && (!lastCheck || m.last_check > lastCheck)) {
           lastCheck = m.last_check
         }
@@ -163,7 +215,7 @@ export function Status() {
           </h1>
           <p className='text-muted-foreground mt-2 max-w-2xl text-sm leading-relaxed'>
             {t(
-              'A short message is sent to each model every 15 minutes to verify availability. This page is public and updates automatically every minute.'
+              'Availability is computed from both active probes (a short message sent every 15 minutes) and real customer traffic. This page is public and refreshes every minute.'
             )}
           </p>
         </div>
@@ -175,12 +227,7 @@ export function Status() {
               <Activity className='size-3.5' aria-hidden='true' />
               {t('7-Day Availability')}
             </div>
-            <div
-              className={cn(
-                'mt-1.5 text-xl font-bold tabular-nums',
-                uptimeColor(overall.uptime7d)
-              )}
-            >
+            <div className={cn('mt-1.5 text-xl font-bold tabular-nums', uptimeColor(overall.uptime7d))}>
               {formatUptime(overall.uptime7d)}
             </div>
           </div>
@@ -189,9 +236,7 @@ export function Status() {
               <Gauge className='size-3.5' aria-hidden='true' />
               {t('Total Samples')}
             </div>
-            <div className='mt-1.5 text-xl font-bold tabular-nums'>
-              {overall.samples}
-            </div>
+            <div className='mt-1.5 text-xl font-bold tabular-nums'>{overall.samples}</div>
           </div>
           <div className='border-border/60 rounded-xl border bg-background/60 px-4 py-3.5'>
             <div className='text-muted-foreground flex items-center gap-1.5 text-xs'>
@@ -199,7 +244,7 @@ export function Status() {
               {t('Avg. Latency')}
             </div>
             <div className='mt-1.5 text-xl font-bold tabular-nums'>
-              {overall.avgLatency >= 0 ? formatLatency(overall.avgLatency) : '—'}
+              {formatLatency(overall.avgLatency)}
             </div>
           </div>
           <div className='border-border/60 rounded-xl border bg-background/60 px-4 py-3.5'>
@@ -238,15 +283,15 @@ export function Status() {
 
         {groups.map((group) => (
           <section key={group.categoryName} className='mb-8'>
-            <div className='mb-3 flex items-center gap-2'>
+            <div className='mb-3 flex items-baseline gap-2'>
               <h2 className='text-base font-semibold'>{group.categoryName}</h2>
               <span className='text-muted-foreground/70 text-xs'>
                 {group.monitors.length}
               </span>
             </div>
-            <div className='space-y-2'>
+            <div className='space-y-2.5'>
               {group.monitors.map((monitor) => (
-                <MonitorRow key={monitor.name} monitor={monitor} t={t} />
+                <MonitorCard key={monitor.name} monitor={monitor} t={t} />
               ))}
             </div>
           </section>
