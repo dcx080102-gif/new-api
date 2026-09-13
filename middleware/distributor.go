@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -88,6 +89,26 @@ func Distribute() func(c *gin.Context) {
 				// 更新 body storage 缓存
 				if newStorage, err := common.CreateBodyStorage(newBodyBytes); err == nil {
 					c.Set(common.KeyBodyStorage, newStorage)
+				}
+			}
+		}
+		// 聊天协议生图模型（gemini-*-image-preview 等）：上游不支持流式，强制 stream:false
+		if modelRequest != nil && common.IsChatImageModel(modelRequest.Model) &&
+			(strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions") || strings.HasPrefix(c.Request.URL.Path, "/v1/chat/completions")) {
+			if storage, err := common.GetBodyStorage(c); err == nil {
+				bodyBytes, _ := storage.Bytes()
+				if gjson.GetBytes(bodyBytes, "stream").Bool() {
+					var bodyMap map[string]interface{}
+					if json.Unmarshal(bodyBytes, &bodyMap) == nil {
+						bodyMap["stream"] = false
+						if newBodyBytes, err := json.Marshal(bodyMap); err == nil {
+							c.Request.Body = io.NopCloser(bytes.NewReader(newBodyBytes))
+							c.Request.ContentLength = int64(len(newBodyBytes))
+							if newStorage, err := common.CreateBodyStorage(newBodyBytes); err == nil {
+								c.Set(common.KeyBodyStorage, newStorage)
+							}
+						}
+					}
 				}
 			}
 		}
@@ -203,6 +224,18 @@ func Distribute() func(c *gin.Context) {
 						//}
 						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, message, types.ErrorCodeModelNotFound)
 						return
+					}
+					// 游乐园兜底：所选分组下没有该模型的可用渠道时，按 auto 自动分组重新选择（如生图模型只在画图组）
+					if channel == nil && strings.HasPrefix(c.Request.URL.Path, "/pg/") && usingGroup != "auto" {
+						channel, selectGroup, err = service.CacheGetRandomSatisfiedChannel(&service.RetryParam{
+							Ctx:        c,
+							ModelName:  modelRequest.Model,
+							TokenGroup: "auto",
+							Retry:      common.GetPointer(0),
+						})
+						if err == nil && channel != nil {
+							common.SetContextKey(c, constant.ContextKeyUsingGroup, selectGroup)
+						}
 					}
 					if channel == nil {
 						abortWithOpenAiMessage(c, http.StatusServiceUnavailable, i18n.T(c, i18n.MsgDistributorNoAvailableChannel, map[string]any{"Group": usingGroup, "Model": modelRequest.Model}), types.ErrorCodeModelNotFound)

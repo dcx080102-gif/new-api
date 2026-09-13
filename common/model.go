@@ -27,6 +27,11 @@ var (
 		"cogvideo",
 		"cogview",
 	}
+
+	ChatImageModels = []string{
+		"gemini-3-pro-image-preview",
+		"gemini-3.1-flash-image-preview",
+	}
 	OpenAITextModels = []string{
 		"gpt-",
 		"o1",
@@ -61,6 +66,16 @@ func IsImageGenerationModel(modelName string) bool {
 func IsVideoGenerationModel(modelName string) bool {
 	modelName = strings.ToLower(modelName)
 	for _, m := range VideoGenerationModels {
+		if strings.Contains(modelName, m) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsChatImageModel(modelName string) bool {
+	modelName = strings.ToLower(modelName)
+	for _, m := range ChatImageModels {
 		if strings.Contains(modelName, m) {
 			return true
 		}
