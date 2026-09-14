@@ -65,6 +65,12 @@ func GetPerfMetrics(c *gin.Context) {
 
 	result.Groups = filterActiveGroups(result.Groups)
 
+	// 附加可用性监测数据（主动探针 + 真实调用双源）——模型详情·性能复用，
+	// 采集方无需适配新的接口格式。
+	if uptimeInfo, uptimeErr := buildUptimeInfo(modelName); uptimeErr == nil {
+		result.Uptime = uptimeInfo
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    result,

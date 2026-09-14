@@ -33,6 +33,24 @@ export type PerformanceGroup = {
   series: PerformanceSeriesPoint[]
 }
 
+export type UptimeDay = {
+  day: string
+  up: number
+  total: number
+}
+
+export type UptimeInfo = {
+  status: number // 1=正常 0=故障 -1=暂无数据
+  uptime_24h: number // %，-1 数据不足
+  uptime_7d: number // %，-1 数据不足
+  samples: number
+  probe_samples: number
+  log_samples: number
+  avg_latency_ms: number // -1 无数据
+  last_check: number // unix 秒，0 无
+  daily: UptimeDay[]
+}
+
 export type PerformanceMetricsData = {
   success: boolean
   message?: string
@@ -40,6 +58,7 @@ export type PerformanceMetricsData = {
     model_name: string
     series_schema?: string
     groups: PerformanceGroup[]
+    uptime?: UptimeInfo
   }
 }
 

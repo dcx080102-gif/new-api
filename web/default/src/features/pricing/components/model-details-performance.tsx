@@ -32,7 +32,7 @@ import {
   formatThroughput,
   formatUptimePct,
 } from '@/features/performance-metrics/lib/format'
-import type { PerformanceGroup } from '@/features/performance-metrics/types'
+import type { PerformanceGroup, UptimeDay, UptimeInfo } from '@/features/performance-metrics/types'
 import { type UptimeDayPoint } from '../lib/mock-stats'
 import type { PricingModel } from '../types'
 import { LatencyTrendChart, UptimeTrendChart } from './model-details-charts'
@@ -161,6 +161,10 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
     () => metricsQuery.data?.data.groups ?? [],
     [metricsQuery.data]
   )
+  const uptime = useMemo(
+    () => metricsQuery.data?.data.uptime ?? null,
+    [metricsQuery.data]
+  )
   const performances = useMemo<PerformanceRow[]>(
     () =>
       groups.map((group) => ({
@@ -182,7 +186,7 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
     return map
   }, [groups])
 
-  if (metricsQuery.isLoading || performances.length === 0) {
+  if (metricsQuery.isLoading || (performances.length === 0 && !uptime)) {
     return (
       <div className='text-muted-foreground rounded-lg border p-6 text-center text-sm'>
         {t('Performance data is not yet available for this model.')}
@@ -216,6 +220,8 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
 
   return (
     <div className='flex flex-col gap-4'>
+      {performances.length > 0 && (
+        <>
       <div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
         <StatCard
           icon={Timer}
@@ -336,7 +342,112 @@ export function ModelDetailsPerformance(props: { model: PricingModel }) {
         />
         <UptimeTrendChart series={uptimeSeries} />
       </section>
+        </>
+      )}
+      {uptime && <UptimeSection uptime={uptime} />}
     </div>
+  )
+}
+
+function formatAgoUnix(
+  unix: number,
+  t: (key: string, options?: Record<string, unknown>) => string
+): string {
+  if (!unix || unix <= 0) return '—'
+  const diffMin = Math.floor((Date.now() - unix * 1000) / 60000)
+  if (diffMin < 1) return t('Just now')
+  if (diffMin < 60) return t('{{count}} minutes ago', { count: diffMin })
+  const diffHour = Math.floor(diffMin / 60)
+  if (diffHour < 24) return t('{{count}} hours ago', { count: diffHour })
+  return t('{{count}} days ago', { count: Math.floor(diffHour / 24) })
+}
+
+function dayBarColor(uptimeDay: UptimeDay): string {
+  if (uptimeDay.total === 0) return 'bg-muted-foreground/20'
+  const pct = (uptimeDay.up * 100) / uptimeDay.total
+  if (pct >= 99) return 'bg-emerald-500/80'
+  if (pct >= 90) return 'bg-amber-500/80'
+  return 'bg-red-500/80'
+}
+
+// 可用性监测区（主动探针 + 真实调用双源，公开可见）
+function UptimeSection(props: { uptime: UptimeInfo }) {
+  const { t } = useTranslation()
+  const u = props.uptime
+  const statusDot =
+    u.status === 1
+      ? 'bg-emerald-500'
+      : u.status === 0
+        ? 'bg-red-500'
+        : 'bg-muted-foreground/40'
+  const statusText =
+    u.status === 1
+      ? t('Up')
+      : u.status === 0
+        ? t('Down')
+        : t('No data')
+  const cells = u.daily.slice(-30)
+  const uptimeIntent =
+    u.uptime_7d >= 99
+      ? 'success'
+      : u.uptime_7d >= 90
+        ? 'warning'
+        : 'default'
+
+  return (
+    <section>
+      <SectionHeader
+        icon={HeartPulse}
+        title={t('Availability monitoring')}
+        description={t('Sampled from active probes and real customer traffic')}
+        accent={
+          <span className='inline-flex items-center gap-1.5 text-xs font-medium'>
+            <span className={cn('size-2 rounded-full', statusDot)} aria-hidden='true' />
+            {statusText}
+          </span>
+        }
+      />
+      <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+        <StatCard
+          icon={HeartPulse}
+          label={t('7-Day Availability')}
+          value={u.uptime_7d >= 0 ? formatUptimePct(u.uptime_7d) : '—'}
+          intent={uptimeIntent}
+        />
+        <StatCard
+          icon={HeartPulse}
+          label={t('24h Availability')}
+          value={u.uptime_24h >= 0 ? formatUptimePct(u.uptime_24h) : '—'}
+        />
+        <StatCard
+          icon={Timer}
+          label={t('Avg. Latency')}
+          value={formatLatency(u.avg_latency_ms)}
+          hint={`${t('Active probes')} ${u.probe_samples} · ${t('Live traffic')} ${u.log_samples}`}
+        />
+        <StatCard
+          icon={Timer}
+          label={t('Last Check')}
+          value={formatAgoUnix(u.last_check, t)}
+          hint={`${t('Samples')} ${u.samples}`}
+        />
+      </div>
+      {cells.length > 0 && (
+        <div
+          className='mt-2 flex items-end gap-[2px]'
+          role='img'
+          aria-label={t('Daily availability over the last 30 days')}
+        >
+          {cells.map((day) => (
+            <span
+              key={day.day}
+              title={`${day.day}: ${day.up}/${day.total}`}
+              className={cn('h-3.5 w-[5px] rounded-[2px]', dayBarColor(day))}
+            />
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
 

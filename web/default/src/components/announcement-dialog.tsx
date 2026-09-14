@@ -175,11 +175,9 @@ function ShineText({ children }: { children: React.ReactNode }) {
 // ============================================================================
 
 function NoticeContent({
-  notice,
   loading,
   t,
 }: {
-  notice: string
   loading: boolean
   t: TFunction
 }) {
@@ -400,7 +398,6 @@ export function AnnouncementDialog(props: AnnouncementDialogProps) {
       <div className='h-[70vh]'>
         {activeTab === 'notice' ? (
           <NoticeContent
-            notice={props.notice}
             loading={props.loading}
             t={t}
           />

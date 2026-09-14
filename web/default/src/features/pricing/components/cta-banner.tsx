@@ -16,11 +16,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Key, Wallet, UserPlus } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
-import { getApiKeys } from '@/features/keys/api'
 import { cn } from '@/lib/utils'
 
 // ============================================================================
@@ -40,38 +38,6 @@ interface CtaContent {
 export function CtaBanner({ className }: { className?: string }) {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.auth.user)
-
-  const [hasKeys, setHasKeys] = useState<boolean | null>(null)
-  const [loadingKeys, setLoadingKeys] = useState(false)
-
-  // Check if the logged-in user has any API keys
-  useEffect(() => {
-    if (!user) {
-      setHasKeys(null)
-      return
-    }
-    let cancelled = false
-    setLoadingKeys(true)
-    getApiKeys({ p: 1, size: 1 })
-      .then((result) => {
-        if (cancelled) return
-        const items = result.data?.items ?? []
-        setHasKeys(items.length > 0)
-      })
-      .catch(() => {
-        if (!cancelled) setHasKeys(false)
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingKeys(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [user])
-
-  // Determine which variant to show
-  const quota = user?.quota ?? 0
-  const LOW_QUOTA_THRESHOLD = 500
 
   let variant: CtaVariant = 'hidden'
 

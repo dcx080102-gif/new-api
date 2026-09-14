@@ -45,6 +45,29 @@ type QueryResult struct {
 	ModelName    string        `json:"model_name"`
 	SeriesSchema string        `json:"series_schema"`
 	Groups       []GroupResult `json:"groups"`
+	// Uptime 可用性监测数据（主动探针 + 真实调用双源合并，7日/24h 可用率等）。
+	// 模型无流量时 Groups 为空，可用性数据仍可公开可见。
+	Uptime *UptimeInfo `json:"uptime,omitempty"`
+}
+
+// UptimeDay 某天的聚合结果。
+type UptimeDay struct {
+	Day   string `json:"day"`
+	Up    int64  `json:"up"`
+	Total int64  `json:"total"`
+}
+
+// UptimeInfo 单个模型的可用性信息。
+type UptimeInfo struct {
+	Status        int         `json:"status"`          // 1=正常 0=故障 -1=暂无数据
+	Uptime24h     float64     `json:"uptime_24h"`      // 24h 可用率（%），-1 数据不足
+	Uptime7d      float64     `json:"uptime_7d"`       // 7 日可用率（%），-1 数据不足
+	Samples       int64       `json:"samples"`         // 7 日可判定样本总数
+	ProbeSamples  int64       `json:"probe_samples"`   // 主动探针样本
+	LogSamples    int64       `json:"log_samples"`     // 真实调用样本
+	AvgLatencyMs  float64     `json:"avg_latency_ms"`  // 探针平均延迟（毫秒），-1 无数据
+	LastCheckUnix int64       `json:"last_check"`      // 最后检测/调用时间（unix 秒），0 无
+	Daily         []UptimeDay `json:"daily"`           // 近 30 天每日 up/total
 }
 
 type ModelSummary struct {

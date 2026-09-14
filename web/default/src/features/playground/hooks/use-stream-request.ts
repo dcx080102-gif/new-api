@@ -40,12 +40,15 @@ export function useStreamRequest() {
       const abortController = new AbortController()
       const timeoutId = setTimeout(() => abortController.abort(), 180_000)
 
-      const source = new SSE(API_ENDPOINTS.CHAT_COMPLETIONS, {
+      // sse.js 2.8 的类型定义未包含 fetchOptions，但运行时透传给 fetch，
+      // 这里通过断言保留 AbortController 超时中断能力。
+      const sseOptions = {
         headers: getCommonHeaders(),
         method: 'POST',
         payload: JSON.stringify(payload),
         fetchOptions: { signal: abortController.signal },
-      })
+      } as unknown as ConstructorParameters<typeof SSE>[1]
+      const source = new SSE(API_ENDPOINTS.CHAT_COMPLETIONS, sseOptions)
 
       sseSourceRef.current = source
       isStreamCompleteRef.current = false
