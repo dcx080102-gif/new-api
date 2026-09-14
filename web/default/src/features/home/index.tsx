@@ -22,7 +22,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { Markdown } from '@/components/ui/markdown'
 import { PublicLayout } from '@/components/layout'
 import { Footer } from '@/components/layout/components/footer'
-import { CTA, Features, Hero, HowItWorks, Stats, BrandWall, WhyOtter, ModelCapabilities, UseCases, FAQ } from './components'
+import { CTA, Features, Hero, HowItWorks, Stats, BrandWall, WhyOtter, ModelCapabilities, UseCases, FAQ, ServiceStatusSection } from './components'
 import { useHomePageContent } from './hooks'
 import { FOOTER_COLUMNS } from './constants'
 
@@ -81,6 +81,7 @@ export function Home() {
       <WhyOtter />
       <ModelCapabilities />
       <Stats />
+      <ServiceStatusSection />
       <Features />
       <UseCases />
       <HowItWorks />

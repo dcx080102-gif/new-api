@@ -27,9 +27,19 @@ func GetPerfMetricsSummary(c *gin.Context) {
 		return
 	}
 
+	// 附加全部模型的可用性监测数据（主动探针 + 真实调用双源）。
+	// 供首页「服务状态」区块与第三方采集方复用，无需适配新接口。
+	uptimeModels, uptimeErr := buildAllUptimeModels()
+	if uptimeErr != nil {
+		uptimeModels = []perfmetrics.UptimeModel{}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    result,
+		"data": gin.H{
+			"models":        result.Models,
+			"uptime_models": uptimeModels,
+		},
 	})
 }
 

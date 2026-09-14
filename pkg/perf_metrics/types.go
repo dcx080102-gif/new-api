@@ -70,6 +70,12 @@ type UptimeInfo struct {
 	Daily         []UptimeDay `json:"daily"`           // 近 30 天每日 up/total
 }
 
+// UptimeModel 模型及其可用性信息（用于 summary 接口的 uptime_models 列表）。
+type UptimeModel struct {
+	ModelName string     `json:"model_name"`
+	Uptime    *UptimeInfo `json:"uptime"`
+}
+
 type ModelSummary struct {
 	ModelName    string  `json:"model_name"`
 	AvgLatencyMs int64   `json:"avg_latency_ms"`

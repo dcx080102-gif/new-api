@@ -70,10 +70,16 @@ export type PerfModelSummary = {
   request_count?: number
 }
 
+export type UptimeModel = {
+  model_name: string
+  uptime: UptimeInfo
+}
+
 export type PerfSummaryAllData = {
   success: boolean
   message?: string
   data: {
     models: PerfModelSummary[]
+    uptime_models?: UptimeModel[]
   }
 }
